@@ -3,7 +3,7 @@ module.exports = {
 
 	http: {
 		hostname: '0.0.0.0',
-		port: process.env.NODE_ENV
+		port: process.env.PORT
 	},
 
 	static: {

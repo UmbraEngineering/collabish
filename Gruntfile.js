@@ -94,8 +94,8 @@ module.exports = function(grunt) {
 				dest: buildPath + '/js/common.min.js'
 			},
 			src: {
-				src: buildPath + '/js/build.js',
-				dest: buildPath + '/js/build.min.js'
+				src: buildPath + '/build.js',
+				dest: buildPath + '/build.min.js'
 			}
 		},
 
