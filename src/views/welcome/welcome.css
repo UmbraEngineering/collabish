@@ -1,0 +1,157 @@
+
+.welcome {
+	/**/
+}
+
+	.welcome header {
+		width: 95%;
+		margin: 0 auto;
+		padding-top: 2rem;
+	}
+
+		.welcome header h1 {
+			text-align: center;
+		}
+
+		.welcome header p {
+			margin-left: 0;
+			text-align: center;
+		}
+
+	.welcome nav {
+		width: 95%;
+		margin: 2rem auto;
+		text-align: center;
+		padding-bottom: 2rem;
+		border-bottom: 1px #ccc solid;
+	}
+
+		.welcome nav .button {
+			width: 100%;
+		}
+
+		.welcome nav a:not(.button) {
+			color: #444;
+			margin: 0 10px;
+		}
+
+	.welcome main {
+		/**/
+	}
+
+
+
+@media only screen and (min-width: 40.063em) {
+	.welcome {
+		padding-top: 5rem;
+	}
+
+		.welcome header {
+			width: 80%;
+			margin: 0 auto;
+		}
+
+			.welcome header h1 {
+				text-align: left;
+			}
+
+
+			.welcome header p {
+				margin-left: 15px;
+				text-align: left;
+			}
+
+		.welcome nav {
+			margin: 0;
+			width: auto;
+			position: absolute;
+			top: 2rem;
+			right: 2rem;
+			text-align: left;
+			padding-bottom: 0;
+			border-bottom: 0;
+		}
+
+			.welcome nav a {
+				float: right;
+			}
+
+			.welcome nav a:not(.button) {
+				display: inline-block;
+				padding: 5px;
+				margin: 5px 10px 0 0;
+				font-size: 0.8rem;
+			}
+
+			.welcome nav .button {
+				width: auto;
+				font-size: 0.8rem;
+				padding-top: 0.5rem;
+				padding-bottom: 0.5rem;
+			}
+}
+
+
+
+@media only screen and (min-width: 120.063em){
+	.welcome {
+		padding-top: 8rem;
+	}
+}
+
+
+
+/* ==  Signup  == */
+
+.signup {
+	margin: 0 auto;
+}
+	
+	.signup h2 {
+		text-align: center;
+	}
+
+	.signup form {
+		/**/
+	}
+
+		.signup form label {
+			margin-top: 20px;
+		}
+
+			.signup form label input {
+				margin-top: 5px;
+			}
+
+		.signup form .button-wrapper {
+			padding-top: 10px;
+			text-align: center;
+		}
+
+			.signup form .button {
+				width: 100%;
+				background: #ff7941;
+			}
+
+			.signup form .button:hover {
+				background: #ff712c;
+			}
+
+
+
+@media only screen and (min-width: 40.063em) {
+	.signup {
+		width: 400px;
+		padding: 15px;
+		border: 1px #ddd solid;
+		border-radius: 15px 20px;
+		background: #f5f5f5;
+	}
+
+		.signup form .button {
+			margin-bottom: 0;
+		}
+}
+
+
+
