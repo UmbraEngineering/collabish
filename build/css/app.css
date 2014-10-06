@@ -5973,6 +5973,10 @@ th.hide-for-touch {
     background: #f5f5f5;
   }
 
+  .signup h2 {
+    font-size: 2rem;
+  }
+
   .signup form .button {
     margin-bottom: 0;
   }
