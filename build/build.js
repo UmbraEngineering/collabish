@@ -28236,9 +28236,9 @@ var SignupView = module.exports = View.extend({
 	signup: function() {
 		var self = this;
 
-		// if (! this.validate()) {
-			// return;
-		// }
+		if (! this.validate()) {
+			return;
+		}
 		this.showError();
 		this.disable(true);
 
