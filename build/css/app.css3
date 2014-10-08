@@ -4492,7 +4492,7 @@ input[type="url"], textarea, select {
 
 		.modal.wrapper .privacy.modal main li,
 		.modal.wrapper .privacy.modal main > p {
-			margin: 1rem;
+			margin: 1rem 0;
 		}
 
 @media only screen and (min-width: 40.063em) {
@@ -4505,6 +4505,11 @@ input[type="url"], textarea, select {
 			height: 450px;
 			padding-right: 10px;
 		}
+
+			.modal.wrapper .privacy.modal main li,
+			.modal.wrapper .privacy.modal main > p {
+				margin: 1rem;
+			}
 }
 
 @media only screen and (min-width: 64.063em) {
@@ -4647,6 +4652,13 @@ section.signup {
 		color: #ff7941;
 		font-weight: bold;
 		float: right;
+	}
+
+	section.signup nav {
+		padding-bottom: 0;
+		padding-top: 2rem;
+		border-bottom-width: 0;
+		border-top: 1px #ccc solid;
 	}
 
 @media only screen and (max-width: 40em) {

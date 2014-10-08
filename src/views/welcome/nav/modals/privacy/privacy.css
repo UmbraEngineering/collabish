@@ -21,7 +21,7 @@
 
 		.modal.wrapper .privacy.modal main li,
 		.modal.wrapper .privacy.modal main > p {
-			margin: 1rem;
+			margin: 1rem 0;
 		}
 
 @media only screen and (min-width: 40.063em) {
@@ -34,6 +34,11 @@
 			height: 450px;
 			padding-right: 10px;
 		}
+
+			.modal.wrapper .privacy.modal main li,
+			.modal.wrapper .privacy.modal main > p {
+				margin: 1rem;
+			}
 }
 
 @media only screen and (min-width: 64.063em) {

@@ -49,6 +49,13 @@ section.signup {
 		float: right;
 	}
 
+	section.signup nav {
+		padding-bottom: 0;
+		padding-top: 2rem;
+		border-bottom-width: 0;
+		border-top: 1px #ccc solid;
+	}
+
 @media only screen and (max-width: 40em) {
 	section.signup header h1,
 	section.signup main h2 {
