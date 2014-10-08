@@ -34,7 +34,7 @@ var Queue = exports.Queue = AppObject.extend({
 					this.next();
 				});
 				this.emit('request', req);
-				req.start();
+				req.run();
 			}
 		});
 	},
@@ -104,7 +104,7 @@ var Request = exports.Request = AppObject.extend({
 
 		// The config object to pass to $.ajax
 		this.config = {
-			url: url,
+			url: this.url,
 			type: method.toUpperCase(),
 			async: true,
 			cache: false,
@@ -149,7 +149,7 @@ var Request = exports.Request = AppObject.extend({
 
 		this.config.complete = _.bind(this.oncomplete, this, deferred);
 
-		cloak.log('XHR: ' + this.method.toUpperCase() + ' ' + this.url + ' ' + this.config.data);
+		cloak.log('XHR: ' + this.method.toUpperCase() + ' ' + this.url + ' ' + (this.config.data || { }));
 		this.emit('send', this);
 		this.xhr = $.ajax(this.config);
 

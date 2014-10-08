@@ -1,0 +1,49 @@
+
+.modal.wrapper {
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	background-color: transparent;
+	transition: background-color .25s linear;
+	z-index: 10000;
+}
+
+.modal.wrapper.open {
+	background-color: rgba(0,0,0,0.4);
+}
+
+	.modal.wrapper .modal.box {
+		background: #fff;
+		border: 1px #ccc solid;
+		width: 300px;
+		margin: 8rem auto;
+		padding: 1rem 1.5rem;
+		box-shadow: 4px 4px 4px rgba(0,0,0,0.4);
+		position: relative;
+		top: -200px;
+		opacity: 0;
+		transition: opacity .25s linear, top .5s ease-out;
+	}
+
+	.modal.wrapper.open .modal.box {
+		opacity: 1;
+		top: 0;
+	}
+
+		.modal.close {
+			position: absolute;
+			top: .5rem;
+			right: .5rem;
+			color: #666;
+			font-size: 2rem;
+		}
+
+
+
+@media only screen and (min-width: 40.063em) {
+	.modal.wrapper .modal.box {
+		width: 500px;
+	}
+}

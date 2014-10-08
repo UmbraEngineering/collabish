@@ -4081,7 +4081,7 @@ th.hide-for-touch {
 .touch th.show-for-touch {
   display: table-cell !important; }
 
-* {
+body {
 	font-family: "Open Sans", "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
 }
 
@@ -4089,103 +4089,538 @@ th.hide-for-touch {
 	max-width: 80em;
 }
 
+input[type="text"], input[type="password"], input[type="date"],
+input[type="datetime"], input[type="datetime-local"], input[type="month"],
+input[type="week"], input[type="email"], input[type="number"],
+input[type="search"], input[type="tel"], input[type="time"],
+input[type="url"], textarea, select {
+	margin-top: 5px;
+}
 
-.welcome {
+/* Base styles for the element that has a tooltip */
+[data-tooltip],
+.tooltip {
+  position: relative;
+  cursor: pointer;
+}
+
+/* Base styles for the entire tooltip */
+[data-tooltip]:before,
+[data-tooltip]:after,
+.tooltip:before,
+.tooltip:after {
+  position: absolute;
+  visibility: hidden;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
+  filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=0);
+  opacity: 0;
+  -webkit-transition: 
+	  opacity 0.2s ease-in-out,
+		visibility 0.2s ease-in-out,
+		-webkit-transform 0.2s cubic-bezier(0.71, 1.7, 0.77, 1.24);
+	-moz-transition:    
+		opacity 0.2s ease-in-out,
+		visibility 0.2s ease-in-out,
+		-moz-transform 0.2s cubic-bezier(0.71, 1.7, 0.77, 1.24);
+	transition:         
+		opacity 0.2s ease-in-out,
+		visibility 0.2s ease-in-out,
+		transform 0.2s cubic-bezier(0.71, 1.7, 0.77, 1.24);
+  -webkit-transform: translate3d(0, 0, 0);
+  -moz-transform:    translate3d(0, 0, 0);
+  transform:         translate3d(0, 0, 0);
+  pointer-events: none;
+}
+
+/* Show the entire tooltip on hover and focus */
+[data-tooltip]:hover:before,
+[data-tooltip]:hover:after,
+[data-tooltip]:focus:before,
+[data-tooltip]:focus:after,
+.tooltip:hover:before,
+.tooltip:hover:after,
+.tooltip:focus:before,
+.tooltip:focus:after {
+  visibility: visible;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
+  filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100);
+  opacity: 1;
+}
+
+/* Base styles for the tooltip's directional arrow */
+.tooltip:before,
+[data-tooltip]:before {
+  z-index: 1001;
+  border: 6px solid transparent;
+  background: transparent;
+  content: "";
+}
+
+/* Base styles for the tooltip's content area */
+.tooltip:after,
+[data-tooltip]:after {
+  z-index: 1000;
+  padding: 8px;
+  width: 200px;
+  background-color: #000;
+  background-color: hsla(0, 0%, 20%, 0.9);
+  color: #fff;
+  content: attr(data-tooltip);
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 500;
+}
+
+/* Directions */
+
+/* Top (default) */
+[data-tooltip]:before,
+[data-tooltip]:after,
+.tooltip:before,
+.tooltip:after,
+.tooltip-top:before,
+.tooltip-top:after {
+  bottom: 100%;
+  left: 50%;
+}
+
+[data-tooltip]:before,
+.tooltip:before,
+.tooltip-top:before {
+  margin-left: -6px;
+  margin-bottom: -12px;
+  border-top-color: #000;
+  border-top-color: hsla(0, 0%, 20%, 0.9);
+}
+
+/* Horizontally align top/bottom tooltips */
+[data-tooltip]:after,
+.tooltip:after,
+.tooltip-top:after {
+  margin-left: -80px;
+}
+
+[data-tooltip]:hover:before,
+[data-tooltip]:hover:after,
+[data-tooltip]:focus:before,
+[data-tooltip]:focus:after,
+.tooltip:hover:before,
+.tooltip:hover:after,
+.tooltip:focus:before,
+.tooltip:focus:after,
+.tooltip-top:hover:before,
+.tooltip-top:hover:after,
+.tooltip-top:focus:before,
+.tooltip-top:focus:after {
+  -webkit-transform: translateY(-12px);
+  -moz-transform:    translateY(-12px);
+  transform:         translateY(-12px); 
+}
+
+/* Left */
+.tooltip-left:before,
+.tooltip-left:after {
+  right: 100%;
+  bottom: 50%;
+  left: auto;
+}
+
+.tooltip-left:before {
+  margin-left: 0;
+  margin-right: -12px;
+  margin-bottom: 0;
+  border-top-color: transparent;
+  border-left-color: #000;
+  border-left-color: hsla(0, 0%, 20%, 0.9);
+}
+
+.tooltip-left:hover:before,
+.tooltip-left:hover:after,
+.tooltip-left:focus:before,
+.tooltip-left:focus:after {
+  -webkit-transform: translateX(-12px);
+  -moz-transform:    translateX(-12px);
+  transform:         translateX(-12px); 
+}
+
+/* Bottom */
+.tooltip-bottom:before,
+.tooltip-bottom:after {
+  top: 100%;
+  bottom: auto;
+  left: 50%;
+}
+
+.tooltip-bottom:before {
+  margin-top: -12px;
+  margin-bottom: 0;
+  border-top-color: transparent;
+  border-bottom-color: #000;
+  border-bottom-color: hsla(0, 0%, 20%, 0.9);
+}
+
+.tooltip-bottom:hover:before,
+.tooltip-bottom:hover:after,
+.tooltip-bottom:focus:before,
+.tooltip-bottom:focus:after {
+  -webkit-transform: translateY(12px);
+  -moz-transform:    translateY(12px);
+  transform:         translateY(12px); 
+}
+
+/* Right */
+.tooltip-right:before,
+.tooltip-right:after {
+  bottom: 50%;
+  left: 100%;
+}
+
+.tooltip-right:before {
+  margin-bottom: 0;
+  margin-left: -12px;
+  border-top-color: transparent;
+  border-right-color: #000;
+  border-right-color: hsla(0, 0%, 20%, 0.9);
+}
+
+.tooltip-right:hover:before,
+.tooltip-right:hover:after,
+.tooltip-right:focus:before,
+.tooltip-right:focus:after {
+  -webkit-transform: translateX(12px);
+  -moz-transform:    translateX(12px);
+  transform:         translateX(12px); 
+}
+
+/* Move directional arrows down a bit for left/right tooltips */
+.tooltip-left:before,
+.tooltip-right:before {
+  top: 3px;
+}
+
+/* Vertically center tooltip content for left/right tooltips */
+.tooltip-left:after,
+.tooltip-right:after {
+  margin-left: 0;
+  margin-bottom: -16px;
+}
+
+.modal.wrapper {
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	background-color: transparent;
+	transition: background-color .25s linear;
+	z-index: 10000;
+}
+
+.modal.wrapper.open {
+	background-color: rgba(0,0,0,0.4);
+}
+
+	.modal.wrapper .modal.box {
+		background: #fff;
+		border: 1px #ccc solid;
+		width: 300px;
+		margin: 8rem auto;
+		padding: 1rem 1.5rem;
+		box-shadow: 4px 4px 4px rgba(0,0,0,0.4);
+		position: relative;
+		top: -200px;
+		opacity: 0;
+		transition: opacity .25s linear, top .5s ease-out;
+	}
+
+	.modal.wrapper.open .modal.box {
+		opacity: 1;
+		top: 0;
+	}
+
+		.modal.close {
+			position: absolute;
+			top: .5rem;
+			right: .5rem;
+			color: #666;
+			font-size: 2rem;
+		}
+
+
+
+@media only screen and (min-width: 40.063em) {
+	.modal.wrapper .modal.box {
+		width: 500px;
+	}
+}
+
+
+.login.modal {
+	/**/
+}
+	
+	.login.modal .error {
+		color: #a22;
+		padding: 5px 0 20px;
+	}
+
+	.login.modal form {
+		/**/
+	}
+
+		.login.modal form .button-wrapper {
+			padding-top: 10px;
+			text-align: center;
+		}
+
+			.login.modal form .button {
+				width: 100%;
+				background: #ff7941;
+				margin-bottom: 0;
+			}
+
+			.login.modal form .button:hover {
+				background: #ff712c;
+			}
+
+
+.modal.wrapper .privacy.modal {
+	margin-top: 2rem;
+	width: 90%;
+}
+
+	.modal.wrapper .privacy.modal main {
+		height: 450px;
+		overflow-y: auto;
+	}
+
+		.modal.wrapper .privacy.modal main p {
+			font-size: 0.8rem;
+		}
+
+@media only screen and (min-width: 40.063em) {
+	.modal.wrapper .privacy.modal {
+		margin-top: 3rem;
+	}
+
+		.modal.wrapper .privacy.modal main {
+			height: 450px;
+			padding-right: 10px;
+		}
+}
+
+@media only screen and (min-width: 64.063em) {
+	.modal.wrapper .privacy.modal {
+		margin-top: 4rem;
+	}
+}
+
+
+.modal.wrapper .terms.modal {
+	margin-top: 2rem;
+	width: 90%;
+}
+
+	.modal.wrapper .terms.modal main {
+		height: 450px;
+		overflow-y: auto;
+	}
+
+		.modal.wrapper .terms.modal main p {
+			font-size: 0.8rem;
+		}
+
+@media only screen and (min-width: 40.063em) {
+	.modal.wrapper .terms.modal {
+		margin-top: 3rem;
+	}
+
+		.modal.wrapper .terms.modal main {
+			height: 450px;
+			padding-right: 10px;
+		}
+}
+
+@media only screen and (min-width: 64.063em) {
+	.modal.wrapper .terms.modal {
+		margin-top: 4rem;
+	}
+}
+
+
+nav.welcome {
+	width: 95%;
+	margin: 2rem auto;
+	text-align: center;
+	padding-bottom: 2rem;
+	border-bottom: 1px #ccc solid;
+}
+
+	nav.welcome .button {
+		width: 100%;
+	}
+
+	nav.welcome a:not(.button) {
+		color: #444;
+		margin: 0 10px;
+	}
+
+
+
+@media only screen and (min-width: 40.063em) {
+
+	nav.welcome {
+		margin: 0;
+		width: auto;
+		position: absolute;
+		top: 2rem;
+		right: 2rem;
+		text-align: left;
+		padding-bottom: 0;
+		border-bottom: 0;
+	}
+
+		nav.welcome a {
+			float: right;
+		}
+
+		nav.welcome a:not(.button) {
+			display: inline-block;
+			padding: 5px;
+			margin: 5px 10px 0 0;
+			font-size: 0.8rem;
+		}
+
+		nav.welcome .button {
+			width: auto;
+			font-size: 0.8rem;
+			padding-top: 0.5rem;
+			padding-bottom: 0.5rem;
+		}
+		
+}
+
+
+section.signup {
 	/**/
 }
 
-	.welcome header {
+	section.signup header {
+		padding: 1rem;
+	}
+
+		section.signup header h1 {
+			font-size: 2rem;
+		}
+
+			section.signup header h1 a {
+				color: #000;
+			}
+
+	section.signup main {
+		/**/
+	}
+	
+		section.signup main .error {
+			color: #a22;
+			padding: 5px 0 20px;
+		}
+
+		section.signup main .mobile span.prefix {
+			margin-top: 5px;
+		}
+
+		section.signup main .button-wrapper .button {
+			width: 100%;
+			background: #ff7941;
+		}
+
+		section.signup main .button-wrapper .button:hover {
+			background: #ff712c;
+		}
+
+	section.signup main .tooltip-left {
+		color: #ff7941;
+		font-weight: bold;
+		float: right;
+	}
+
+@media only screen and (max-width: 40em) {
+	section.signup header h1,
+	section.signup main h2 {
+		text-align: center;
+	}
+
+	section.signup main h2 {
+		margin-bottom: 2rem;
+	}
+}
+
+@media only screen and (min-width: 40.063em) {
+	section.signup main {
+		padding-top: 3rem;
+	}
+
+	section.signup main.success {
+		max-width: 800px;
+	}
+
+		section.signup main h2 {
+			padding-bottom: 1rem;
+		}
+}
+
+
+section.welcome {
+	/**/
+}
+
+	section.welcome header {
 		width: 95%;
 		margin: 0 auto;
 		padding-top: 2rem;
 	}
 
-		.welcome header h1 {
+		section.welcome header h1 {
 			text-align: center;
 		}
 
-		.welcome header p {
+		section.welcome header p {
 			margin-left: 0;
 			text-align: center;
 		}
 
-	.welcome nav {
-		width: 95%;
-		margin: 2rem auto;
-		text-align: center;
-		padding-bottom: 2rem;
-		border-bottom: 1px #ccc solid;
-	}
-
-		.welcome nav .button {
-			width: 100%;
-		}
-
-		.welcome nav a:not(.button) {
-			color: #444;
-			margin: 0 10px;
-		}
-
-	.welcome main {
+	section.welcome main {
 		/**/
 	}
 
 
 
 @media only screen and (min-width: 40.063em) {
-	.welcome {
+	section.welcome {
 		padding-top: 5rem;
 	}
 
-		.welcome header {
+		section.welcome header {
 			width: 80%;
 			margin: 0 auto;
 		}
 
-			.welcome header h1 {
+			section.welcome header h1 {
 				text-align: left;
 			}
 
 
-			.welcome header p {
+			section.welcome header p {
 				margin-left: 15px;
 				text-align: left;
-			}
-
-		.welcome nav {
-			margin: 0;
-			width: auto;
-			position: absolute;
-			top: 2rem;
-			right: 2rem;
-			text-align: left;
-			padding-bottom: 0;
-			border-bottom: 0;
-		}
-
-			.welcome nav a {
-				float: right;
-			}
-
-			.welcome nav a:not(.button) {
-				display: inline-block;
-				padding: 5px;
-				margin: 5px 10px 0 0;
-				font-size: 0.8rem;
-			}
-
-			.welcome nav .button {
-				width: auto;
-				font-size: 0.8rem;
-				padding-top: 0.5rem;
-				padding-bottom: 0.5rem;
 			}
 }
 
 
 
 @media only screen and (min-width: 120.063em){
-	.welcome {
+	section.welcome {
 		padding-top: 8rem;
 	}
 }
@@ -4194,44 +4629,57 @@ th.hide-for-touch {
 
 /* ==  Signup  == */
 
-.signup {
+section.welcome .signup {
 	margin: 0 auto;
 }
 	
-	.signup h2 {
+	section.welcome .signup h2 {
 		text-align: center;
 	}
 
-	.signup form {
+	section.welcome .signup form {
 		/**/
 	}
 
-		.signup form label {
+		section.welcome .signup form label {
 			margin-top: 20px;
 		}
 
-			.signup form label input {
-				margin-top: 5px;
+		section.welcome .signup form label.error {
+			/**/
+		}
+
+			section.welcome .signup form label.error span {
+				font-size: 0.6rem;
+				position: relative;
+				top: -1px;
+				left: 15px;
+				display: inline-block;
 			}
 
-		.signup form .button-wrapper {
+			section.welcome .signup form label.error input {
+				border-color: #ecc;
+				box-shadow: 0 0 5px #c00;
+			}
+
+		section.welcome .signup form .button-wrapper {
 			padding-top: 10px;
 			text-align: center;
 		}
 
-			.signup form .button {
+			section.welcome .signup form .button {
 				width: 100%;
 				background: #ff7941;
 			}
 
-			.signup form .button:hover {
+			section.welcome .signup form .button:hover {
 				background: #ff712c;
 			}
 
 
 
 @media only screen and (min-width: 40.063em) {
-	.signup {
+	section.welcome .signup {
 		width: 400px;
 		padding: 15px;
 		border: 1px #ddd solid;
@@ -4239,14 +4687,11 @@ th.hide-for-touch {
 		background: #f5f5f5;
 	}
 
-		.signup h2 {
+		section.welcome .signup h2 {
 			font-size: 2rem;
 		}
 
-		.signup form .button {
+		section.welcome .signup form .button {
 			margin-bottom: 0;
 		}
 }
-
-
-

@@ -1,0 +1,31 @@
+
+.modal.wrapper .privacy.modal {
+	margin-top: 2rem;
+	width: 90%;
+}
+
+	.modal.wrapper .privacy.modal main {
+		height: 450px;
+		overflow-y: auto;
+	}
+
+		.modal.wrapper .privacy.modal main p {
+			font-size: 0.8rem;
+		}
+
+@media only screen and (min-width: 40.063em) {
+	.modal.wrapper .privacy.modal {
+		margin-top: 3rem;
+	}
+
+		.modal.wrapper .privacy.modal main {
+			height: 450px;
+			padding-right: 10px;
+		}
+}
+
+@media only screen and (min-width: 64.063em) {
+	.modal.wrapper .privacy.modal {
+		margin-top: 4rem;
+	}
+}

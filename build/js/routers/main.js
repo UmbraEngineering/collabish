@@ -30,8 +30,43 @@ var MainRouter = module.exports = Router.extend({
 	},
 
 	renderView: function(view, opts) {
-		view.$elem.appendTo(this.$content);
-		view.draw();
+		var self = this;
+		var animate =! (opts && opts.animate === false);
+		var duration = (opts && opts.duration) || 600;
+		var onDone = (opts && opts.callback) || function() { };
+	
+		hideCurrent(function() {
+			self.currentView = view;
+
+			view.draw();
+			view.$elem.appendTo(self.$content);
+
+			if (! animate) {
+				return onDone();
+			}
+
+			self.$content.animate({ opacity: 1 }, duration, function() {
+				onDone();
+			});
+		});
+
+		function hideCurrent(callback) {
+			if (! self.currentView) {
+				return callback();
+			}
+
+			if (! animate) {
+				self.currentView.remove();
+				self.currentView = null;
+				return callback();
+			}
+
+			self.$content.animate({ opacity: 0 }, duration, function() {
+				self.currentView.remove();
+				self.currentView = null;
+				callback();
+			});
+		}
 	}
 
 }); 

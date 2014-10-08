@@ -3547,10 +3547,12 @@ var Router = module.exports = AppObject.extend({
 	// Redirect to a different route
 	// 
 	// @param {href} the route to redirect to
+	// @param {opts} options for the redirect
 	// @return void
 	// 
-	redirectTo: function(href) {
-		this.pushState(null, null, href);
+	redirectTo: function(href, opts) {
+		opts = opts || { };
+		this.pushState(opts.data || { }, opts.title || document.title, href);
 	},
 
 	// 
@@ -4205,7 +4207,7 @@ var Queue = exports.Queue = AppObject.extend({
 					this.next();
 				});
 				this.emit('request', req);
-				req.start();
+				req.run();
 			}
 		});
 	},
@@ -4275,7 +4277,7 @@ var Request = exports.Request = AppObject.extend({
 
 		// The config object to pass to $.ajax
 		this.config = {
-			url: url,
+			url: this.url,
 			type: method.toUpperCase(),
 			async: true,
 			cache: false,
@@ -4320,7 +4322,7 @@ var Request = exports.Request = AppObject.extend({
 
 		this.config.complete = _.bind(this.oncomplete, this, deferred);
 
-		cloak.log('XHR: ' + this.method.toUpperCase() + ' ' + this.url + ' ' + this.config.data);
+		cloak.log('XHR: ' + this.method.toUpperCase() + ' ' + this.url + ' ' + (this.config.data || { }));
 		this.emit('send', this);
 		this.xhr = $.ajax(this.config);
 
@@ -26646,8 +26648,43 @@ var MainRouter = module.exports = Router.extend({
 	},
 
 	renderView: function(view, opts) {
-		view.$elem.appendTo(this.$content);
-		view.draw();
+		var self = this;
+		var animate =! (opts && opts.animate === false);
+		var duration = (opts && opts.duration) || 600;
+		var onDone = (opts && opts.callback) || function() { };
+	
+		hideCurrent(function() {
+			self.currentView = view;
+
+			view.draw();
+			view.$elem.appendTo(self.$content);
+
+			if (! animate) {
+				return onDone();
+			}
+
+			self.$content.animate({ opacity: 1 }, duration, function() {
+				onDone();
+			});
+		});
+
+		function hideCurrent(callback) {
+			if (! self.currentView) {
+				return callback();
+			}
+
+			if (! animate) {
+				self.currentView.remove();
+				self.currentView = null;
+				return callback();
+			}
+
+			self.$content.animate({ opacity: 0 }, duration, function() {
+				self.currentView.remove();
+				self.currentView = null;
+				callback();
+			});
+		}
 	}
 
 }); 
@@ -26659,12 +26696,14 @@ var $            = require('jquery');
 var cloak        = require('cloak');
 var Router       = require('cloak/router');
 var WelcomeView  = require('views/welcome/welcome');
+var SignupView   = require('views/welcome/signup/signup');
 
 var WelcomeRouter = module.exports = Router.extend({
 
 	routes: {
 		'/':         'welcome',
-		'/welcome':  'welcome'
+		'/welcome':  'welcome',
+		'/signup':   'signup'
 	},
 
 	initialize: function() {
@@ -26678,6 +26717,17 @@ var WelcomeRouter = module.exports = Router.extend({
 	// 
 	welcome: function() {
 		this.parent.renderView(new WelcomeView(), {
+			// 
+		});
+	},
+
+	// 
+	// Signup step-two page
+	// 
+	signup: function(params, href, route) {
+		var data = route.state.data;
+
+		this.parent.renderView(new SignupView(data), {
 			// 
 		});
 	}
@@ -26703,6 +26753,18 @@ function program1(depth0,data) {
   return ".min";
   }
 
+function program3(depth0,data) {
+  
+  
+  return "'//api.collabish.me'";
+  }
+
+function program5(depth0,data) {
+  
+  
+  return "'//localhost:3000'";
+  }
+
   buffer += "<!doctype html>\n<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->\n<!--[if lt IE 7]> <html class=\"no-js lt-ie9 lt-ie8 lt-ie7\" lang=\"en\"> <![endif]-->\n<!--[if IE 7]>    <html class=\"no-js lt-ie9 lt-ie8\" lang=\"en\"> <![endif]-->\n<!--[if IE 8]>    <html class=\"no-js lt-ie9\" lang=\"en\"> <![endif]-->\n<!--[if gt IE 8]><!--> <html lang=\"en\"> <!--<![endif]-->\n<head>\n\n	<title>Collabish</title>\n\n	<meta charset=\"utf-8\" />\n	<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge,chrome=1\">\n	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=0, maximum-scale=1.0\" />\n\n	<link rel=\"stylesheet\" type=\"text/css\" href=\"//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,700,300,400,600,800\" />\n	<link rel=\"stylesheet\" type=\"text/css\" href=\"//";
   if (helper = helpers['static']) { stack1 = helper.call(depth0, {hash:{},data:data}); }
   else { helper = (depth0 && depth0['static']); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
@@ -26717,7 +26779,96 @@ function program1(depth0,data) {
     + "/build";
   stack1 = helpers['if'].call(depth0, (depth0 && depth0.production), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += ".js\"></script>\n\n	<script>\n\n		window.History = {options: {html4Mode: true}};\n\n		// Add the /lib directory to the require path\n		require.paths.push('/lib', '/vendor');\n\n		// Polyfill JSON if needed\n		JSON || require('json2');\n\n		// Load in any cloak mods\n		require('mods/templates');\n\n		// Tell the router to start listening...\n		var MainRouter = require('routers/main');\n		\n		var router = new MainRouter({ autoStart: false })\n			.use(require('routers/welcome'))\n			.start();\n\n	</script>\n\n</body>\n</html>";
+  buffer += ".js\"></script>\n\n	<script>\n\n		window.History = {options: {html4Mode: true}};\n\n		// Add the /lib directory to the require path\n		require.paths.push('/lib', '/vendor');\n\n		// Load in underscore\n		var _ = require('cloak/underscore');\n\n		var io = require('socket.io');\n		var config = require('cloak').config;\n		var socketUrl = location.protocol + ";
+  stack1 = helpers['if'].call(depth0, (depth0 && depth0.production), {hash:{},inverse:self.program(5, program5, data),fn:self.program(3, program3, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += ";\n\n		config.socket = io.connect(socketUrl);\n		config.modelStore = require('cloak/model-stores/dagger');\n		config.viewTag = 'section';\n\n		// Polyfill JSON if needed\n		JSON || require('json2');\n\n		// Load in any cloak mods\n		require('mods/templates');\n\n		// Tell the router to start listening...\n		var MainRouter = require('routers/main');\n		\n		var router = new MainRouter({ autoStart: false })\n			.use(require('routers/welcome'))\n			.start();\n\n	</script>\n\n</body>\n</html>";
+  return buffer;
+  });
+
+this["exports"]["views/modal/modal.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, helper, functionType="function", escapeExpression=this.escapeExpression;
+
+
+  buffer += "<div class=\"modal box ";
+  if (helper = helpers.classname) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.classname); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "\">\n	<a class=\"modal close\">&times;</a>\n	";
+  if (helper = helpers.content) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.content); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n</div>";
+  return buffer;
+  });
+
+this["exports"]["views/welcome/nav/modals/login/login.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<h3>Login</h3>\n<div class=\"error hide\"></div>\n<form class=\"login\">\n	<label>\n		Username/Email\n		<input type=\"text\" class=\"username\" />\n	</label>\n	<label>\n		Password <small>(if needed)</small>\n		<input type=\"password\" class=\"password\" />\n	</label>\n	<div class=\"button-wrapper\">\n		<a class=\"button\">Login</a>\n	</div>\n</form>";
+  });
+
+this["exports"]["views/welcome/nav/modals/privacy/privacy.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<h3>Privacy Policy</h3>\n<main>\n	<p>\n		Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed commodo aliquam tincidunt. Vestibulum sit amet faucibus est, sit amet venenatis nunc. Curabitur non arcu non ex sollicitudin rhoncus. Proin auctor ligula et dolor euismod laoreet. Cras consequat nisi a urna tristique pellentesque. Aenean vitae semper est. In nec elit leo. Integer volutpat ligula eget tempus malesuada. Morbi tempor odio quis tellus finibus, quis pulvinar lectus mattis. Proin semper sapien eu massa pulvinar, vel consequat nisl fermentum.\n	</p>\n	<p>\n		Nulla mattis at velit vel ultrices. Sed aliquet molestie sollicitudin. Quisque placerat hendrerit ex quis dapibus. Integer metus velit, feugiat at nisl auctor, consectetur tempus ex. Suspendisse faucibus venenatis turpis, nec sodales metus feugiat posuere. Aenean ornare tellus ante, quis venenatis sem commodo nec. Phasellus faucibus rhoncus metus eu auctor. Suspendisse rhoncus tincidunt quam vitae blandit. Fusce vitae fermentum arcu. Quisque sollicitudin eros rhoncus porttitor aliquet. Integer sit amet ante urna.\n	</p>\n	<p>\n		Maecenas sit amet est porttitor, dignissim tellus pulvinar, tincidunt justo. Ut fermentum mi enim, in scelerisque mi dignissim ut. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur condimentum sem ex, et vestibulum purus cursus eget. Phasellus eget quam ac libero varius fermentum eget id risus. Mauris sed est elit. Quisque tempus, nunc id feugiat laoreet, mauris quam commodo quam, ac venenatis est urna et turpis.\n	</p>\n	<p>\n		Maecenas leo ipsum, maximus id vestibulum ac, viverra ac quam. In vulputate tincidunt dolor. Cras libero felis, tristique ut justo vitae, tempor cursus sem. Fusce condimentum, enim sed finibus egestas, ligula elit pharetra felis, id condimentum mauris leo vitae ante. Sed iaculis augue tellus, ac volutpat orci maximus ac. Proin magna velit, pulvinar et feugiat eu, porttitor eget velit. Aenean pretium euismod ipsum ut lacinia. Ut congue tempus nisl, nec consectetur nisl ultrices id. Etiam id metus placerat, semper mi sit amet, porttitor magna. Curabitur rutrum magna non neque porta, in porta ligula maximus. In egestas et leo vitae iaculis. Fusce mauris sem, efficitur sed ultrices a, condimentum ut ligula.\n	</p>\n	<p>\n		Integer eget ante a leo laoreet vehicula. Vestibulum ullamcorper tortor et libero tincidunt finibus. Mauris nisi erat, volutpat id egestas a, suscipit vel est. Vestibulum bibendum, risus sed malesuada congue, ligula risus imperdiet ipsum, nec iaculis nisi justo sed dui. Aenean risus neque, ultricies tempor augue sed, tincidunt interdum quam. Phasellus viverra lobortis bibendum. Quisque tristique egestas ex, nec cursus leo tristique at. Nam sollicitudin nisl luctus hendrerit aliquam. Quisque finibus semper erat id suscipit. Fusce laoreet tincidunt quam, at mollis lacus tincidunt ac. Nam lobortis enim ligula, sit amet varius ipsum gravida ac. Mauris vehicula diam augue, tincidunt sagittis ipsum mollis sed. Morbi congue odio in orci ornare, eu pellentesque mauris aliquam. Morbi vitae eleifend mi, eu condimentum lectus.\n	</p>\n	<p>\n		Aliquam sed sapien nunc. Duis egestas at nisl nec feugiat. Suspendisse cursus interdum quam sed aliquam. Nullam sodales, magna ut rutrum laoreet, magna nunc euismod dui, vel molestie lacus erat sit amet eros. Nam volutpat nunc vel mi tempus viverra. Duis maximus nibh sed est pulvinar auctor. Vivamus placerat, ipsum at porta fringilla, augue libero suscipit turpis, et consectetur tellus mauris ac felis. Integer eu vulputate augue, non posuere magna. Proin et imperdiet dui, eu pulvinar magna. Donec non pretium erat. Curabitur semper vel tortor ut tincidunt. Donec tincidunt ex eu ante varius, non commodo dui mattis.\n	</p>\n	<p>\n		Sed elementum varius lectus sed vulputate. Praesent eu porta odio, id pretium lorem. Sed semper odio facilisis, ultricies ipsum eget, tempus leo. Phasellus sit amet sagittis metus, non facilisis ipsum. Suspendisse feugiat at est eget iaculis. Morbi lacinia leo quis elit interdum, in vulputate nisl finibus. Suspendisse potenti. Suspendisse vel tellus quis massa sollicitudin rutrum.\n	</p>\n	<p>\n		Sed ac erat nulla. Donec blandit, libero vitae volutpat lobortis, sem augue venenatis sem, non vulputate est elit eget enim. Aliquam pulvinar arcu at justo fermentum, eget ornare eros tristique. Maecenas sed massa sodales, dignissim felis vel, vehicula diam. Curabitur pellentesque iaculis felis eu blandit. Nam a lacinia enim. Duis et mauris sit amet mi vulputate fermentum. Donec euismod eros quis dui dictum malesuada. In fringilla leo vitae ultrices mattis. Phasellus et suscipit enim, in posuere arcu. Suspendisse velit est, feugiat eget elit nec, bibendum viverra eros. Nam semper lectus non ipsum volutpat pellentesque. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus iaculis massa vitae finibus tempor. Aliquam in viverra tellus.\n	</p>\n	<p>\n		Aenean sit amet risus sed lectus elementum volutpat eu quis erat. Vivamus lobortis nibh in diam vehicula facilisis. Sed sit amet egestas ligula. In consectetur enim in porta molestie. Curabitur condimentum sapien et eros bibendum ultricies. Nulla pulvinar tortor nec libero pretium, non posuere ex facilisis. Ut mattis volutpat odio, sed pharetra mi. Aenean pretium sit amet neque quis tristique. Aenean efficitur nec mauris in iaculis.\n	</p>\n	<p>\n		Maecenas at dapibus nulla, a malesuada nisi. Donec risus augue, imperdiet at consectetur id, posuere et dui. Nunc sit amet blandit neque. In bibendum porta orci, vel semper justo congue id. Fusce neque nibh, sollicitudin eget odio et, porttitor scelerisque augue. Praesent vitae tincidunt augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec scelerisque leo quis laoreet feugiat. Duis ipsum leo, venenatis eu rutrum ac, faucibus in justo. Vestibulum pellentesque ex porttitor elit vestibulum venenatis. Integer est est, tempor ut fringilla a, malesuada vitae lacus.\n	</p>\n	<p>\n		Curabitur vel luctus ligula. In consequat felis sed egestas ultrices. Quisque vel turpis dictum, bibendum eros vitae, finibus lacus. Nulla id mollis urna. Ut tristique diam risus, et varius felis sodales vel. Duis dictum diam nibh, in dignissim tortor rhoncus in. Maecenas turpis nisl, interdum id tortor quis, sollicitudin aliquet elit. Aenean et libero non libero dapibus placerat. Aliquam lectus diam, commodo quis gravida quis, varius at libero. Nulla facilisi. Pellentesque viverra ac justo maximus ultricies. Etiam ut ligula a enim dignissim pretium.\n	</p>\n	<p>\n		Suspendisse in varius quam, hendrerit consectetur quam. Praesent sit amet justo nec ex congue cursus. Donec at dolor fringilla justo viverra blandit at sit amet diam. Vestibulum porta hendrerit metus non varius. Phasellus at porta ex, et tincidunt dui. Etiam non nulla consectetur eros ultrices ultricies sit amet in libero. Sed posuere dolor enim, at eleifend ante scelerisque varius.\n	</p>\n	<p>\n		Sed eu arcu vel leo egestas ultricies at vitae est. Suspendisse lobortis massa sagittis commodo tempus. Aenean commodo iaculis commodo. Maecenas lectus nunc, ornare id convallis auctor, semper ut sapien. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nunc eleifend ac nisl id egestas. Nullam ut sem a sem aliquam dapibus et nec lectus.\n	</p>\n	<p>\n		Suspendisse potenti. Morbi auctor tristique metus sed placerat. Nulla quis justo condimentum sem viverra fringilla. Pellentesque interdum aliquam justo, quis scelerisque lacus lobortis eu. Sed ligula metus, dignissim nec diam in, gravida blandit ex. Quisque scelerisque ligula sed neque mollis pulvinar. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Maecenas dapibus lobortis elementum. Donec laoreet tellus quis elementum blandit. Suspendisse nulla massa, mollis in quam vel, iaculis ullamcorper leo. Curabitur convallis, lectus sed porttitor convallis, nisi libero semper mauris, ut egestas orci lorem eu nunc. Nulla maximus lorem sed est consequat, rutrum luctus mauris hendrerit. Sed aliquet tempus velit at imperdiet. Suspendisse eget tortor rutrum, viverra leo nec, bibendum eros.\n	</p>\n	<p>\n		Vivamus hendrerit non arcu sit amet varius. Donec eget erat ex. Ut ut nibh interdum, imperdiet nunc in, eleifend ex. Mauris vitae hendrerit dolor, vel volutpat massa. Integer at lobortis eros, et dictum nibh. Cras et vehicula lacus. Phasellus sed consequat est, ut faucibus quam. Donec nec lacus commodo leo gravida tempor. Phasellus vel risus sem. Pellentesque venenatis, eros vel ultrices sollicitudin, magna velit condimentum libero, sed aliquam dui lacus a mauris. Cras vitae molestie sem, vitae finibus quam.\n	</p>\n</main>";
+  });
+
+this["exports"]["views/welcome/nav/modals/terms/terms.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<h3>Terms of Service</h3>\n<main>\n	<p>\n		Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed commodo aliquam tincidunt. Vestibulum sit amet faucibus est, sit amet venenatis nunc. Curabitur non arcu non ex sollicitudin rhoncus. Proin auctor ligula et dolor euismod laoreet. Cras consequat nisi a urna tristique pellentesque. Aenean vitae semper est. In nec elit leo. Integer volutpat ligula eget tempus malesuada. Morbi tempor odio quis tellus finibus, quis pulvinar lectus mattis. Proin semper sapien eu massa pulvinar, vel consequat nisl fermentum.\n	</p>\n	<p>\n		Nulla mattis at velit vel ultrices. Sed aliquet molestie sollicitudin. Quisque placerat hendrerit ex quis dapibus. Integer metus velit, feugiat at nisl auctor, consectetur tempus ex. Suspendisse faucibus venenatis turpis, nec sodales metus feugiat posuere. Aenean ornare tellus ante, quis venenatis sem commodo nec. Phasellus faucibus rhoncus metus eu auctor. Suspendisse rhoncus tincidunt quam vitae blandit. Fusce vitae fermentum arcu. Quisque sollicitudin eros rhoncus porttitor aliquet. Integer sit amet ante urna.\n	</p>\n	<p>\n		Maecenas sit amet est porttitor, dignissim tellus pulvinar, tincidunt justo. Ut fermentum mi enim, in scelerisque mi dignissim ut. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur condimentum sem ex, et vestibulum purus cursus eget. Phasellus eget quam ac libero varius fermentum eget id risus. Mauris sed est elit. Quisque tempus, nunc id feugiat laoreet, mauris quam commodo quam, ac venenatis est urna et turpis.\n	</p>\n	<p>\n		Maecenas leo ipsum, maximus id vestibulum ac, viverra ac quam. In vulputate tincidunt dolor. Cras libero felis, tristique ut justo vitae, tempor cursus sem. Fusce condimentum, enim sed finibus egestas, ligula elit pharetra felis, id condimentum mauris leo vitae ante. Sed iaculis augue tellus, ac volutpat orci maximus ac. Proin magna velit, pulvinar et feugiat eu, porttitor eget velit. Aenean pretium euismod ipsum ut lacinia. Ut congue tempus nisl, nec consectetur nisl ultrices id. Etiam id metus placerat, semper mi sit amet, porttitor magna. Curabitur rutrum magna non neque porta, in porta ligula maximus. In egestas et leo vitae iaculis. Fusce mauris sem, efficitur sed ultrices a, condimentum ut ligula.\n	</p>\n	<p>\n		Integer eget ante a leo laoreet vehicula. Vestibulum ullamcorper tortor et libero tincidunt finibus. Mauris nisi erat, volutpat id egestas a, suscipit vel est. Vestibulum bibendum, risus sed malesuada congue, ligula risus imperdiet ipsum, nec iaculis nisi justo sed dui. Aenean risus neque, ultricies tempor augue sed, tincidunt interdum quam. Phasellus viverra lobortis bibendum. Quisque tristique egestas ex, nec cursus leo tristique at. Nam sollicitudin nisl luctus hendrerit aliquam. Quisque finibus semper erat id suscipit. Fusce laoreet tincidunt quam, at mollis lacus tincidunt ac. Nam lobortis enim ligula, sit amet varius ipsum gravida ac. Mauris vehicula diam augue, tincidunt sagittis ipsum mollis sed. Morbi congue odio in orci ornare, eu pellentesque mauris aliquam. Morbi vitae eleifend mi, eu condimentum lectus.\n	</p>\n	<p>\n		Aliquam sed sapien nunc. Duis egestas at nisl nec feugiat. Suspendisse cursus interdum quam sed aliquam. Nullam sodales, magna ut rutrum laoreet, magna nunc euismod dui, vel molestie lacus erat sit amet eros. Nam volutpat nunc vel mi tempus viverra. Duis maximus nibh sed est pulvinar auctor. Vivamus placerat, ipsum at porta fringilla, augue libero suscipit turpis, et consectetur tellus mauris ac felis. Integer eu vulputate augue, non posuere magna. Proin et imperdiet dui, eu pulvinar magna. Donec non pretium erat. Curabitur semper vel tortor ut tincidunt. Donec tincidunt ex eu ante varius, non commodo dui mattis.\n	</p>\n	<p>\n		Sed elementum varius lectus sed vulputate. Praesent eu porta odio, id pretium lorem. Sed semper odio facilisis, ultricies ipsum eget, tempus leo. Phasellus sit amet sagittis metus, non facilisis ipsum. Suspendisse feugiat at est eget iaculis. Morbi lacinia leo quis elit interdum, in vulputate nisl finibus. Suspendisse potenti. Suspendisse vel tellus quis massa sollicitudin rutrum.\n	</p>\n	<p>\n		Sed ac erat nulla. Donec blandit, libero vitae volutpat lobortis, sem augue venenatis sem, non vulputate est elit eget enim. Aliquam pulvinar arcu at justo fermentum, eget ornare eros tristique. Maecenas sed massa sodales, dignissim felis vel, vehicula diam. Curabitur pellentesque iaculis felis eu blandit. Nam a lacinia enim. Duis et mauris sit amet mi vulputate fermentum. Donec euismod eros quis dui dictum malesuada. In fringilla leo vitae ultrices mattis. Phasellus et suscipit enim, in posuere arcu. Suspendisse velit est, feugiat eget elit nec, bibendum viverra eros. Nam semper lectus non ipsum volutpat pellentesque. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus iaculis massa vitae finibus tempor. Aliquam in viverra tellus.\n	</p>\n	<p>\n		Aenean sit amet risus sed lectus elementum volutpat eu quis erat. Vivamus lobortis nibh in diam vehicula facilisis. Sed sit amet egestas ligula. In consectetur enim in porta molestie. Curabitur condimentum sapien et eros bibendum ultricies. Nulla pulvinar tortor nec libero pretium, non posuere ex facilisis. Ut mattis volutpat odio, sed pharetra mi. Aenean pretium sit amet neque quis tristique. Aenean efficitur nec mauris in iaculis.\n	</p>\n	<p>\n		Maecenas at dapibus nulla, a malesuada nisi. Donec risus augue, imperdiet at consectetur id, posuere et dui. Nunc sit amet blandit neque. In bibendum porta orci, vel semper justo congue id. Fusce neque nibh, sollicitudin eget odio et, porttitor scelerisque augue. Praesent vitae tincidunt augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec scelerisque leo quis laoreet feugiat. Duis ipsum leo, venenatis eu rutrum ac, faucibus in justo. Vestibulum pellentesque ex porttitor elit vestibulum venenatis. Integer est est, tempor ut fringilla a, malesuada vitae lacus.\n	</p>\n	<p>\n		Curabitur vel luctus ligula. In consequat felis sed egestas ultrices. Quisque vel turpis dictum, bibendum eros vitae, finibus lacus. Nulla id mollis urna. Ut tristique diam risus, et varius felis sodales vel. Duis dictum diam nibh, in dignissim tortor rhoncus in. Maecenas turpis nisl, interdum id tortor quis, sollicitudin aliquet elit. Aenean et libero non libero dapibus placerat. Aliquam lectus diam, commodo quis gravida quis, varius at libero. Nulla facilisi. Pellentesque viverra ac justo maximus ultricies. Etiam ut ligula a enim dignissim pretium.\n	</p>\n	<p>\n		Suspendisse in varius quam, hendrerit consectetur quam. Praesent sit amet justo nec ex congue cursus. Donec at dolor fringilla justo viverra blandit at sit amet diam. Vestibulum porta hendrerit metus non varius. Phasellus at porta ex, et tincidunt dui. Etiam non nulla consectetur eros ultrices ultricies sit amet in libero. Sed posuere dolor enim, at eleifend ante scelerisque varius.\n	</p>\n	<p>\n		Sed eu arcu vel leo egestas ultricies at vitae est. Suspendisse lobortis massa sagittis commodo tempus. Aenean commodo iaculis commodo. Maecenas lectus nunc, ornare id convallis auctor, semper ut sapien. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nunc eleifend ac nisl id egestas. Nullam ut sem a sem aliquam dapibus et nec lectus.\n	</p>\n	<p>\n		Suspendisse potenti. Morbi auctor tristique metus sed placerat. Nulla quis justo condimentum sem viverra fringilla. Pellentesque interdum aliquam justo, quis scelerisque lacus lobortis eu. Sed ligula metus, dignissim nec diam in, gravida blandit ex. Quisque scelerisque ligula sed neque mollis pulvinar. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Maecenas dapibus lobortis elementum. Donec laoreet tellus quis elementum blandit. Suspendisse nulla massa, mollis in quam vel, iaculis ullamcorper leo. Curabitur convallis, lectus sed porttitor convallis, nisi libero semper mauris, ut egestas orci lorem eu nunc. Nulla maximus lorem sed est consequat, rutrum luctus mauris hendrerit. Sed aliquet tempus velit at imperdiet. Suspendisse eget tortor rutrum, viverra leo nec, bibendum eros.\n	</p>\n	<p>\n		Vivamus hendrerit non arcu sit amet varius. Donec eget erat ex. Ut ut nibh interdum, imperdiet nunc in, eleifend ex. Mauris vitae hendrerit dolor, vel volutpat massa. Integer at lobortis eros, et dictum nibh. Cras et vehicula lacus. Phasellus sed consequat est, ut faucibus quam. Donec nec lacus commodo leo gravida tempor. Phasellus vel risus sem. Pellentesque venenatis, eros vel ultrices sollicitudin, magna velit condimentum libero, sed aliquam dui lacus a mauris. Cras vitae molestie sem, vitae finibus quam.\n	</p>\n</main>";
+  });
+
+this["exports"]["views/welcome/nav/nav.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<a class=\"login button\">Login</a>\n<a class=\"terms\">Terms</a>\n<a class=\"privacy\">Privacy</a>";
+  });
+
+this["exports"]["views/welcome/signup/signup.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, helper, functionType="function", escapeExpression=this.escapeExpression;
+
+
+  buffer += "<header>\n	<h1><a href=\"#/\">Collabish</a></h1>\n</header>\n\n<main class=\"row\">\n	<div class=\"small-12 medium-4 medium-centered columns\">\n		<h2>Signup</h2>\n		<div class=\"error hide\"></div>\n		<form>\n			<label class=\"username\">\n				Username\n				<input type=\"text\" value=\"";
+  if (helper = helpers.username) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.username); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "\" />\n			</label>\n			<label class=\"email\">\n				Email\n				<input type=\"email\" value=\"";
+  if (helper = helpers.email) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.email); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "\" />\n			</label>\n			<label class=\"auth-method\" aria-describedby=\"auth-method-tooltip\">\n				Auth Method\n				<span\n					id=\"auth-method-tooltip\"\n					class=\"tooltip-left\"\n					role=\"tooltip\"\n					aria-haspopup=\"true\"\n					data-tooltip=\"Determines how you log in to Collabish\"\n				>?</span>\n				<select>\n					<option value=\"password\">Password</option>\n					<option value=\"email\">Email</option>\n					<option value=\"twostep-email\">Two-Step (Password + Email)</option>\n					<option value=\"twostep-sms\">Two-Step (Password + SMS)</option>\n				</select>\n			</label>\n			<label class=\"password\">\n				Password (twice)\n				<input type=\"password\" />\n				<input type=\"password\" />\n			</label>\n			<label class=\"mobile\" aria-describedby=\"mobile-tooltip\">\n				Mobile Phone\n				<span\n					id=\"mobile-tooltip\"\n					class=\"tooltip-left\"\n					role=\"tooltip\"\n					aria-haspopup=\"true\"\n					data-tooltip=\"We will only ever text you to send you login codes\"\n				>?</span>\n				<div class=\"row collapse\">\n					<div class=\"small-1 columns\">\n						<span class=\"prefix\">+1</span>\n					</div>\n					<div class=\"small-11 columns\">\n						<input type=\"tel\" />\n					</div>\n				</div>\n			</label>\n			<div class=\"button-wrapper\">\n				<a class=\"button\">Sign Up</a>\n			</div>\n		</form>\n	</div>\n</main>\n\n<nav class=\"welcome\">\n	\n</nav>\n";
+  return buffer;
+  });
+
+this["exports"]["views/welcome/signup/signup.success.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, helper, functionType="function", escapeExpression=this.escapeExpression;
+
+
+  buffer += "<h2>You're almost done...</h2>\n<p>\n	Welcome ";
+  if (helper = helpers.username) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.username); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "!<br />\n	We've sent you a confirmation email, and once you click the link in\n	that email, your account will be ready. That link will take you back\n	to the login screen, so you can close this tab now.\n</p>";
   return buffer;
   });
 
@@ -26727,27 +26878,1171 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   var buffer = "";
 
 
-  buffer += "<header>\n	<h1>Collabish</h1>\n	<p>\n		A collaborative environment for writers to work, share, comment, and rework\n	</p>\n</header>\n\n<nav>\n	<a class=\"login button\">Login</a>\n	<a class=\"terms\">Terms</a>\n	<a class=\"privacy\">Privacy</a>\n</nav>\n\n<main class=\"row\">\n	<div class=\"small-12 medium-8 columns\">\n		\n	</div>\n	<div class=\"small-12 medium-4 columns signup\">\n		<h2>Join The Community</h2>\n		<form>\n			<label>\n				Username\n				<input type=\"text\" class=\"username\" />\n			</label>\n			<label>\n				Email\n				<input type=\"text\" class=\"email\" />\n			</label>\n			<div class=\"button-wrapper\">\n				<a class=\"button\">Sign Up</a>\n			</div>\n		</form>\n	</div>\n</main>\n";
+  buffer += "<header>\n	<h1>Collabish</h1>\n	<p>\n		A collaborative environment for writers to work, share, comment, and rework\n	</p>\n</header>\n\n<nav class=\"welcome\">\n	\n</nav>\n\n<main class=\"row\">\n	<div class=\"small-12 medium-8 columns\">\n		\n	</div>\n	<div class=\"small-12 medium-4 columns signup\">\n		<h2>Join The Community</h2>\n		<form>\n			<label class=\"username\">\n				Username <span></span>\n				<input type=\"text\" />\n			</label>\n			<label class=\"email\">\n				Email <span></span>\n				<input type=\"text\" />\n			</label>\n			<div class=\"button-wrapper\">\n				<a class=\"button\">Sign Up</a>\n			</div>\n		</form>\n	</div>\n</main>\n";
   return buffer;
   });
 
 if (typeof exports === 'object' && exports) {module.exports = this["exports"];} 
  }; /* ==  End source for module /templates.js  == */ return module; }());;
-;require._modules["/views/welcome/welcome.js"] = (function() { var __filename = "/views/welcome/welcome.js"; var __dirname = "/views/welcome"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
- /* ==  Begin source for module /views/welcome/welcome.js  == */ var __module__ = function() { 
+;require._modules["/vendor/foundation/foundation.js"] = (function() { var __filename = "/vendor/foundation/foundation.js"; var __dirname = "/vendor/foundation"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /vendor/foundation/foundation.js  == */ var __module__ = function() { 
+ /*
+ * Foundation Responsive Library
+ * http://foundation.zurb.com
+ * Copyright 2014, ZURB
+ * Free to use under the MIT license.
+ * http://www.opensource.org/licenses/mit-license.php
+*/
+
+(function ($, window, document, undefined) {
+  'use strict';
+
+  var header_helpers = function (class_array) {
+    var i = class_array.length;
+    var head = $('head');
+
+    while (i--) {
+      if(head.has('.' + class_array[i]).length === 0) {
+        head.append('<meta class="' + class_array[i] + '" />');
+      }
+    }
+  };
+
+  header_helpers([
+    'foundation-mq-small',
+    'foundation-mq-medium',
+    'foundation-mq-large',
+    'foundation-mq-xlarge',
+    'foundation-mq-xxlarge',
+    'foundation-data-attribute-namespace']);
+
+  // Enable FastClick if present
+
+  $(function() {
+    if (typeof FastClick !== 'undefined') {
+      // Don't attach to body if undefined
+      if (typeof document.body !== 'undefined') {
+        FastClick.attach(document.body);
+      }
+    }
+  });
+
+  // private Fast Selector wrapper,
+  // returns jQuery object. Only use where
+  // getElementById is not available.
+  var S = function (selector, context) {
+    if (typeof selector === 'string') {
+      if (context) {
+        var cont;
+        if (context.jquery) {
+          cont = context[0];
+          if (!cont) return context;
+        } else {
+          cont = context;
+        }
+        return $(cont.querySelectorAll(selector));
+      }
+
+      return $(document.querySelectorAll(selector));
+    }
+
+    return $(selector, context);
+  };
+
+  // Namespace functions.
+
+  var attr_name = function (init) {
+    var arr = [];
+    if (!init) arr.push('data');
+    if (this.namespace.length > 0) arr.push(this.namespace);
+    arr.push(this.name);
+
+    return arr.join('-');
+  };
+
+  var add_namespace = function (str) {
+    var parts = str.split('-'),
+        i = parts.length,
+        arr = [];
+
+    while (i--) {
+      if (i !== 0) {
+        arr.push(parts[i]);
+      } else {
+        if (this.namespace.length > 0) {
+          arr.push(this.namespace, parts[i]);
+        } else {
+          arr.push(parts[i]);
+        }
+      }
+    }
+
+    return arr.reverse().join('-');
+  };
+
+  // Event binding and data-options updating.
+
+  var bindings = function (method, options) {
+    var self = this,
+        should_bind_events = !S(this).data(this.attr_name(true));
+
+
+    if (S(this.scope).is('[' + this.attr_name() +']')) {
+      S(this.scope).data(this.attr_name(true) + '-init', $.extend({}, this.settings, (options || method), this.data_options(S(this.scope))));
+
+      if (should_bind_events) {
+        this.events(this.scope);
+      }
+
+    } else {
+      S('[' + this.attr_name() +']', this.scope).each(function () {
+        var should_bind_events = !S(this).data(self.attr_name(true) + '-init');
+        S(this).data(self.attr_name(true) + '-init', $.extend({}, self.settings, (options || method), self.data_options(S(this))));
+
+        if (should_bind_events) {
+          self.events(this);
+        }
+      });
+    }
+    // # Patch to fix #5043 to move this *after* the if/else clause in order for Backbone and similar frameworks to have improved control over event binding and data-options updating.
+    if (typeof method === 'string') {
+      return this[method].call(this, options);
+    }
+
+  };
+
+  var single_image_loaded = function (image, callback) {
+    function loaded () {
+      callback(image[0]);
+    }
+
+    function bindLoad () {
+      this.one('load', loaded);
+
+      if (/MSIE (\d+\.\d+);/.test(navigator.userAgent)) {
+        var src = this.attr( 'src' ),
+            param = src.match( /\?/ ) ? '&' : '?';
+
+        param += 'random=' + (new Date()).getTime();
+        this.attr('src', src + param);
+      }
+    }
+
+    if (!image.attr('src')) {
+      loaded();
+      return;
+    }
+
+    if (image[0].complete || image[0].readyState === 4) {
+      loaded();
+    } else {
+      bindLoad.call(image);
+    }
+  };
+
+  /*
+    https://github.com/paulirish/matchMedia.js
+  */
+
+  window.matchMedia = window.matchMedia || (function( doc ) {
+
+    "use strict";
+
+    var bool,
+        docElem = doc.documentElement,
+        refNode = docElem.firstElementChild || docElem.firstChild,
+        // fakeBody required for <FF4 when executed in <head>
+        fakeBody = doc.createElement( "body" ),
+        div = doc.createElement( "div" );
+
+    div.id = "mq-test-1";
+    div.style.cssText = "position:absolute;top:-100em";
+    fakeBody.style.background = "none";
+    fakeBody.appendChild(div);
+
+    return function (q) {
+
+      div.innerHTML = "&shy;<style media=\"" + q + "\"> #mq-test-1 { width: 42px; }</style>";
+
+      docElem.insertBefore( fakeBody, refNode );
+      bool = div.offsetWidth === 42;
+      docElem.removeChild( fakeBody );
+
+      return {
+        matches: bool,
+        media: q
+      };
+
+    };
+
+  }( document ));
+
+  /*
+   * jquery.requestAnimationFrame
+   * https://github.com/gnarf37/jquery-requestAnimationFrame
+   * Requires jQuery 1.8+
+   *
+   * Copyright (c) 2012 Corey Frang
+   * Licensed under the MIT license.
+   */
+
+  (function(jQuery) {
+
+  // requestAnimationFrame polyfill adapted from Erik Möller
+  // fixes from Paul Irish and Tino Zijdel
+  // http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+  // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
+
+  var animating,
+      lastTime = 0,
+      vendors = ['webkit', 'moz'],
+      requestAnimationFrame = window.requestAnimationFrame,
+      cancelAnimationFrame = window.cancelAnimationFrame,
+      jqueryFxAvailable = 'undefined' !== typeof jQuery.fx;
+
+  for (; lastTime < vendors.length && !requestAnimationFrame; lastTime++) {
+    requestAnimationFrame = window[ vendors[lastTime] + "RequestAnimationFrame" ];
+    cancelAnimationFrame = cancelAnimationFrame ||
+      window[ vendors[lastTime] + "CancelAnimationFrame" ] ||
+      window[ vendors[lastTime] + "CancelRequestAnimationFrame" ];
+  }
+
+  function raf() {
+    if (animating) {
+      requestAnimationFrame(raf);
+
+      if (jqueryFxAvailable) {
+        jQuery.fx.tick();
+      }
+    }
+  }
+
+  if (requestAnimationFrame) {
+    // use rAF
+    window.requestAnimationFrame = requestAnimationFrame;
+    window.cancelAnimationFrame = cancelAnimationFrame;
+
+    if (jqueryFxAvailable) {
+      jQuery.fx.timer = function (timer) {
+        if (timer() && jQuery.timers.push(timer) && !animating) {
+          animating = true;
+          raf();
+        }
+      };
+
+      jQuery.fx.stop = function () {
+        animating = false;
+      };
+    }
+  } else {
+    // polyfill
+    window.requestAnimationFrame = function (callback) {
+      var currTime = new Date().getTime(),
+        timeToCall = Math.max(0, 16 - (currTime - lastTime)),
+        id = window.setTimeout(function () {
+          callback(currTime + timeToCall);
+        }, timeToCall);
+      lastTime = currTime + timeToCall;
+      return id;
+    };
+
+    window.cancelAnimationFrame = function (id) {
+      clearTimeout(id);
+    };
+
+  }
+
+  }( jQuery ));
+
+
+  function removeQuotes (string) {
+    if (typeof string === 'string' || string instanceof String) {
+      string = string.replace(/^['\\/"]+|(;\s?})+|['\\/"]+$/g, '');
+    }
+
+    return string;
+  }
+
+  window.Foundation = {
+    name : 'Foundation',
+
+    version : '5.4.5',
+
+    media_queries : {
+      small : S('.foundation-mq-small').css('font-family').replace(/^[\/\\'"]+|(;\s?})+|[\/\\'"]+$/g, ''),
+      medium : S('.foundation-mq-medium').css('font-family').replace(/^[\/\\'"]+|(;\s?})+|[\/\\'"]+$/g, ''),
+      large : S('.foundation-mq-large').css('font-family').replace(/^[\/\\'"]+|(;\s?})+|[\/\\'"]+$/g, ''),
+      xlarge: S('.foundation-mq-xlarge').css('font-family').replace(/^[\/\\'"]+|(;\s?})+|[\/\\'"]+$/g, ''),
+      xxlarge: S('.foundation-mq-xxlarge').css('font-family').replace(/^[\/\\'"]+|(;\s?})+|[\/\\'"]+$/g, '')
+    },
+
+    stylesheet : $('<style></style>').appendTo('head')[0].sheet,
+
+    global: {
+      namespace: undefined
+    },
+
+    init : function (scope, libraries, method, options, response) {
+      var args = [scope, method, options, response],
+          responses = [];
+
+      // check RTL
+      this.rtl = /rtl/i.test(S('html').attr('dir'));
+
+      // set foundation global scope
+      this.scope = scope || this.scope;
+
+      this.set_namespace();
+
+      if (libraries && typeof libraries === 'string' && !/reflow/i.test(libraries)) {
+        if (this.libs.hasOwnProperty(libraries)) {
+          responses.push(this.init_lib(libraries, args));
+        }
+      } else {
+        for (var lib in this.libs) {
+          responses.push(this.init_lib(lib, libraries));
+        }
+      }
+
+      S(window).load(function(){
+        S(window)
+          .trigger('resize.fndtn.clearing')
+          .trigger('resize.fndtn.dropdown')
+          .trigger('resize.fndtn.equalizer')
+          .trigger('resize.fndtn.interchange')
+          .trigger('resize.fndtn.joyride')
+          .trigger('resize.fndtn.magellan')
+          .trigger('resize.fndtn.topbar')
+          .trigger('resize.fndtn.slider');
+      });
+
+      return scope;
+    },
+
+    init_lib : function (lib, args) {
+      if (this.libs.hasOwnProperty(lib)) {
+        this.patch(this.libs[lib]);
+
+        if (args && args.hasOwnProperty(lib)) {
+            if (typeof this.libs[lib].settings !== 'undefined') {
+                $.extend(true, this.libs[lib].settings, args[lib]);
+            }
+            else if (typeof this.libs[lib].defaults !== 'undefined') {
+                $.extend(true, this.libs[lib].defaults, args[lib]);
+            }
+          return this.libs[lib].init.apply(this.libs[lib], [this.scope, args[lib]]);
+        }
+
+        args = args instanceof Array ? args : new Array(args);    // PATCH: added this line
+        return this.libs[lib].init.apply(this.libs[lib], args);
+      }
+
+      return function () {};
+    },
+
+    patch : function (lib) {
+      lib.scope = this.scope;
+      lib.namespace = this.global.namespace;
+      lib.rtl = this.rtl;
+      lib['data_options'] = this.utils.data_options;
+      lib['attr_name'] = attr_name;
+      lib['add_namespace'] = add_namespace;
+      lib['bindings'] = bindings;
+      lib['S'] = this.utils.S;
+    },
+
+    inherit : function (scope, methods) {
+      var methods_arr = methods.split(' '),
+          i = methods_arr.length;
+
+      while (i--) {
+        if (this.utils.hasOwnProperty(methods_arr[i])) {
+          scope[methods_arr[i]] = this.utils[methods_arr[i]];
+        }
+      }
+    },
+
+    set_namespace: function () {
+
+      // Description:
+      //    Don't bother reading the namespace out of the meta tag
+      //    if the namespace has been set globally in javascript
+      //
+      // Example:
+      //    Foundation.global.namespace = 'my-namespace';
+      // or make it an empty string:
+      //    Foundation.global.namespace = '';
+      //
+      //
+
+      // If the namespace has not been set (is undefined), try to read it out of the meta element.
+      // Otherwise use the globally defined namespace, even if it's empty ('')
+      var namespace = ( this.global.namespace === undefined ) ? $('.foundation-data-attribute-namespace').css('font-family') : this.global.namespace;
+
+      // Finally, if the namsepace is either undefined or false, set it to an empty string.
+      // Otherwise use the namespace value.
+      this.global.namespace = ( namespace === undefined || /false/i.test(namespace) ) ? '' : namespace;
+    },
+
+    libs : {},
+
+    // methods that can be inherited in libraries
+    utils : {
+
+      // Description:
+      //    Fast Selector wrapper returns jQuery object. Only use where getElementById
+      //    is not available.
+      //
+      // Arguments:
+      //    Selector (String): CSS selector describing the element(s) to be
+      //    returned as a jQuery object.
+      //
+      //    Scope (String): CSS selector describing the area to be searched. Default
+      //    is document.
+      //
+      // Returns:
+      //    Element (jQuery Object): jQuery object containing elements matching the
+      //    selector within the scope.
+      S : S,
+
+      // Description:
+      //    Executes a function a max of once every n milliseconds
+      //
+      // Arguments:
+      //    Func (Function): Function to be throttled.
+      //
+      //    Delay (Integer): Function execution threshold in milliseconds.
+      //
+      // Returns:
+      //    Lazy_function (Function): Function with throttling applied.
+      throttle : function (func, delay) {
+        var timer = null;
+
+        return function () {
+          var context = this, args = arguments;
+
+          if (timer == null) {
+            timer = setTimeout(function () {
+              func.apply(context, args);
+              timer = null;
+            }, delay);
+          }
+        };
+      },
+
+      // Description:
+      //    Executes a function when it stops being invoked for n seconds
+      //    Modified version of _.debounce() http://underscorejs.org
+      //
+      // Arguments:
+      //    Func (Function): Function to be debounced.
+      //
+      //    Delay (Integer): Function execution threshold in milliseconds.
+      //
+      //    Immediate (Bool): Whether the function should be called at the beginning
+      //    of the delay instead of the end. Default is false.
+      //
+      // Returns:
+      //    Lazy_function (Function): Function with debouncing applied.
+      debounce : function (func, delay, immediate) {
+        var timeout, result;
+        return function () {
+          var context = this, args = arguments;
+          var later = function () {
+            timeout = null;
+            if (!immediate) result = func.apply(context, args);
+          };
+          var callNow = immediate && !timeout;
+          clearTimeout(timeout);
+          timeout = setTimeout(later, delay);
+          if (callNow) result = func.apply(context, args);
+          return result;
+        };
+      },
+
+      // Description:
+      //    Parses data-options attribute
+      //
+      // Arguments:
+      //    El (jQuery Object): Element to be parsed.
+      //
+      // Returns:
+      //    Options (Javascript Object): Contents of the element's data-options
+      //    attribute.
+      data_options : function (el, data_attr_name) {
+        data_attr_name = data_attr_name || 'options';
+        var opts = {}, ii, p, opts_arr,
+            data_options = function (el) {
+              var namespace = Foundation.global.namespace;
+
+              if (namespace.length > 0) {
+                return el.data(namespace + '-' + data_attr_name);
+              }
+
+              return el.data(data_attr_name);
+            };
+
+        var cached_options = data_options(el);
+
+        if (typeof cached_options === 'object') {
+          return cached_options;
+        }
+
+        opts_arr = (cached_options || ':').split(';');
+        ii = opts_arr.length;
+
+        function isNumber (o) {
+          return ! isNaN (o-0) && o !== null && o !== "" && o !== false && o !== true;
+        }
+
+        function trim (str) {
+          if (typeof str === 'string') return $.trim(str);
+          return str;
+        }
+
+        while (ii--) {
+          p = opts_arr[ii].split(':');
+          p = [p[0], p.slice(1).join(':')];
+
+          if (/true/i.test(p[1])) p[1] = true;
+          if (/false/i.test(p[1])) p[1] = false;
+          if (isNumber(p[1])) {
+            if (p[1].indexOf('.') === -1) {
+              p[1] = parseInt(p[1], 10);
+            } else {
+              p[1] = parseFloat(p[1]);
+            }
+          }
+
+          if (p.length === 2 && p[0].length > 0) {
+            opts[trim(p[0])] = trim(p[1]);
+          }
+        }
+
+        return opts;
+      },
+
+      // Description:
+      //    Adds JS-recognizable media queries
+      //
+      // Arguments:
+      //    Media (String): Key string for the media query to be stored as in
+      //    Foundation.media_queries
+      //
+      //    Class (String): Class name for the generated <meta> tag
+      register_media : function (media, media_class) {
+        if(Foundation.media_queries[media] === undefined) {
+          $('head').append('<meta class="' + media_class + '"/>');
+          Foundation.media_queries[media] = removeQuotes($('.' + media_class).css('font-family'));
+        }
+      },
+
+      // Description:
+      //    Add custom CSS within a JS-defined media query
+      //
+      // Arguments:
+      //    Rule (String): CSS rule to be appended to the document.
+      //
+      //    Media (String): Optional media query string for the CSS rule to be
+      //    nested under.
+      add_custom_rule : function (rule, media) {
+        if (media === undefined && Foundation.stylesheet) {
+          Foundation.stylesheet.insertRule(rule, Foundation.stylesheet.cssRules.length);
+        } else {
+          var query = Foundation.media_queries[media];
+
+          if (query !== undefined) {
+            Foundation.stylesheet.insertRule('@media ' +
+              Foundation.media_queries[media] + '{ ' + rule + ' }');
+          }
+        }
+      },
+
+      // Description:
+      //    Performs a callback function when an image is fully loaded
+      //
+      // Arguments:
+      //    Image (jQuery Object): Image(s) to check if loaded.
+      //
+      //    Callback (Function): Function to execute when image is fully loaded.
+      image_loaded : function (images, callback) {
+        var self = this,
+            unloaded = images.length;
+
+        if (unloaded === 0) {
+          callback(images);
+        }
+
+        images.each(function () {
+          single_image_loaded(self.S(this), function () {
+            unloaded -= 1;
+            if (unloaded === 0) {
+              callback(images);
+            }
+          });
+        });
+      },
+
+      // Description:
+      //    Returns a random, alphanumeric string
+      //
+      // Arguments:
+      //    Length (Integer): Length of string to be generated. Defaults to random
+      //    integer.
+      //
+      // Returns:
+      //    Rand (String): Pseudo-random, alphanumeric string.
+      random_str : function () {
+        if (!this.fidx) this.fidx = 0;
+        this.prefix = this.prefix || [(this.name || 'F'), (+new Date).toString(36)].join('-');
+
+        return this.prefix + (this.fidx++).toString(36);
+      }
+    }
+  };
+
+  $.fn.foundation = function () {
+    var args = Array.prototype.slice.call(arguments, 0);
+
+    return this.each(function () {
+      Foundation.init.apply(Foundation, [this].concat(args));
+      return this;
+    });
+  };
+
+}(jQuery, window, window.document));
+ 
+ }; /* ==  End source for module /vendor/foundation/foundation.js  == */ return module; }());;
+;require._modules["/vendor/foundation/foundation.tooltip.js"] = (function() { var __filename = "/vendor/foundation/foundation.tooltip.js"; var __dirname = "/vendor/foundation"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /vendor/foundation/foundation.tooltip.js  == */ var __module__ = function() { 
+ ;(function ($, window, document, undefined) {
+  'use strict';
+
+  Foundation.libs.tooltip = {
+    name : 'tooltip',
+
+    version : '5.4.5',
+
+    settings : {
+      additional_inheritable_classes : [],
+      tooltip_class : '.tooltip',
+      append_to: 'body',
+      touch_close_text: 'Tap To Close',
+      disable_for_touch: false,
+      hover_delay: 200,
+      show_on : 'all',
+      tip_template : function (selector, content) {
+        return '<span data-selector="' + selector + '" id="' + selector + '" class="'
+          + Foundation.libs.tooltip.settings.tooltip_class.substring(1)
+          + '" role="tooltip">' + content + '<span class="nub"></span></span>';
+      }
+    },
+
+    cache : {},
+
+    init : function (scope, method, options) {
+      Foundation.inherit(this, 'random_str');
+      this.bindings(method, options);
+    },
+
+    should_show: function (target, tip) {
+      var settings = $.extend({}, this.settings, this.data_options(target));
+
+      if (settings.show_on === 'all') {
+        return true;
+      } else if (this.small() && settings.show_on === 'small') {
+        return true;
+      } else if (this.medium() && settings.show_on === 'medium') {
+        return true;
+      } else if (this.large() && settings.show_on === 'large') {
+        return true;
+      }
+      return false;
+    },
+
+    medium : function () {
+      return matchMedia(Foundation.media_queries['medium']).matches;
+    },
+
+    large : function () {
+      return matchMedia(Foundation.media_queries['large']).matches;
+    },
+
+    events : function (instance) {
+      var self = this,
+          S = self.S;
+
+      self.create(this.S(instance));
+
+      $(this.scope)
+        .off('.tooltip')
+        .on('mouseenter.fndtn.tooltip mouseleave.fndtn.tooltip touchstart.fndtn.tooltip MSPointerDown.fndtn.tooltip',
+          '[' + this.attr_name() + ']', function (e) {
+          var $this = S(this),
+              settings = $.extend({}, self.settings, self.data_options($this)),
+              is_touch = false;
+
+          if (Modernizr.touch && /touchstart|MSPointerDown/i.test(e.type) && S(e.target).is('a')) {
+            return false;
+          }
+
+          if (/mouse/i.test(e.type) && self.ie_touch(e)) return false;
+
+          if ($this.hasClass('open')) {
+            if (Modernizr.touch && /touchstart|MSPointerDown/i.test(e.type)) e.preventDefault();
+            self.hide($this);
+          } else {
+            if (settings.disable_for_touch && Modernizr.touch && /touchstart|MSPointerDown/i.test(e.type)) {
+              return;
+            } else if(!settings.disable_for_touch && Modernizr.touch && /touchstart|MSPointerDown/i.test(e.type)) {
+              e.preventDefault();
+              S(settings.tooltip_class + '.open').hide();
+              is_touch = true;
+            }
+
+            if (/enter|over/i.test(e.type)) {
+              this.timer = setTimeout(function () {
+                var tip = self.showTip($this);
+              }.bind(this), self.settings.hover_delay);
+            } else if (e.type === 'mouseout' || e.type === 'mouseleave') {
+              clearTimeout(this.timer);
+              self.hide($this);
+            } else {
+              self.showTip($this);
+            }
+          }
+        })
+        .on('mouseleave.fndtn.tooltip touchstart.fndtn.tooltip MSPointerDown.fndtn.tooltip', '[' + this.attr_name() + '].open', function (e) {
+          if (/mouse/i.test(e.type) && self.ie_touch(e)) return false;
+
+          if($(this).data('tooltip-open-event-type') == 'touch' && e.type == 'mouseleave') {
+            return;
+          }
+          else if($(this).data('tooltip-open-event-type') == 'mouse' && /MSPointerDown|touchstart/i.test(e.type)) {
+            self.convert_to_touch($(this));
+          } else {
+            self.hide($(this));
+          }
+        })
+        .on('DOMNodeRemoved DOMAttrModified', '[' + this.attr_name() + ']:not(a)', function (e) {
+          self.hide(S(this));
+        });
+    },
+
+    ie_touch : function (e) {
+      // How do I distinguish between IE11 and Windows Phone 8?????
+      return false;
+    },
+
+    showTip : function ($target) {
+      var $tip = this.getTip($target);
+      if (this.should_show($target, $tip)){
+        return this.show($target);
+      }
+      return;
+    },
+
+    getTip : function ($target) {
+      var selector = this.selector($target),
+          settings = $.extend({}, this.settings, this.data_options($target)),
+          tip = null;
+
+      if (selector) {
+        tip = this.S('span[data-selector="' + selector + '"]' + settings.tooltip_class);
+      }
+
+      return (typeof tip === 'object') ? tip : false;
+    },
+
+    selector : function ($target) {
+      var id = $target.attr('id'),
+          dataSelector = $target.attr(this.attr_name()) || $target.attr('data-selector');
+
+      if ((id && id.length < 1 || !id) && typeof dataSelector != 'string') {
+        dataSelector = this.random_str(6);
+        $target
+          .attr('data-selector', dataSelector)
+          .attr('aria-describedby', dataSelector);
+      }
+
+      return (id && id.length > 0) ? id : dataSelector;
+    },
+
+    create : function ($target) {
+      var self = this,
+          settings = $.extend({}, this.settings, this.data_options($target)),
+          tip_template = this.settings.tip_template;
+
+      if (typeof settings.tip_template === 'string' && window.hasOwnProperty(settings.tip_template)) {
+        tip_template = window[settings.tip_template];
+      }
+
+      var $tip = $(tip_template(this.selector($target), $('<div></div>').html($target.attr('title')).html())),
+          classes = this.inheritable_classes($target);
+
+      $tip.addClass(classes).appendTo(settings.append_to);
+
+      if (Modernizr.touch) {
+        $tip.append('<span class="tap-to-close">'+settings.touch_close_text+'</span>');
+        $tip.on('touchstart.fndtn.tooltip MSPointerDown.fndtn.tooltip', function(e) {
+          self.hide($target);
+        });
+      }
+
+      $target.removeAttr('title').attr('title','');
+    },
+
+    reposition : function (target, tip, classes) {
+      var width, nub, nubHeight, nubWidth, column, objPos;
+
+      tip.css('visibility', 'hidden').show();
+
+      width = target.data('width');
+      nub = tip.children('.nub');
+      nubHeight = nub.outerHeight();
+      nubWidth = nub.outerHeight();
+
+      if (this.small()) {
+        tip.css({'width' : '100%' });
+      } else {
+        tip.css({'width' : (width) ? width : 'auto'});
+      }
+
+      objPos = function (obj, top, right, bottom, left, width) {
+        return obj.css({
+          'top' : (top) ? top : 'auto',
+          'bottom' : (bottom) ? bottom : 'auto',
+          'left' : (left) ? left : 'auto',
+          'right' : (right) ? right : 'auto'
+        }).end();
+      };
+
+      objPos(tip, (target.offset().top + target.outerHeight() + 10), 'auto', 'auto', target.offset().left);
+
+      if (this.small()) {
+        objPos(tip, (target.offset().top + target.outerHeight() + 10), 'auto', 'auto', 12.5, $(this.scope).width());
+        tip.addClass('tip-override');
+        objPos(nub, -nubHeight, 'auto', 'auto', target.offset().left);
+      } else {
+        var left = target.offset().left;
+        if (Foundation.rtl) {
+          nub.addClass('rtl');
+          left = target.offset().left + target.outerWidth() - tip.outerWidth();
+        }
+        objPos(tip, (target.offset().top + target.outerHeight() + 10), 'auto', 'auto', left);
+        tip.removeClass('tip-override');
+        if (classes && classes.indexOf('tip-top') > -1) {
+          if (Foundation.rtl) nub.addClass('rtl');
+          objPos(tip, (target.offset().top - tip.outerHeight()), 'auto', 'auto', left)
+            .removeClass('tip-override');
+        } else if (classes && classes.indexOf('tip-left') > -1) {
+          objPos(tip, (target.offset().top + (target.outerHeight() / 2) - (tip.outerHeight() / 2)), 'auto', 'auto', (target.offset().left - tip.outerWidth() - nubHeight))
+            .removeClass('tip-override');
+          nub.removeClass('rtl');
+        } else if (classes && classes.indexOf('tip-right') > -1) {
+          objPos(tip, (target.offset().top + (target.outerHeight() / 2) - (tip.outerHeight() / 2)), 'auto', 'auto', (target.offset().left + target.outerWidth() + nubHeight))
+            .removeClass('tip-override');
+          nub.removeClass('rtl');
+        }
+      }
+
+      tip.css('visibility', 'visible').hide();
+    },
+
+    small : function () {
+      return matchMedia(Foundation.media_queries.small).matches &&
+        !matchMedia(Foundation.media_queries.medium).matches;
+    },
+
+    inheritable_classes : function ($target) {
+      var settings = $.extend({}, this.settings, this.data_options($target)),
+          inheritables = ['tip-top', 'tip-left', 'tip-bottom', 'tip-right', 'radius', 'round'].concat(settings.additional_inheritable_classes),
+          classes = $target.attr('class'),
+          filtered = classes ? $.map(classes.split(' '), function (el, i) {
+            if ($.inArray(el, inheritables) !== -1) {
+              return el;
+            }
+          }).join(' ') : '';
+
+      return $.trim(filtered);
+    },
+
+    convert_to_touch : function($target) {
+      var self = this,
+          $tip = self.getTip($target),
+          settings = $.extend({}, self.settings, self.data_options($target));
+
+      if ($tip.find('.tap-to-close').length === 0) {
+        $tip.append('<span class="tap-to-close">'+settings.touch_close_text+'</span>');
+        $tip.on('click.fndtn.tooltip.tapclose touchstart.fndtn.tooltip.tapclose MSPointerDown.fndtn.tooltip.tapclose', function(e) {
+          self.hide($target);
+        });
+      }
+
+      $target.data('tooltip-open-event-type', 'touch');
+    },
+
+    show : function ($target) {
+      var $tip = this.getTip($target);
+
+      if ($target.data('tooltip-open-event-type') == 'touch') {
+        this.convert_to_touch($target);
+      }
+
+      this.reposition($target, $tip, $target.attr('class'));
+      $target.addClass('open');
+      $tip.fadeIn(150);
+    },
+
+    hide : function ($target) {
+      var $tip = this.getTip($target);
+
+      $tip.fadeOut(150, function() {
+        $tip.find('.tap-to-close').remove();
+        $tip.off('click.fndtn.tooltip.tapclose MSPointerDown.fndtn.tapclose');
+        $target.removeClass('open');
+      });
+    },
+
+    off : function () {
+      var self = this;
+      this.S(this.scope).off('.fndtn.tooltip');
+      this.S(this.settings.tooltip_class).each(function (i) {
+        $('[' + self.attr_name() + ']').eq(i).attr('title', $(this).text());
+      }).remove();
+    },
+
+    reflow : function () {}
+  };
+}(jQuery, window, window.document));
+ 
+ }; /* ==  End source for module /vendor/foundation/foundation.tooltip.js  == */ return module; }());;
+;require._modules["/vendor/foundation/index.js"] = (function() { var __filename = "/vendor/foundation/index.js"; var __dirname = "/vendor/foundation"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /vendor/foundation/index.js  == */ var __module__ = function() { 
+ 
+window.jQuery = require('jquery');
+
+require('./foundation');
+require('./foundation.tooltip');
+
+delete window.jQuery;
+window.jQuery = void(0);
+ 
+ }; /* ==  End source for module /vendor/foundation/index.js  == */ return module; }());;
+;require._modules["/views/modal/modal.js"] = (function() { var __filename = "/views/modal/modal.js"; var __dirname = "/views/modal"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/modal/modal.js  == */ var __module__ = function() { 
  
 var View  = require('cloak/view');
+var _     = require('cloak/underscore');
 
-var WelcomeView = module.exports = View.extend({
+var ModalView = module.exports = View.extend({
 
-	className: 'welcome',
-	template: 'views/welcome/welcome.hbs',
+	className: 'modal wrapper',
+	template: 'views/modal/modal.hbs',
 
 	events: {
-		'click .login':            'showLogin',
-		'click .terms':            'showTerms',
-		'click .privacy':          'showPrivacy',
-		'click .signup .button':   'continueSignup'
+		'click .modal.close':    'close'
+	},
+
+	initialize: function() {
+		// 
+	},
+
+	draw: function(content, classname) {
+		if (! content && this.contentTemplate) {
+			content = this.render({ }, 'contentTemplate');
+		}
+
+		this.$elem.html(this.render({
+			content: content,
+			classname: classname || this.classname || ''
+		}));
+
+		this.bindEvents();
+	},
+
+	close: function() {
+		var self = this;
+
+		this.$elem.removeClass('open');
+		
+		setTimeout(function() {
+			self.remove();
+		}, 500);
+	}
+
+});
+
+// 
+// Creates and opens a modal view in one call
+// 
+ModalView.open = function(content, classname) {
+	var view = new ModalView();
+
+	view.draw(content, classname);
+	view.$elem.appendTo(document.body);
+
+	// Need to give the browser a moment to render before the re-render
+	// will cause an animation
+	setTimeout(function() {
+		view.$elem.addClass('open');
+	}, 13);
+
+	return view;
+};
+
+// 
+// Returns a new function that opens a specific type of modal
+// 
+// @param {defaults} the options for creating the modal
+// @return function
+// 
+ModalView.template = function(defaults) {
+	return function(opts) {
+		opts = _.defaults(opts || { }, defaults);
+
+		var modal = new ModalView();
+
+		modal.contentTemplate = opts.template;
+		modal.classname = opts.classname;
+
+		_.extend(modal, opts.props || { });
+		modal.events = _.extend({ }, modal.events, opts.events || { });
+
+		modal.draw();
+		modal.$elem.appendTo(document.body);
+
+		setTimeout(function() {
+			modal.$elem.addClass('open');
+		}, 13);
+
+		return modal;
+	};
+};
+ 
+ }; /* ==  End source for module /views/modal/modal.js  == */ return module; }());;
+;require._modules["/views/welcome/nav/modals/login/login.js"] = (function() { var __filename = "/views/welcome/nav/modals/login/login.js"; var __dirname = "/views/welcome/nav/modals/login"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/welcome/nav/modals/login/login.js  == */ var __module__ = function() { 
+ 
+var ModalView  = require('views/modal/modal');
+var Request    = require('cloak/model-stores/dagger').Request;
+
+// 
+// Opens a new login modal
+// 
+exports.open = ModalView.template({
+
+	classname: 'login',
+	template: 'views/welcome/nav/modals/login/login.hbs',
+	
+	events: {
+		'click .login .button':    'login'
+	},
+	
+	props: {
+		login: function(evt) {
+			if (evt) {
+				evt.preventDefault();
+			}
+
+			var self = this;
+			var username = this.$('.username').val();
+			var password = this.$('.password').val();
+
+			this.showError();
+
+			if (! username) {
+				this.showError('Username or email is required');
+				return;
+			}
+
+			Request.send('POST', '/auth', { username: username, password: password })
+				.then(
+					function(res) {
+						switch (res.status) {
+							case 200:
+								alert('Authentication successful\n\n' + res.body.token);
+							break;
+							case 202:
+								alert('Authentication message sent');
+							break;
+							default:
+								// umm ... something broke ...
+							break;
+						}
+					},
+					function(res) {
+						if (res.status === 401) {
+							return self.showError('Username or password was incorrect');
+						}
+
+						self.showError('An unknown error occured on our server; Please try your request again');
+					}
+				);
+		},
+
+		showError: function(message) {
+			var $error = this.$('.error');
+			
+			if (! message) {
+				$error.html('');
+				$error.addClass('hide');
+				return;
+			}
+			
+			$error.html(message);
+			$error.removeClass('hide');
+		}
+	}
+
+});
+ 
+ }; /* ==  End source for module /views/welcome/nav/modals/login/login.js  == */ return module; }());;
+;require._modules["/views/welcome/nav/modals/privacy/privacy.js"] = (function() { var __filename = "/views/welcome/nav/modals/privacy/privacy.js"; var __dirname = "/views/welcome/nav/modals/privacy"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/welcome/nav/modals/privacy/privacy.js  == */ var __module__ = function() { 
+ 
+var ModalView = require('views/modal/modal');
+
+// 
+// Opens a new privacy modal
+// 
+exports.open = ModalView.template({
+	classname: 'privacy',
+	template: 'views/welcome/nav/modals/privacy/privacy.hbs'
+});
+ 
+ }; /* ==  End source for module /views/welcome/nav/modals/privacy/privacy.js  == */ return module; }());;
+;require._modules["/views/welcome/nav/modals/terms/terms.js"] = (function() { var __filename = "/views/welcome/nav/modals/terms/terms.js"; var __dirname = "/views/welcome/nav/modals/terms"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/welcome/nav/modals/terms/terms.js  == */ var __module__ = function() { 
+ 
+var ModalView = require('views/modal/modal');
+
+// 
+// Opens a new terms modal
+// 
+exports.open = ModalView.template({
+	classname: 'terms',
+	template: 'views/welcome/nav/modals/terms/terms.hbs'
+});
+ 
+ }; /* ==  End source for module /views/welcome/nav/modals/terms/terms.js  == */ return module; }());;
+;require._modules["/views/welcome/nav/nav.js"] = (function() { var __filename = "/views/welcome/nav/nav.js"; var __dirname = "/views/welcome/nav"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/welcome/nav/nav.js  == */ var __module__ = function() { 
+ 
+var View          = require('cloak/view');
+var ModalView     = require('views/modal/modal');
+var LoginModal    = require('views/welcome/nav/modals/login/login');
+var TermsModal    = require('views/welcome/nav/modals/terms/terms');
+var PrivacyModal  = require('views/welcome/nav/modals/privacy/privacy');
+
+var WelcomeNavView = module.exports = View.extend({
+
+	template: 'views/welcome/nav/nav.hbs',
+
+	events: {
+		'click .login':       'showLogin',
+		'click .terms':       'showTerms',
+		'click .privacy':     'showPrivacy'
 	},
 
 	initialize: function() {
@@ -26757,42 +28052,399 @@ var WelcomeView = module.exports = View.extend({
 	draw: function() {
 		this.$elem.html(this.render());
 
-		// Get the content element
-		this.$main = this.$('main');
-
 		this.bindEvents();
 	},
 
+// --------------------------------------------------------
+	
+	// 
+	// Shows the login modal
+	// 
 	showLogin: function(evt) {
 		if (evt) {
 			evt.preventDefault();
 		}
 
-		alert('Login :D');
+		LoginModal.open();
 	},
 
+	// 
+	// Shows the Terms of Use modal
+	// 
 	showTerms: function(evt) {
 		if (evt) {
 			evt.preventDefault();
 		}
 
-		alert('Terms :D');
+		TermsModal.open();
 	},
 
+	// 
+	// Shows the Privacy Policy modal
+	// 
 	showPrivacy: function(evt) {
 		if (evt) {
 			evt.preventDefault();
 		}
 
-		alert('Privacy :D');
+		PrivacyModal.open();
+	}
+
+});
+ 
+ }; /* ==  End source for module /views/welcome/nav/nav.js  == */ return module; }());;
+;require._modules["/views/welcome/signup/signup.js"] = (function() { var __filename = "/views/welcome/signup/signup.js"; var __dirname = "/views/welcome/signup"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/welcome/signup/signup.js  == */ var __module__ = function() { 
+ 
+var View            = require('cloak/view');
+var WelcomeNavView  = require('views/welcome/nav/nav');
+var Request         = require('cloak/model-stores/dagger').Request;
+
+
+var SignupView = module.exports = View.extend({
+
+	className: 'signup',
+	template: 'views/welcome/signup/signup.hbs',
+	successTemplate: 'views/welcome/signup/signup.success.hbs',
+
+	events: {
+		'change .auth-method select':     'changeAuthMethod',
+		'click .button-wrapper .button':  'signup'
 	},
 
+	initialize: function(data) {
+		if (data) {
+			this.data = data;
+		}
+	},
+
+	draw: function() {
+		this.$elem.html(this.render(this.data));
+		
+		this.nav = new WelcomeNavView();
+		this.nav.$elem = this.$('nav');
+		this.nav.draw();
+
+		this.$error       = this.$('.error');
+		this.$username    = this.$('.username');
+		this.$email       = this.$('.email');
+		this.$authMethod  = this.$('.auth-method');
+		this.$password    = this.$('.password');
+		this.$mobile      = this.$('.mobile');
+
+		this.changeAuthMethod();
+
+		this.bindEvents();
+	},
+
+// --------------------------------------------------------
+	
+	changeAuthMethod: function() {
+		var method = this.$authMethod.find('select').val();
+
+		this.$mobile.removeClass('hide');
+		this.$password.removeClass('hide');
+
+		switch (method) {
+			case 'email':
+				this.$mobile.addClass('hide');
+				this.$password.addClass('hide');
+			break;
+			case 'password':
+				this.$mobile.addClass('hide');
+			break;
+			case 'twostep-email':
+				this.$mobile.addClass('hide');
+			break;
+			case 'twostep-sms':
+				// 
+			break;
+		}
+	},
+
+// --------------------------------------------------------
+	
+	// 
+	// Get user data from the form
+	// 
+	getData: function() {
+		var data = {
+			username:    this.$username.find('input').val(),
+			email:       this.$email.find('input').val(),
+			authMethod:  this.$authMethod.find('select').val()
+		};
+
+		if (data.authMethod !== 'email') {
+			data.password = this.$password.find('input').val();
+		}
+
+		if (data.authMethod === 'twostep-sms') {
+			data.phone = '+1' + this.$mobile.find('input').val();
+		}
+
+		return data;
+	},
+	
+	// 
+	// Send the signup request
+	// 
+	signup: function() {
+		var self = this;
+
+		if (! this.validate()) {
+			return;
+		}
+		this.showError();
+
+		Request.send('POST', '/users', this.getData())
+			.then(
+				function(res) {
+					self.showSuccess(res.body);
+				},
+				function(res) {
+					if (res.status >= 500) {
+						self.showError('An unknown error has occured on our servers; Please try again');
+						return;
+					}
+
+					self.showError(res.body.message);
+				}
+			);
+	},
+
+	// 
+	// Show a success message when signup completes properly
+	// 
+	showSuccess: function(data, callback) {
+		var self = this;
+		var $main = this.$('main');
+		$main.animate({ opacity: 0 }, 600, function() {
+			$main.addClass('success');
+			$main.html(self.render(data, 'successTemplate'));
+			$main.animate({ opacity: 1 }, 600, callback);
+		});
+	},
+
+	// 
+	// Do some basic, initial validation
+	// 
+	validate: function() {
+		var self = this;
+
+		var data = this.getData();
+
+		// Username validation
+		if (! data.username) {
+			return error('Username is required');
+		}
+		if (data.username.length > 30) {
+			return error('Username cannot exceed 30 characters in length');
+		}
+		if (! /^[a-zA-Z0-9_\-]+$/.test(data.username)) {
+			return error('Username can only contain letters, numbers, underscores and hyphens');
+		}
+
+		// Email validation
+		if (! data.email.length) {
+			return error('Email is required');
+		}
+		if (! /^\S+@\S+$/.test(data.email)) {
+			return error('Must use a valid email address');
+		}
+
+		// Password validation
+		if (data.authMethod !== 'email') {
+			var confirm = this.$password.find('input').eq(1).val();
+			if (! data.password) {
+				return error('Password is required');
+			}
+			if (data.password.length < 8) {
+				return error('Password must contain at least 8 characters');
+			}
+			if (data.password !== confirm) {
+				return error('Passwords do not match');
+			}
+		}
+
+		// Phone number validation
+		if (data.authMethod === 'twostep-sms') {
+			if (data.phone.length <= 2) {
+				return error('Mobile is required');
+			}
+			if (! /^\+[1-9]{1}[0-9]{7,11}$/.test(data.phone)) {
+				return error('Must use a valid mobile phone number');
+			}
+		}
+
+		return true;
+
+		function error(message) {
+			self.showError(message);
+			return false;
+		}
+	},
+
+	// 
+	// Shows an error message
+	// 
+	// @param {message} the message to display
+	// 
+	showError: function(message) {
+		if (! message) {
+			this.$error.html('');
+			this.$error.addClass('hide');
+			return;
+		}
+
+		this.$error.html(message);
+		this.$error.removeClass('hide');
+	}
+
+});
+ 
+ }; /* ==  End source for module /views/welcome/signup/signup.js  == */ return module; }());;
+;require._modules["/views/welcome/welcome.js"] = (function() { var __filename = "/views/welcome/welcome.js"; var __dirname = "/views/welcome"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/welcome/welcome.js  == */ var __module__ = function() { 
+ 
+var View            = require('cloak/view');
+var WelcomeNavView  = require('views/welcome/nav/nav');
+var Request         = require('cloak/model-stores/dagger').Request;
+
+var WelcomeView = module.exports = View.extend({
+
+	className: 'welcome',
+	template: 'views/welcome/welcome.hbs',
+
+	events: {
+		'blur .signup .username input':  'checkUsername',
+		'blur .signup .email input':     'checkEmail',
+		'click .signup .button':         'continueSignup'
+	},
+
+	initialize: function() {
+		// 
+	},
+
+	draw: function() {
+		this.$elem.html(this.render());
+		
+		this.nav = new WelcomeNavView();
+		this.nav.$elem = this.$('nav');
+		this.nav.draw();
+
+		var signup = this.signup = {
+			username: {
+				$label: this.$('.signup .username')
+			},
+			email: {
+				$label: this.$('.signup .email')
+			}
+		};
+		
+		signup.username.$input = signup.username.$label.find('input');
+		signup.username.$error = signup.username.$label.find('span');
+		
+		signup.email.$input = signup.email.$label.find('input');
+		signup.email.$error = signup.email.$label.find('span');
+
+		this.bindEvents();
+	},
+
+// --------------------------------------------------------
+	
+	// 
+	// Validates the username field
+	// 
+	checkUsername: function() {
+		var username = this.signup.username;
+		var value = username.$input.val();
+
+		if (! value) {
+			return noError();
+		}
+
+		if (value.length > 30) {
+			return showError('Cannot exceed 30 characters')
+		}
+
+		if (! /^[a-zA-Z0-9_\-]+$/.test(value)) {
+			return showError('Can only contain letters, numbers, hyphens and underscores');
+		}
+
+		Request.send('GET', '/users/exists/' + value)
+			.then(function(res) {
+				if (res.body.exists) {
+					return showError('Already taken');
+				}
+
+				noError();
+			});
+
+		function showError(err) {
+			username.$label.addClass('error');
+			username.$error.html(err);
+		}
+
+		function noError() {
+			username.$label.removeClass('error');
+			username.$error.html('');
+		}
+	},
+
+	// 
+	// Validates the email field
+	// 
+	checkEmail: function() {
+		var email = this.signup.email;
+		var value = email.$input.val();
+
+		if (! value) {
+			return noError();
+		}
+
+		if (! /^\S+@\S+$/.test(value)) {
+			return showError('Must be a valid email address');
+		}
+
+		Request.send('GET', '/users/exists/' + value)
+			.then(function(res) {
+				if (res.body.exists) {
+					return showError('Already in use (do you already have an account?)');
+				}
+
+				noError();
+			});
+
+		function showError(err) {
+			email.$label.addClass('error');
+			email.$error.html(err);
+		}
+
+		function noError() {
+			email.$label.removeClass('error');
+			email.$error.html('');
+		}
+	},
+
+	// 
+	// Given a username and email, continues on to the next step in the
+	// signup process
+	// 
 	continueSignup: function(evt) {
 		if (evt) {
 			evt.preventDefault();
 		}
 
-		alert('Signup :D');
+		var username = this.signup.username.$input.val();
+		var email = this.signup.email.$input.val();
+
+		router.redirectTo('/signup', {
+			title: 'Collabish - Signup',
+			data: {
+				username: username,
+				email: email
+			}
+		});
 	}
 
 });

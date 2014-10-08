@@ -153,10 +153,12 @@ var Router = module.exports = AppObject.extend({
 	// Redirect to a different route
 	// 
 	// @param {href} the route to redirect to
+	// @param {opts} options for the redirect
 	// @return void
 	// 
-	redirectTo: function(href) {
-		this.pushState(null, null, href);
+	redirectTo: function(href, opts) {
+		opts = opts || { };
+		this.pushState(opts.data || { }, opts.title || document.title, href);
 	},
 
 	// 

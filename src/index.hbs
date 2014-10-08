@@ -29,6 +29,17 @@
 		// Add the /lib directory to the require path
 		require.paths.push('/lib', '/vendor');
 
+		// Load in underscore
+		var _ = require('cloak/underscore');
+
+		var io = require('socket.io');
+		var config = require('cloak').config;
+		var socketUrl = location.protocol + {{#if production}}'//api.collabish.me'{{else}}'//localhost:3000'{{/if}};
+
+		config.socket = io.connect(socketUrl);
+		config.modelStore = require('cloak/model-stores/dagger');
+		config.viewTag = 'section';
+
 		// Polyfill JSON if needed
 		JSON || require('json2');
 

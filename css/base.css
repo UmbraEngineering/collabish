@@ -1,8 +1,16 @@
 
-* {
+body {
 	font-family: "Open Sans", "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
 }
 
 .row {
 	max-width: 80em;
+}
+
+input[type="text"], input[type="password"], input[type="date"],
+input[type="datetime"], input[type="datetime-local"], input[type="month"],
+input[type="week"], input[type="email"], input[type="number"],
+input[type="search"], input[type="tel"], input[type="time"],
+input[type="url"], textarea, select {
+	margin-top: 5px;
 }

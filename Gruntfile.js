@@ -75,7 +75,8 @@ module.exports = function(grunt) {
 				src: [
 					'./css/reset.css',
 					'./css/foundation.css',
-					'./css/base.css'
+					'./css/base.css',
+					'./css/tooltips.css'
 				],
 				dest: buildPath + '/css/base.css'
 			},

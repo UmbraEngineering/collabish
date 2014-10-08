@@ -1,0 +1,66 @@
+<header>
+	<h1><a href="#/">Collabish</a></h1>
+</header>
+
+<main class="row">
+	<div class="small-12 medium-4 medium-centered columns">
+		<h2>Signup</h2>
+		<div class="error hide"></div>
+		<form>
+			<label class="username">
+				Username
+				<input type="text" value="{{ username }}" />
+			</label>
+			<label class="email">
+				Email
+				<input type="email" value="{{ email }}" />
+			</label>
+			<label class="auth-method" aria-describedby="auth-method-tooltip">
+				Auth Method
+				<span
+					id="auth-method-tooltip"
+					class="tooltip-left"
+					role="tooltip"
+					aria-haspopup="true"
+					data-tooltip="Determines how you log in to Collabish"
+				>?</span>
+				<select>
+					<option value="password">Password</option>
+					<option value="email">Email</option>
+					<option value="twostep-email">Two-Step (Password + Email)</option>
+					<option value="twostep-sms">Two-Step (Password + SMS)</option>
+				</select>
+			</label>
+			<label class="password">
+				Password (twice)
+				<input type="password" />
+				<input type="password" />
+			</label>
+			<label class="mobile" aria-describedby="mobile-tooltip">
+				Mobile Phone
+				<span
+					id="mobile-tooltip"
+					class="tooltip-left"
+					role="tooltip"
+					aria-haspopup="true"
+					data-tooltip="We will only ever text you to send you login codes"
+				>?</span>
+				<div class="row collapse">
+					<div class="small-1 columns">
+						<span class="prefix">+1</span>
+					</div>
+					<div class="small-11 columns">
+						<input type="tel" />
+					</div>
+				</div>
+			</label>
+			<div class="button-wrapper">
+				<a class="button">Sign Up</a>
+			</div>
+		</form>
+	</div>
+</main>
+
+<nav class="welcome">
+	{{!-- WelcomeNavView --}}
+</nav>
