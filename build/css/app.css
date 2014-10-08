@@ -5851,6 +5851,115 @@ select {
   margin-top: 5px;
 }
 
+/**
+ * (C)Leanest CSS spinner ever
+ *
+ * http://lea.verou.me/2013/11/cleanest-css-spinner-ever/
+ */
+
+@-webkit-keyframes spin {
+  to {
+    -webkit-transform: rotate(1turn);
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes spin {
+  to {
+    -webkit-transform: rotate(1turn);
+    transform: rotate(1turn);
+  }
+}
+
+.progress {
+  position: relative;
+  display: inline-block;
+  width: 5em;
+  height: 5em;
+  margin: 0 .5em;
+  font-size: 12px;
+  text-indent: 999em;
+  overflow: hidden;
+  border-width: 0;
+  background: transparent;
+  -webkit-animation: spin 1s infinite steps(8);
+  animation: spin 1s infinite steps(8);
+}
+
+.tiny.progress {
+  font-size: 4px;
+}
+
+.small.progress {
+  font-size: 6px;
+}
+
+.large.progress {
+  font-size: 24px;
+}
+
+.progress:before,
+.progress:after,
+.progress > div:before,
+.progress > div:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 2.25em;
+  /* (container width - part width)/2  */
+  width: .5em;
+  height: 1.5em;
+  border-radius: .2em;
+  background: #eee;
+  box-shadow: 0 3.5em #eee;
+  /* container height - part height */
+  -webkit-transform-origin: 50% 2.5em;
+  -ms-transform-origin: 50% 2.5em;
+  transform-origin: 50% 2.5em;
+  /* container height / 2 */
+}
+
+.progress:before {
+  background: #555;
+}
+
+.progress.invert:before {
+  background: #bbb;
+}
+
+.progress:after {
+  -webkit-transform: rotate(-45deg);
+  -ms-transform: rotate(-45deg);
+  transform: rotate(-45deg);
+  background: #777;
+}
+
+.progress.invert:after {
+  background: #999;
+}
+
+.progress > div:before {
+  -webkit-transform: rotate(-90deg);
+  -ms-transform: rotate(-90deg);
+  transform: rotate(-90deg);
+  background: #999;
+}
+
+.progress.invert > div:before {
+  background: #777;
+}
+
+.progress > div:after {
+  -webkit-transform: rotate(-135deg);
+  -ms-transform: rotate(-135deg);
+  transform: rotate(-135deg);
+  background: #bbb;
+}
+
+.progress.invert > div:after {
+  background: #555;
+}
+
 /* Base styles for the element that has a tooltip */
 
 [data-tooltip],
@@ -6151,12 +6260,24 @@ select {
   overflow-y: auto;
 }
 
+.modal.wrapper .privacy.modal main h4 {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.modal.wrapper .privacy.modal main li,
 .modal.wrapper .privacy.modal main p {
   font-size: 0.8rem;
 }
 
+.modal.wrapper .privacy.modal main li,
+.modal.wrapper .privacy.modal main > p {
+  margin: 1rem;
+}
+
 @media only screen and (min-width: 40.063em) {
   .modal.wrapper .privacy.modal {
+    width: 600px;
     margin-top: 3rem;
   }
 
@@ -6256,7 +6377,7 @@ section.signup {
 }
 
 section.signup header {
-  padding: 1rem;
+  padding: 1.3rem;
 }
 
 section.signup header h1 {
@@ -6287,6 +6408,12 @@ section.signup main .button-wrapper .button {
 
 section.signup main .button-wrapper .button:hover {
   background: #ff712c;
+}
+
+section.signup main .button-wrapper .button .progress {
+  position: absolute;
+  top: 18px;
+  right: 19px;
 }
 
 section.signup main .tooltip-left {

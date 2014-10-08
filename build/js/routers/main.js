@@ -23,6 +23,11 @@ var MainRouter = module.exports = Router.extend({
 
 		// Handle internal anchors with the router
 		$('#wrapper').on('click', 'a[href^="#"], a[href^="/#"]', this.handleAnchor);
+
+		// Send a new google analytics pageview event when we change pages
+		this.on('statechange', function() {
+			ga('send', 'pageview');
+		});
 	},
 
 	notfound: function() {

@@ -13,7 +13,7 @@ exports.open = ModalView.template({
 	template: 'views/welcome/nav/modals/login/login.hbs',
 	
 	events: {
-		'click .login .button':    'login'
+		'click .login button':    'login'
 	},
 	
 	props: {

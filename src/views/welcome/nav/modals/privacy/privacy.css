@@ -9,12 +9,24 @@
 		overflow-y: auto;
 	}
 
+		.modal.wrapper .privacy.modal main h4 {
+			font-size: 1rem;
+			font-weight: 500;
+		}
+
+		.modal.wrapper .privacy.modal main li,
 		.modal.wrapper .privacy.modal main p {
 			font-size: 0.8rem;
 		}
 
+		.modal.wrapper .privacy.modal main li,
+		.modal.wrapper .privacy.modal main > p {
+			margin: 1rem;
+		}
+
 @media only screen and (min-width: 40.063em) {
 	.modal.wrapper .privacy.modal {
+		width: 600px;
 		margin-top: 3rem;
 	}
 

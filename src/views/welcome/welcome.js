@@ -11,7 +11,7 @@ var WelcomeView = module.exports = View.extend({
 	events: {
 		'blur .signup .username input':  'checkUsername',
 		'blur .signup .email input':     'checkEmail',
-		'click .signup .button':         'continueSignup'
+		'click .signup button':         'continueSignup'
 	},
 
 	initialize: function() {

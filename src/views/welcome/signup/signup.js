@@ -3,6 +3,8 @@ var View            = require('cloak/view');
 var WelcomeNavView  = require('views/welcome/nav/nav');
 var Request         = require('cloak/model-stores/dagger').Request;
 
+require('mods/spin');
+
 
 var SignupView = module.exports = View.extend({
 
@@ -12,7 +14,7 @@ var SignupView = module.exports = View.extend({
 
 	events: {
 		'change .auth-method select':     'changeAuthMethod',
-		'click .button-wrapper .button':  'signup'
+		'click .button-wrapper button':  'signup'
 	},
 
 	initialize: function(data) {
@@ -94,10 +96,11 @@ var SignupView = module.exports = View.extend({
 	signup: function() {
 		var self = this;
 
-		if (! this.validate()) {
-			return;
-		}
+		// if (! this.validate()) {
+			// return;
+		// }
 		this.showError();
+		this.disable(true);
 
 		Request.send('POST', '/users', this.getData())
 			.then(
@@ -105,6 +108,7 @@ var SignupView = module.exports = View.extend({
 					self.showSuccess(res.body);
 				},
 				function(res) {
+					self.disable(false);
 					if (res.status >= 500) {
 						self.showError('An unknown error has occured on our servers; Please try again');
 						return;
@@ -113,6 +117,19 @@ var SignupView = module.exports = View.extend({
 					self.showError(res.body.message);
 				}
 			);
+	},
+
+	// 
+	// Disable the form
+	// 
+	disable: function(flag) {
+		this.$('input, select, button').prop('disabled', flag);
+
+		if (flag) {
+			this.$('button').spin(true, {replace: false, size: 'tiny', classname: 'invert'});
+		} else {
+			this.$('button').spin(false);
+		}
 	},
 
 	// 

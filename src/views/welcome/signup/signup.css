@@ -4,7 +4,7 @@ section.signup {
 }
 
 	section.signup header {
-		padding: 1rem;
+		padding: 1.3rem;
 	}
 
 		section.signup header h1 {
@@ -36,6 +36,12 @@ section.signup {
 		section.signup main .button-wrapper .button:hover {
 			background: #ff712c;
 		}
+
+			section.signup main .button-wrapper .button .progress {
+				position: absolute;
+				top: 18px;
+				right: 19px;
+			}
 
 	section.signup main .tooltip-left {
 		color: #ff7941;
