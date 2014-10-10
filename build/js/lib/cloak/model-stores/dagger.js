@@ -9,8 +9,9 @@ var methods = exports.methods = { };
 var statics = exports.statics = { };
 
 var cloak      = require('cloak');
-var AppObject  = require('cloak/app-object');
 var $          = require('jquery');
+var AppObject  = require('cloak/app-object');
+var Promise    = require('promise').Promise;
 
 var io = cloak.config.socket;
 var id = cloak.config.idKey;
@@ -126,24 +127,25 @@ var Request = exports.Request = AppObject.extend({
 	},
 
 	send: function() {
-		var deferred = $.Deferred();
-		var req = {
-			method: this.method,
-			url: this.url,
-			headers: this.headers,
-			body: this.body
-		};
+		var self = this;
 
-		cloak.log('WS Request: ' + req.method.toUpperCase() + ' ' + req.url);
-		io.emit('request', req, function(res) {
-			if (res.status >= 400) {
-				return deferred.reject(res);
-			}
+		return new Promise(function(resolve, reject) {
+			var req = {
+				method: self.method,
+				url: self.url,
+				headers: self.headers,
+				body: self.body
+			};
 
-			deferred.resolve(res);
+			cloak.log('WS Request: ' + req.method.toUpperCase() + ' ' + req.url);
+			io.emit('request', req, function(res) {
+				if (res.status >= 400) {
+					return reject(res);
+				}
+
+				resolve(res);
+			});
 		});
-
-		return deferred.promise();
 	}
 
 });

@@ -153,18 +153,16 @@ var Router = module.exports = AppObject.extend({
 	// Redirect to a different route
 	// 
 	// @param {href} the route to redirect to
-	// @param {opts} options for the redirect
 	// @return void
 	// 
-	redirectTo: function(href, opts) {
-		opts = opts || { };
-		this.pushState(opts.data || { }, opts.title || document.title, href);
+	redirectTo: function(href) {
+		this.pushState(null, null, href);
 	},
 
 	// 
 	// Used to bind an anchor to the router, like this:
 	// 
-	//   $('a[data-local]').on('click', router.handleAnchor);
+	//   $('a#foo').on('click', router.handleAnchor);
 	// 
 	// @param {evt} the click event object
 	// @return void
@@ -176,7 +174,7 @@ var Router = module.exports = AppObject.extend({
 		while (target.tagName !== 'A' && target !== document.body) {
 			target = target.parentNode;
 		}
-
+		
 		var href = target.getAttribute('href');
 		while (href.charAt(0) === '/' || href.charAt(0) === '#') {
 			href = href.slice(1);

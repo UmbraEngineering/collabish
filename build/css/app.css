@@ -5882,12 +5882,12 @@ select {
   overflow: hidden;
   border-width: 0;
   background: transparent;
-  -webkit-animation: spin 1s infinite steps(8);
-  animation: spin 1s infinite steps(8);
+  -webkit-animation: spin .75s infinite steps(8);
+  animation: spin .75s infinite steps(8);
 }
 
 .tiny.progress {
-  font-size: 4px;
+  font-size: 3px;
 }
 
 .small.progress {
@@ -5919,12 +5919,10 @@ select {
   /* container height / 2 */
 }
 
+/* ==  Standard (black on white)  == */
+
 .progress:before {
   background: #555;
-}
-
-.progress.invert:before {
-  background: #bbb;
 }
 
 .progress:after {
@@ -5934,19 +5932,11 @@ select {
   background: #777;
 }
 
-.progress.invert:after {
-  background: #999;
-}
-
 .progress > div:before {
   -webkit-transform: rotate(-90deg);
   -ms-transform: rotate(-90deg);
   transform: rotate(-90deg);
   background: #999;
-}
-
-.progress.invert > div:before {
-  background: #777;
 }
 
 .progress > div:after {
@@ -5956,8 +5946,58 @@ select {
   background: #bbb;
 }
 
+/* ==  Inverted (white on black)  == */
+
+.progress.invert:before {
+  background: #bbb;
+}
+
+.progress.invert:after {
+  background: #999;
+}
+
+.progress.invert > div:before {
+  background: #777;
+}
+
 .progress.invert > div:after {
   background: #555;
+}
+
+/* ==  Action button (white on orange)  == */
+
+.progress.orange:before {
+  background: #fee;
+}
+
+.progress.orange:after {
+  background: #ffac8a;
+}
+
+.progress.orange > div:before {
+  background: #ff7941;
+}
+
+.progress.orange > div:after {
+  background: #ff7941;
+}
+
+/* ==  Transparent  == */
+
+.progress.transparent:before {
+  background: rgba(255,255,255,1);
+}
+
+.progress.transparent:after {
+  background: rgba(255,255,255,.6);
+}
+
+.progress.transparent > div:before {
+  background: rgba(255,255,255,.2);
+}
+
+.progress.transparent > div:after {
+  background: rgba(255,255,255,0);
 }
 
 /* Base styles for the element that has a tooltip */
@@ -6222,6 +6262,104 @@ select {
   }
 }
 
+section.notfound {
+  /**/
+}
+
+section.notfound header {
+  padding: 1.3rem;
+}
+
+section.notfound header h1 {
+  font-size: 2rem;
+}
+
+section.notfound header h1 a {
+  color: #000;
+}
+
+section.notfound main {
+  max-width: 600px;
+  margin: 2rem auto;
+}
+
+section.notfound nav {
+  max-width: 600px;
+  margin: 4rem auto;
+}
+
+section.notfound nav a {
+  margin-right: 2rem;
+}
+
+@media only screen and (max-width: 40em) {
+  section.notfound header,
+  section.notfound main,
+  section.notfound nav {
+    text-align: center;
+  }
+
+  section.notfound nav a {
+    margin: 0 1rem;
+  }
+}
+
+section.welcome-auth {
+  /**/
+}
+
+section.welcome-auth header {
+  padding: 1.3rem;
+}
+
+section.welcome-auth header h1 {
+  font-size: 2rem;
+}
+
+section.welcome-auth header h1 a {
+  color: #000;
+}
+
+section.welcome-auth main {
+  text-align: center;
+}
+
+section.welcome-auth main p.confirming {
+  padding-bottom: 2rem;
+}
+
+/* ==  Mobile  == */
+
+@media only screen and (max-width: 40em) {
+  section.welcome-auth nav {
+    padding-bottom: 0;
+    padding-top: 2rem;
+    border-bottom-width: 0;
+    border-top: 1px #ccc solid;
+  }
+
+  section.welcome-auth header h1 {
+    text-align: center;
+  }
+
+  section.welcome-auth main {
+    padding: 3rem 1rem 6rem;
+  }
+}
+
+/* ==  Non-mobile  == */
+
+@media only screen and (min-width: 40.063em) {
+  section.welcome-auth main {
+    padding-top: 6rem;
+  }
+}
+
+section.email-confirm main {
+  max-width: 600px;
+  margin: auto;
+}
+
 .login.modal {
   /**/
 }
@@ -6244,10 +6382,17 @@ select {
   width: 100%;
   background: #ff7941;
   margin-bottom: 0;
+  position: relative;
 }
 
 .login.modal form .button:hover {
   background: #ff712c;
+}
+
+.login.modal form .button .progress {
+  position: absolute;
+  top: 20px;
+  right: 19px;
 }
 
 .modal.wrapper .privacy.modal {
@@ -6354,8 +6499,8 @@ nav.welcome a:not(.button) {
     top: 2rem;
     right: 2rem;
     text-align: left;
-    padding-bottom: 0;
-    border-bottom: 0;
+    border: 0;
+    padding: 0;
   }
 
   nav.welcome a {
@@ -6417,7 +6562,7 @@ section.signup main .button-wrapper .button:hover {
 
 section.signup main .button-wrapper .button .progress {
   position: absolute;
-  top: 18px;
+  top: 20px;
   right: 19px;
 }
 
@@ -6427,14 +6572,14 @@ section.signup main .tooltip-left {
   float: right;
 }
 
-section.signup nav {
-  padding-bottom: 0;
-  padding-top: 2rem;
-  border-bottom-width: 0;
-  border-top: 1px #ccc solid;
-}
-
 @media only screen and (max-width: 40em) {
+  section.signup nav {
+    padding-bottom: 0;
+    padding-top: 2rem;
+    border-bottom-width: 0;
+    border-top: 1px #ccc solid;
+  }
+
   section.signup header h1,
   section.signup main h2 {
     text-align: center;

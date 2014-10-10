@@ -37,7 +37,7 @@ var WelcomeNavView = module.exports = View.extend({
 			evt.preventDefault();
 		}
 
-		LoginModal.open();
+		this.openModal(LoginModal);
 	},
 
 	// 
@@ -48,7 +48,7 @@ var WelcomeNavView = module.exports = View.extend({
 			evt.preventDefault();
 		}
 
-		TermsModal.open();
+		this.openModal(TermsModal);
 	},
 
 	// 
@@ -59,7 +59,26 @@ var WelcomeNavView = module.exports = View.extend({
 			evt.preventDefault();
 		}
 
-		PrivacyModal.open();
+		this.openModal(PrivacyModal);
+	},
+
+	// 
+	// Opens a modal, and stores a reference to it
+	// 
+	// @param {modal} the modal to open
+	// @return void
+	// 
+	openModal: function(modal) {
+		var self = this;
+
+		if (this.modal) {
+			return;
+		}
+
+		this.modal = modal.open();
+		this.modal.on('close', function() {
+			self.modal = null;
+		});
 	}
 
 });

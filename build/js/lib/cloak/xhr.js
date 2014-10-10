@@ -9,6 +9,7 @@ var $          = require('jquery');
 var _          = require('underscore');
 var cloak      = require('cloak');
 var base64     = require('cloak/base64');
+var Promise    = require('promise').Promise;
 var AppObject  = require('cloak/app-object');
 
 // 
@@ -34,7 +35,7 @@ var Queue = exports.Queue = AppObject.extend({
 					this.next();
 				});
 				this.emit('request', req);
-				req.run();
+				req.start();
 			}
 		});
 	},
@@ -104,7 +105,7 @@ var Request = exports.Request = AppObject.extend({
 
 		// The config object to pass to $.ajax
 		this.config = {
-			url: this.url,
+			url: url,
 			type: method.toUpperCase(),
 			async: true,
 			cache: false,
@@ -145,22 +146,22 @@ var Request = exports.Request = AppObject.extend({
 	// Starts running the request
 	// 
 	run: function() {
-		var deferred = this._deferred = $.Deferred();
+		var self = this;
 
-		this.config.complete = _.bind(this.oncomplete, this, deferred);
+		return new Promise(function(resolve, reject) {
+			self.config.complete = _.bind(self.oncomplete, self, resolve, reject);
 
-		cloak.log('XHR: ' + this.method.toUpperCase() + ' ' + this.url + ' ' + (this.config.data || { }));
-		this.emit('send', this);
-		this.xhr = $.ajax(this.config);
-
-		return deferred.promise();
+			cloak.log('XHR: ' + self.method.toUpperCase() + ' ' + self.url + ' ' + self.config.data);
+			self.emit('send', self);
+			self.xhr = $.ajax(self.config);
+		});
 	},
 
 	// 
 	// This is called when the XHR is complete, and handles parsing the response
 	// and emiting events.
 	// 
-	oncomplete: function(deferred, xhr, status) {
+	oncomplete: function(resolve, reject, xhr, status) {
 		try {
 			this.json = JSON.parse(xhr.responseText);
 		} catch (e) {
@@ -175,9 +176,9 @@ var Request = exports.Request = AppObject.extend({
 		}
 
 		if (status >= 400 || ! status) {
-			deferred.reject(this);
+			reject(this);
 		} else {
-			deferred.resolve(this);
+			resolve(this);
 		}
 	},
 

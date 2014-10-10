@@ -4118,11 +4118,11 @@ input[type="url"], textarea, select {
 	overflow: hidden;
 	border-width: 0;
 	background: transparent;
-	animation: spin 1s infinite steps(8);
+	animation: spin .75s infinite steps(8);
 }
 
 .tiny.progress {
-	font-size: 4px;
+	font-size: 3px;
 }
 
 .small.progress {
@@ -4149,40 +4149,88 @@ input[type="url"], textarea, select {
 	transform-origin: 50% 2.5em; /* container height / 2 */
 }
 
+
+
+/* ==  Standard (black on white)  == */
+
 .progress:before {
 	background: #555;
 }
 	
-	.progress.invert:before {
-		background: #bbb;
-	}
-
 .progress:after {
 	transform: rotate(-45deg);
 	background: #777;
 }
-	
-	.progress.invert:after {
-		background: #999;
-	}
 
 .progress > div:before {
 	transform: rotate(-90deg);
 	background: #999;
 }
-	
-	.progress.invert > div:before {
-		background: #777;
-	}
 
 .progress > div:after {
 	transform: rotate(-135deg);
 	background: #bbb;
 }
-	
-	.progress.invert > div:after {
-		background: #555;
-	}
+
+
+
+/* ==  Inverted (white on black)  == */
+
+.progress.invert:before {
+	background: #bbb;
+}
+
+.progress.invert:after {
+	background: #999;
+}
+
+.progress.invert > div:before {
+	background: #777;
+}
+
+.progress.invert > div:after {
+	background: #555;
+}
+
+
+
+/* ==  Action button (white on orange)  == */
+
+.progress.orange:before {
+	background: #fee;
+}
+
+.progress.orange:after {
+	background: #ffac8a;
+}
+
+.progress.orange > div:before {
+	background: #ff7941;
+}
+
+.progress.orange > div:after {
+	background: #ff7941;
+}
+
+
+
+/* ==  Transparent  == */
+
+.progress.transparent:before {
+	background: rgba(255,255,255,1);
+}
+
+.progress.transparent:after {
+	background: rgba(255,255,255,.6);
+}
+
+.progress.transparent > div:before {
+	background: rgba(255,255,255,.2);
+}
+
+.progress.transparent > div:after {
+	background: rgba(255,255,255,0);
+}
 /* Base styles for the element that has a tooltip */
 [data-tooltip],
 .tooltip {

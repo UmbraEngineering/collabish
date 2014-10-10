@@ -27,8 +27,8 @@ nav.welcome {
 		top: 2rem;
 		right: 2rem;
 		text-align: left;
-		padding-bottom: 0;
-		border-bottom: 0;
+		border: 0;
+		padding: 0;
 	}
 
 		nav.welcome a {

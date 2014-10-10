@@ -1,9 +1,10 @@
 ;require._modules["/routers/main.js"] = (function() { var __filename = "/routers/main.js"; var __dirname = "/routers"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /routers/main.js  == */ var __module__ = function() { 
  
-var $       = require('jquery');
-var cloak   = require('cloak');
-var Router  = require('cloak/router');
+var $             = require('jquery');
+var cloak         = require('cloak');
+var Router        = require('cloak/router');
+var NotFoundView  = require('views/notfound/notfound');
 
 var MainRouter = module.exports = Router.extend({
 
@@ -31,7 +32,7 @@ var MainRouter = module.exports = Router.extend({
 	},
 
 	notfound: function() {
-		console.log('not found');
+		this.renderView(new NotFoundView());
 	},
 
 	renderView: function(view, opts) {

@@ -1,6 +1,7 @@
 ;require._modules["/views/welcome/nav/modals/login/login.js"] = (function() { var __filename = "/views/welcome/nav/modals/login/login.js"; var __dirname = "/views/welcome/nav/modals/login"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/welcome/nav/modals/login/login.js  == */ var __module__ = function() { 
  
+var auth       = require('common/auth');
 var ModalView  = require('views/modal/modal');
 var Request    = require('cloak/model-stores/dagger').Request;
 
@@ -33,27 +34,25 @@ exports.open = ModalView.template({
 				return;
 			}
 
-			Request.send('POST', '/auth', { username: username, password: password })
-				.then(
-					function(res) {
-						switch (res.status) {
-							case 200:
-								alert('Authentication successful\n\n' + res.body.token);
-							break;
-							case 202:
-								alert('Authentication message sent');
-							break;
-							default:
-								// umm ... something broke ...
-							break;
-						}
-					},
-					function(res) {
-						if (res.status === 401) {
-							return self.showError('Username or password was incorrect');
-						}
+			this.disable(true);
 
-						self.showError('An unknown error occured on our server; Please try your request again');
+			auth.login(username, password)
+				.then(
+					function(result) {
+						self.disable(false);
+
+						if (result.complete) {
+							console.log(auth.user);
+							router.redirectTo('/dashboard');
+						} else {
+							router.redirectTo('/auth/twostep');
+						}
+						
+						self.close();
+					},
+					function(err) {
+						self.disable(false);
+						self.showError(err);
 					}
 				);
 		},
@@ -69,6 +68,16 @@ exports.open = ModalView.template({
 			
 			$error.html(message);
 			$error.removeClass('hide');
+		},
+
+		disable: function(flag) {
+			this.$('input, button').prop('disabled', flag);
+
+			if (flag) {
+				this.$('button').spin(true, {replace: false, size: 'tiny', classname: 'transparent'});
+			} else {
+				this.$('button').spin(false);
+			}
 		}
 	}
 

@@ -11,7 +11,7 @@ var WelcomeView = module.exports = View.extend({
 	events: {
 		'blur .signup .username input':  'checkUsername',
 		'blur .signup .email input':     'checkEmail',
-		'click .signup button':         'continueSignup'
+		'click .signup button':          'continueSignup'
 	},
 
 	initialize: function() {
@@ -57,7 +57,7 @@ var WelcomeView = module.exports = View.extend({
 		}
 
 		if (value.length > 30) {
-			return showError('Cannot exceed 30 characters')
+			return showError('Cannot exceed 30 characters');
 		}
 
 		if (! /^[a-zA-Z0-9_\-]+$/.test(value)) {

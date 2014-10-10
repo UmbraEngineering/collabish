@@ -20,13 +20,13 @@ function program1(depth0,data) {
 function program3(depth0,data) {
   
   
-  return "'//api.collabish.me'";
+  return "'api.collabish.me'";
   }
 
 function program5(depth0,data) {
   
   
-  return "'//localhost:3000'";
+  return "'localhost:3000'";
   }
 
   buffer += "<!doctype html>\n<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->\n<!--[if lt IE 7]> <html class=\"no-js lt-ie9 lt-ie8 lt-ie7\" lang=\"en\"> <![endif]-->\n<!--[if IE 7]>    <html class=\"no-js lt-ie9 lt-ie8\" lang=\"en\"> <![endif]-->\n<!--[if IE 8]>    <html class=\"no-js lt-ie9\" lang=\"en\"> <![endif]-->\n<!--[if gt IE 8]><!--> <html lang=\"en\"> <!--<![endif]-->\n<head>\n\n	<title>Collabish</title>\n\n	<meta charset=\"utf-8\" />\n	<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge,chrome=1\">\n	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=0, maximum-scale=1.0\" />\n\n	<link rel=\"stylesheet\" type=\"text/css\" href=\"//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,700,300,400,600,800\" />\n	<link rel=\"stylesheet\" type=\"text/css\" href=\"//";
@@ -43,10 +43,19 @@ function program5(depth0,data) {
     + "/build";
   stack1 = helpers['if'].call(depth0, (depth0 && depth0.production), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += ".js\"></script>\n\n	<script>\n\n		window.History = {options: {html4Mode: true}};\n\n		// Add the /lib directory to the require path\n		require.paths.push('/lib', '/vendor');\n\n		// Google Analytics\n		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){\n		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),\n		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)\n		})(window,document,'script','//www.google-analytics.com/analytics.js','ga');\n\n		ga('create', 'UA-55524086-1', 'auto');\n		if (! require('history').enabled) {\n			ga('send', 'pageview');\n		}\n\n		// Load in underscore\n		var _ = require('cloak/underscore');\n\n		var io = require('socket.io');\n		var config = require('cloak').config;\n		var socketUrl = location.protocol + ";
+  buffer += ".js\"></script>\n	<script>\n		require.paths.push('/lib', '/vendor');\n		require('startup').run({\n			apiServer: ";
   stack1 = helpers['if'].call(depth0, (depth0 && depth0.production), {hash:{},inverse:self.program(5, program5, data),fn:self.program(3, program3, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += ";\n\n		config.socket = io.connect(socketUrl);\n		config.modelStore = require('cloak/model-stores/dagger');\n		config.viewTag = 'section';\n\n		// Polyfill JSON if needed\n		JSON || require('json2');\n\n		// Load in any cloak mods\n		require('mods/templates');\n\n		// Tell the router to start listening...\n		var MainRouter = require('routers/main');\n		\n		var router = new MainRouter({ autoStart: false })\n			.use(require('routers/welcome'))\n			.start();\n\n	</script>\n\n	<script>\n		\n	</script>\n\n</body>\n</html>";
+  buffer += "\n		});\n	</script>\n\n</body>\n</html>";
+  return buffer;
+  });
+
+this["exports"]["views/dashboard/dashboard.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "";
+
+
   return buffer;
   });
 
@@ -68,6 +77,58 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   return buffer;
   });
 
+this["exports"]["views/notfound/notfound.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, self=this;
+
+function program1(depth0,data) {
+  
+  
+  return "\n	<a href=\"#/dashboard\">Dashboard</a>\n	<a href=\"#/search\">Document Search</a>\n	";
+  }
+
+function program3(depth0,data) {
+  
+  
+  return "\n	<a href=\"#/\">Home</a>\n	<a href=\"#/signup\">Signup</a>\n	";
+  }
+
+  buffer += "<header>\n	<h1><a href=\"#/\">Collabish</a></h1>\n</header>\n\n<main>\n	<h2>Not Found</h2>\n	<p>\n		You broke it. It's all your fault. The website is dead.\n	</p>\n</main>\n\n<nav>\n	";
+  stack1 = helpers['if'].call(depth0, (depth0 && depth0.loggedIn), {hash:{},inverse:self.program(3, program3, data),fn:self.program(1, program1, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n</nav>\n";
+  return buffer;
+  });
+
+this["exports"]["views/welcome/auth/email-confirmation/email-confirmation.error.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<h2>Uh-oh!</h2>\n<p>\n	We could not successfully confirm your email address. This could be caused by a number of\n	things such as an expired confirmation token or a server error.\n</p>\n";
+  });
+
+this["exports"]["views/welcome/auth/email-confirmation/email-confirmation.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "";
+
+
+  buffer += "<header>\n	<h1><a href=\"#/\">Collabish</a></h1>\n</header>\n\n<main>\n	<p class=\"confirming\">\n		Confirming your email address ...\n	</p>\n</main>\n\n<nav class=\"welcome\">\n	\n</nav>";
+  return buffer;
+  });
+
+this["exports"]["views/welcome/auth/email-confirmation/email-confirmation.success.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<h2>Success!</h2>\n<p>\n	Your email address has been successfully confirmed. You can now <a class=\"login\">login</a> to your\n	account.\n</p>\n";
+  });
+
 this["exports"]["views/welcome/nav/modals/login/login.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
@@ -83,7 +144,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   
 
 
-  return "<h3>Privacy Policy</h3>\n<main>\n	<h4>Information We Collect</h4>\n	<ul>\n		<li>\n			<strong>Information you give us.</strong>\n			When you sign up for an account, we will ask you for some personal information, like email\n			address and phone number.\n		</li>\n\n		<li>\n			<strong>Information generated by using our services.</strong>\n			Using collabish.me automatically generates information in a number of ways which we may collect\n			for later use. This information includes the following:\n			<ul>\n				<li>\n					Analytics Information\n					<p>\n						We use <a href=\"http://analytics.google.com\">Google Analytics</a> to collect analytics\n						data about our users and the ways in which they use our services. You can see their\n						<a href=\"https://www.google.com/intl/en/policies/privacy/\">privacy policy</a> on their\n						website.\n					</p>\n				</li>\n				<li>\n					Server Logs\n					<p>\n						Our servers constantly generate log files of their activities, some of which may contain\n						your information. Specifically, we keep logs of each individual request to both our main\n						web server and our API server, and these logs may contain information such as IP addresses,\n						request bodies (which may contain personal information), search queries, and any data stored\n						in the request headers, including cookies.\n					</p>\n				</li>\n			</ul>\n		</li>\n	</ul>\n\n\n\n	<h4>How we use the information we collect</h4>\n	<p>\n		The information we collect is used to help us to provide you with better service and an overall better\n		experience. For example, the analytics information helps us to gauge interest in specific features to\n		know where we should focus our efforts. The server logs we collect help us to debug and fix problems\n		that might arise in our application.\n	</p>\n\n\n\n	<h4>Information we share</h4>\n	<p>\n		We do <strong>not</strong> share personal information with third parties unless one of the following\n		situations applies:\n	</p>\n	<ul>\n		<li>\n			<strong>We have your consent.</strong>\n			We will share information with others if you give us permission to do so.\n		</li>\n		<li>\n			<strong>Hosting and storage.</strong>\n			We have to store your data somewhere. We do not operate our own servers; We make use of the wonderful\n			hosting services at <a href=\"http://heroku.com\">Heroku</a>, and as such, all data that goes to and from\n			our app goes through their servers. You can view their <a href=\"https://www.heroku.com/policy/privacy\">\n			privacy policy</a> on their website. We also make use of <a href=\"https://www.compose.io/\"></a>Compose</a>,\n			a database hosting service, where our app data is stored in their MongoDB servers. You can also read\n			their <a href=\"https://docs.compose.io/policies/privacy.html\">privacy policy</a> at their website.\n		</li>\n		<li>\n			<strong>External processing.</strong>\n			As we mentioned above, we make use of Google Analytics' services. This means that information about\n			page views and our users ends up on their analytics servers.\n		</li>\n		<li>\n			<strong>Legal reasons.</strong>\n			We will share personal information if we believe it is reasonably necessary to meet an applicable law\n			or enforceable government request, or to protect the right and safety of Collabish and our users.\n		</li>\n	</ul>\n\n\n\n	<h4>Security</h4>\n	<p>\n		We take several precautions to protect your data. We use SSL encryption for both our web server and API\n		server. We also provide our users with several different authentication methods, including two-step\n		verification for logins.\n	</p>\n</main>";
+  return "<h3>Privacy Policy</h3>\n<main>\n	<h4>Information We Collect</h4>\n	<ul>\n		<li>\n			<strong>Information you give us.</strong>\n			When you sign up for an account, we will ask you for some personal information, like email\n			address and phone number.\n		</li>\n\n		<li>\n			<strong>Information generated by using our services.</strong>\n			Using collabish.me automatically generates information in a number of ways which we may collect\n			for later use. This information includes the following:\n			<ul>\n				<li>\n					Analytics Information\n					<p>\n						We use <a href=\"http://analytics.google.com\">Google Analytics</a> to collect analytics\n						data about our users and the ways in which they use our services. You can see their\n						<a href=\"https://www.google.com/intl/en/policies/privacy/\">privacy policy</a> on their\n						website.\n					</p>\n				</li>\n				<li>\n					Server Logs\n					<p>\n						Our servers constantly generate log files of their activities, some of which may contain\n						your information. Specifically, we keep logs of each individual request to both our main\n						web server and our API server, and these logs may contain information such as IP addresses,\n						request bodies (which may contain personal information), search queries, and any data stored\n						in the request headers, including cookies.\n					</p>\n				</li>\n			</ul>\n		</li>\n	</ul>\n\n\n\n	<h4>How we use the information we collect</h4>\n	<p>\n		The information we collect is used to help us to provide you with better service and an overall better\n		experience. For example, the analytics information helps us to gauge interest in specific features to\n		know where we should focus our efforts. The server logs we collect help us to debug and fix problems\n		that might arise in our application.\n	</p>\n\n\n\n	<h4>Information we share</h4>\n	<p>\n		We do <strong>not</strong> share personal information with third parties unless one of the following\n		situations applies:\n	</p>\n	<ul>\n		<li>\n			<strong>We have your consent.</strong>\n			We will share information with others if you give us permission to do so.\n		</li>\n		<li>\n			<strong>Hosting and storage.</strong>\n			We have to store your data somewhere. We do not operate our own servers; We make use of the wonderful\n			hosting services at <a href=\"http://heroku.com\">Heroku</a>, and as such, all data that goes to and from\n			our app goes through their servers. You can view their <a href=\"https://www.heroku.com/policy/privacy\">\n			privacy policy</a> on their website. We also make use of <a href=\"https://www.compose.io/\">Compose</a>,\n			a database hosting service, where our app data is stored in their MongoDB servers. You can also read\n			their <a href=\"https://docs.compose.io/policies/privacy.html\">privacy policy</a> at their website.\n		</li>\n		<li>\n			<strong>External processing.</strong>\n			As we mentioned above, we make use of Google Analytics' services. This means that information about\n			page views and our users ends up on their analytics servers.\n		</li>\n		<li>\n			<strong>Legal reasons.</strong>\n			We will share personal information if we believe it is reasonably necessary to meet an applicable law\n			or enforceable government request, or to protect the rights and safety of Collabish and our users.\n		</li>\n	</ul>\n\n\n\n	<h4>Security</h4>\n	<p>\n		We use SSL encryption for both our web server and API server, protecting your information while it is\n		in transit between you and our servers. We also provide our users with several different authentication methods, including two-step verification for logins, to provide our users with extra protection against\n		attempts to gain access to their account.\n	</p>\n</main>";
   });
 
 this["exports"]["views/welcome/nav/modals/terms/terms.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -118,7 +179,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   if (helper = helpers.email) { stack1 = helper.call(depth0, {hash:{},data:data}); }
   else { helper = (depth0 && depth0.email); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
   buffer += escapeExpression(stack1)
-    + "\" />\n			</label>\n			<label class=\"auth-method\" aria-describedby=\"auth-method-tooltip\">\n				Auth Method\n				<span\n					id=\"auth-method-tooltip\"\n					class=\"tooltip-left\"\n					role=\"tooltip\"\n					aria-haspopup=\"true\"\n					data-tooltip=\"Determines how you log in to Collabish\"\n				>?</span>\n				<select>\n					<option value=\"password\">Password</option>\n					<option value=\"email\">Email</option>\n					<option value=\"twostep-email\">Two-Step (Password + Email)</option>\n					<option value=\"twostep-sms\">Two-Step (Password + SMS)</option>\n				</select>\n			</label>\n			<label class=\"password\">\n				Password (twice)\n				<input type=\"password\" />\n				<input type=\"password\" />\n			</label>\n			<label class=\"mobile\" aria-describedby=\"mobile-tooltip\">\n				Mobile Phone\n				<span\n					id=\"mobile-tooltip\"\n					class=\"tooltip-left\"\n					role=\"tooltip\"\n					aria-haspopup=\"true\"\n					data-tooltip=\"We will only ever text you to send you login codes\"\n				>?</span>\n				<div class=\"row collapse\">\n					<div class=\"small-1 columns\">\n						<span class=\"prefix\">+1</span>\n					</div>\n					<div class=\"small-11 columns\">\n						<input type=\"tel\" />\n					</div>\n				</div>\n			</label>\n			<div class=\"button-wrapper\">\n				<button class=\"button\">Sign Up</button>\n			</div>\n		</form>\n	</div>\n</main>\n\n<nav class=\"welcome\">\n	\n</nav>\n";
+    + "\" />\n			</label>\n			<label class=\"auth-method\" aria-describedby=\"auth-method-tooltip\">\n				Auth Method\n				<span\n					id=\"auth-method-tooltip\"\n					class=\"tooltip-left\"\n					role=\"tooltip\"\n					aria-haspopup=\"true\"\n					data-tooltip=\"Determines how you log in to Collabish\"\n				>?</span>\n				<select>\n					<option value=\"password\">Password</option>\n					<option value=\"email\">Email</option>\n					<option value=\"twostep-email\">Two-Step (Password + Email)</option>\n					\n				</select>\n			</label>\n			<label class=\"password\">\n				Password (twice)\n				<input type=\"password\" />\n				<input type=\"password\" />\n			</label>\n			<label class=\"mobile\" aria-describedby=\"mobile-tooltip\">\n				Mobile Phone\n				<span\n					id=\"mobile-tooltip\"\n					class=\"tooltip-left\"\n					role=\"tooltip\"\n					aria-haspopup=\"true\"\n					data-tooltip=\"We will only ever text you to send you login codes\"\n				>?</span>\n				<div class=\"row collapse\">\n					<div class=\"small-1 columns\">\n						<span class=\"prefix\">+1</span>\n					</div>\n					<div class=\"small-11 columns\">\n						<input type=\"tel\" />\n					</div>\n				</div>\n			</label>\n			<div class=\"button-wrapper\">\n				<button class=\"button\">Sign Up</button>\n			</div>\n		</form>\n	</div>\n</main>\n\n<nav class=\"welcome\">\n	\n</nav>\n";
   return buffer;
   });
 

@@ -1,0 +1,44 @@
+
+section.notfound {
+	/**/
+}
+
+	section.notfound header {
+		padding: 1.3rem;
+	}
+
+		section.notfound header h1 {
+			font-size: 2rem;
+		}
+
+			section.notfound header h1 a {
+				color: #000;
+			}
+
+	section.notfound main {
+		max-width: 600px;
+		margin: 2rem auto;
+	}
+
+	section.notfound nav {
+		max-width: 600px;
+		margin: 4rem auto;
+	}
+
+		section.notfound nav a {
+			margin-right: 2rem;
+		}
+
+
+
+@media only screen and (max-width: 40em) {
+	section.notfound header,
+	section.notfound main,
+	section.notfound nav {
+		text-align: center;
+	}
+
+		section.notfound nav a {
+			margin: 0 1rem;
+		}
+}

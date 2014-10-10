@@ -34,6 +34,7 @@ var ModalView = module.exports = View.extend({
 		var self = this;
 
 		this.$elem.removeClass('open');
+		this.emit('close');
 		
 		setTimeout(function() {
 			self.remove();

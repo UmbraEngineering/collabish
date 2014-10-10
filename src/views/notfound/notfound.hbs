@@ -1,0 +1,20 @@
+<header>
+	<h1><a href="#/">Collabish</a></h1>
+</header>
+
+<main>
+	<h2>Not Found</h2>
+	<p>
+		You broke it. It's all your fault. The website is dead.
+	</p>
+</main>
+
+<nav>
+	{{#if loggedIn}}
+	<a href="#/dashboard">Dashboard</a>
+	<a href="#/search">Document Search</a>
+	{{else}}
+	<a href="#/">Home</a>
+	<a href="#/signup">Signup</a>
+	{{/if}}
+</nav>

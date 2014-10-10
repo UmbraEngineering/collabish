@@ -292,6 +292,217 @@
 
 }(window));
 
+;require._modules["/common/auth/index.js"] = (function() { var __filename = "/common/auth/index.js"; var __dirname = "/common/auth"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /common/auth/index.js  == */ var __module__ = function() { 
+ 
+var store    = require('store');
+var $        = require('jquery');
+var User     = require('models/user');
+var Request  = require('cloak/model-stores/dagger').Request;
+
+var autoPing;
+var autoPingInterval = 1000 * 60 * 30;  // 30 minutes
+
+// 
+// Attempt to log in with the given user credentials
+// 
+// @param {username} the user's username or email
+// @param {password} the user's password, if needed
+// @return promise
+// 
+exports.login = function(username, password) {
+	return Request.send('POST', '/auth/token', { username: username, password: password })
+		.then(
+			function(res) {
+				switch (res.status) {
+					case 200:
+						setAuthToken(res.body.token);
+						return exports.getUser().then(function() {
+							return { complete: true };
+						});
+					case 202:
+						return { complete: false };
+					default:
+						throw 'Something broke D:';
+				}
+			},
+			function(res) {
+				if (res.status === 401) {
+					throw 'Username or password was incorrect';
+				}
+
+				throw 'An unknown error occured on our server; Please try your request again';
+			}
+		);
+};
+
+// 
+// Check for a stored auth token and confirm it
+// 
+// @return promise
+// 
+exports.check = function() {
+	var token = getAuthToken();
+	
+	if (! token) {
+		return Promise.resolve();
+	}
+
+	setAuthToken(token);
+	return exports.ping()
+		.then(exports.getUser)
+		.then(function() {
+			exports.autoPing(autoPingInterval);
+		});
+};
+
+// 
+// Ask the server for a new auth token for the currently logged in user
+// 
+// @return promise
+// 
+exports.ping = function() {
+	return Request.send('PUT', '/auth/token')
+		.then(
+			function(res) {
+				if (res.body.token) {
+					setAuthToken(res.body.token);
+				}
+			},
+			function(res) {
+				// If a ping ever fails with a 401, we should take this to mean the
+				// user's token is no longer valid and they should be prompted to log
+				// back in.
+				if (res.status === 401) {
+					unsetAuthToken();
+					router.redirectTo('/auth/ping-fail');
+				}
+			}
+		);
+};
+
+// 
+// Start automatically pinging the server every so often to
+// keep the token fresh
+// 
+// @param {interval} the interval (in ms) between pings
+// @return void
+// 
+exports.autoPing = function(interval) {
+	if (interval === false) {
+		clearInterval(autoPing);
+		autoPing = null;
+		return;
+	}
+
+	if (autoPing) {
+		exports.autoPing(false);
+	}
+
+	autoPing = setInterval(exports.touch, interval);
+};
+
+// 
+// Get the currently authenticated user (by token)
+// 
+// @return promise
+// 
+exports.getUser = function() {
+	return User.current().then(function(user) {
+		exports.user = user;
+	});
+};
+
+
+// --------------------------------------------------------
+
+var TOKEN = 'authtoken';
+
+function getAuthToken() {
+	return store.get(TOKEN);
+}
+
+function setAuthToken(token) {
+	unsetAuthToken();
+	
+	store.set(TOKEN, token);
+	Request.defaultHeaders.push(['Authorization', token]);
+}
+
+function unsetAuthToken() {
+	store.remove(TOKEN);
+
+	var headers = Request.defaultHeaders;
+	for (var i = 0; i < headers.length; i++) {
+		if (headers[i][0].toLowerCase() === 'authorization') {
+			headers.splice(i--, 1);
+		}
+	}
+}
+ 
+ }; /* ==  End source for module /common/auth/index.js  == */ return module; }());;
+;require._modules["/common/spin/index.js"] = (function() { var __filename = "/common/spin/index.js"; var __dirname = "/common/spin"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /common/spin/index.js  == */ var __module__ = function() { 
+ 
+var $ = require('jquery');
+
+// 
+// Display a spinner in the element
+// 
+$.fn.spin = function(onOff, opts) {
+	opts = opts || { };
+	var $elem = $(this[0]);
+
+	// Turn on the spinner
+	if (onOff) {
+		if (opts.replace) {
+			$elem.data('spinner-content', elem.innerHTML);
+			$elem.html('');
+		}
+
+		var spinner = document.createElement('div');
+		spinner.className = 'progress ' + (opts.size || '') + ' ' + (opts.classname || '');
+		spinner.innerHTML = '<div></div>';
+
+		$elem.append(spinner);
+	}
+
+	// Turn off the spinner
+	else {
+		$elem.find('.progress').remove();
+
+		var content = $elem.data('spinner-content');
+		if (content) {
+			$elem.html(content);
+		}
+	}
+};
+ 
+ }; /* ==  End source for module /common/spin/index.js  == */ return module; }());;
+;require._modules["/common/templates/index.js"] = (function() { var __filename = "/common/templates/index.js"; var __dirname = "/common/templates"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /common/templates/index.js  == */ var __module__ = function() { 
+ 
+// 
+// Modify the View::render function to consider strings in template
+// properties to be a template path to be resolved
+// 
+
+var templates  = require('templates');
+var View       = require('cloak/view');
+
+var render = View.prototype.render;
+
+View.prototype.render = function(data, templateProperty) {
+	templateProperty = templateProperty || 'template';
+
+	if (typeof this[templateProperty] === 'string') {
+		this[templateProperty] = templates[this[templateProperty]];
+	}
+
+	return render.apply(this, arguments);
+};
+ 
+ }; /* ==  End source for module /common/templates/index.js  == */ return module; }());;
 ;require._modules["/lib/async.js"] = (function() { var __filename = "/lib/async.js"; var __dirname = "/lib"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /lib/async.js  == */ var __module__ = function() { 
  /*global setImmediate: false, setTimeout: false, console: false */
@@ -1479,10 +1690,11 @@ Class.extend = function(prop) {
 ;require._modules["/lib/cloak/collection-async.js"] = (function() { var __filename = "/lib/cloak/collection-async.js"; var __dirname = "/lib/cloak"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /lib/cloak/collection-async.js  == */ var __module__ = function() { 
  
-var async  = require('async');
-var $      = require('jquery');
-var Class  = require('cloak/class');
-var _      = require('cloak/underscore');
+var async    = require('async');
+var $        = require('jquery');
+var Class    = require('cloak/class');
+var Promise  = require('promise').Promise;
+var _        = require('cloak/underscore');
 
 var CollectionAsync = module.exports = Class.extend({
 
@@ -1548,26 +1760,25 @@ var asyncMethods = [
 
 _.each(asyncMethods, function(method) {
 	CollectionAsync.prototype[method] = function() {
-		var deferred = $.Deferred();
 		var args = _.toArray(arguments);
 		var collection = this.collection;
 
-		// Bind the iterator to the given parent scope
-		args[args.length - 1] = _.bind(args[args.length - 1], collection);
+		return new Promise(function(resolve, reject) {
+			// Bind the iterator to the given parent scope
+			args[args.length - 1] = _.bind(args[args.length - 1], collection);
 
-		// Add the array and callback to the arguments
-		args.unshift(collection.models);
-		args.push(function(err, result) {
-			if (err) {
-				return deferred.rejectWith(collection, err);
-			}
-			deferred.resolveWith(collection, result);
+			// Add the array and callback to the arguments
+			args.unshift(collection.models);
+			args.push(function(err, result) {
+				if (err) {
+					return reject(err);
+				}
+				resolve(result);
+			});
+			
+			// Call the async method
+			async[method].apply(async, args);
 		});
-		
-		// Call the async method
-		async[method].apply(async, args);
-
-		return deferred.promise();
 	};
 });
  
@@ -2364,8 +2575,9 @@ var methods = exports.methods = { };
 var statics = exports.statics = { };
 
 var cloak      = require('cloak');
-var AppObject  = require('cloak/app-object');
 var $          = require('jquery');
+var AppObject  = require('cloak/app-object');
+var Promise    = require('promise').Promise;
 
 var io = cloak.config.socket;
 var id = cloak.config.idKey;
@@ -2481,24 +2693,25 @@ var Request = exports.Request = AppObject.extend({
 	},
 
 	send: function() {
-		var deferred = $.Deferred();
-		var req = {
-			method: this.method,
-			url: this.url,
-			headers: this.headers,
-			body: this.body
-		};
+		var self = this;
 
-		cloak.log('WS Request: ' + req.method.toUpperCase() + ' ' + req.url);
-		io.emit('request', req, function(res) {
-			if (res.status >= 400) {
-				return deferred.reject(res);
-			}
+		return new Promise(function(resolve, reject) {
+			var req = {
+				method: self.method,
+				url: self.url,
+				headers: self.headers,
+				body: self.body
+			};
 
-			deferred.resolve(res);
+			cloak.log('WS Request: ' + req.method.toUpperCase() + ' ' + req.url);
+			io.emit('request', req, function(res) {
+				if (res.status >= 400) {
+					return reject(res);
+				}
+
+				resolve(res);
+			});
 		});
-
-		return deferred.promise();
 	}
 
 });
@@ -2625,13 +2838,14 @@ function toQueryString(obj, prefix) {
 // Local storage
 // 
 
-var uuid   = require('uuid-v4');
-var _      = require('../underscore');
-var Store  = require('../local-storage').Store;
+var uuid     = require('uuid-v4');
+var _        = require('../underscore');
+var Promise  = require('promise').Promise;
+var Store    = require('../local-storage').Store;
 
-var methods = exports.methods = { };
-var statics = exports.statics = { };
-var store   = exports.store   = new Store();
+var methods  = exports.methods = { };
+var statics  = exports.statics = { };
+var store    = exports.store   = new Store();
 
 // 
 // Load the document out of local storage
@@ -2639,19 +2853,17 @@ var store   = exports.store   = new Store();
 // @return promise
 // 
 methods._load = function() {
-	var deferred = $.Deferred();
+	var self = this;
 
-	_.nextTick(this, function() {
-		var value = store.read(this.url, this.id());
+	return new Promise(function(resolve, reject) {
+		var value = store.read(self.url, self.id());
 
 		if (! value) {
-			return deferred.reject(new Error('Not found'));
+			return reject(new Error('Not found'));
 		}
 		
-		deferred.resolve(value);
+		resolve(value);
 	});
-
-	return deferred.promise();
 };
 
 // 
@@ -2661,21 +2873,21 @@ methods._load = function() {
 // @return promise
 // 
 methods._save = function(data) {
-	var deferred = $.Deferred();
+	var self = this;
 
-	_.nextTick(this, (this.id() ? update : create));
+	return new Promise(function(resolve, reject) {
+		return (self.id() ? update : create)(resolve, reject);
+	});
 
-	function create() {
-		this.id(store.create(this.url, data));
-		deferred.resolve(store.read(this.url, this.id()));
+	function create(resolve, reject) {
+		self.id(store.create(self.url, data));
+		resolve(store.read(self.url, self.id()));
 	}
 
-	function update() {
-		store.update(this.url, this.id(), data);
-		deferred.resolve(store.read(this.url, this.id()));
+	function update(resolve, reject) {
+		store.update(self.url, self.id(), data);
+		resolve(store.read(self.url, self.id()));
 	}
-
-	return deferred.promise();
 };
 
 // 
@@ -2685,14 +2897,12 @@ methods._save = function(data) {
 // @return promise
 // 
 methods._patch = function(data) {
-	var deferred = $.Deferred();
+	var self = this;
 
-	_.nextTick(this, function() {
-		store.update(this.url, this.id(), data);
-		deferred.resolve(store.read(this.url, this.id()));
+	return new Promise(function(resolve, reject) {
+		store.update(self.url, self.id(), data);
+		resolve(store.read(self.url, self.id()));
 	});
-
-	return deferred.promise();
 };
 
 // 
@@ -2701,16 +2911,14 @@ methods._patch = function(data) {
 // @return promise
 // 
 methods._del = function() {
-	var deferred = $.Deferred();
+	var self = this;
 
-	_.nextTick(this, function() {
-		store.del(this.url, this.id());
-		this.emit('deleted');
-		this.destroy();
-		deferred.resolve();
+	return new Promise(function(resolve, reject) {
+		store.del(self.url, self.id());
+		self.emit('deleted');
+		self.destroy();
+		resolve();
 	});
-
-	return deferred.promise();
 };
  
  }; /* ==  End source for module /lib/cloak/model-stores/local-storage.js  == */ return module; }());;
@@ -2789,6 +2997,7 @@ var cloak       = require('cloak');
 var AppObject   = require('cloak/app-object');
 var _           = require('cloak/underscore');
 var $           = require('jquery');
+var Promise     = require('promise').Promise;
 
 // 
 // Load the default model store to inherit into the model class
@@ -3302,7 +3511,7 @@ var Model = module.exports = AppObject.extend(modelStore.methods, {
 		var self = this;
 
 		if (! self.id()) {
-			$.Deferred().reject(new Error('Cannot make a DELETE request on a model with no ID')).promise();
+			return Promise.reject(new Error('Cannot make a DELETE request on a model with no ID'));
 		}
 
 		self.emit('delete');
@@ -3547,18 +3756,16 @@ var Router = module.exports = AppObject.extend({
 	// Redirect to a different route
 	// 
 	// @param {href} the route to redirect to
-	// @param {opts} options for the redirect
 	// @return void
 	// 
-	redirectTo: function(href, opts) {
-		opts = opts || { };
-		this.pushState(opts.data || { }, opts.title || document.title, href);
+	redirectTo: function(href) {
+		this.pushState(null, null, href);
 	},
 
 	// 
 	// Used to bind an anchor to the router, like this:
 	// 
-	//   $('a[data-local]').on('click', router.handleAnchor);
+	//   $('a#foo').on('click', router.handleAnchor);
 	// 
 	// @param {evt} the click event object
 	// @return void
@@ -3570,7 +3777,7 @@ var Router = module.exports = AppObject.extend({
 		while (target.tagName !== 'A' && target !== document.body) {
 			target = target.parentNode;
 		}
-
+		
 		var href = target.getAttribute('href');
 		while (href.charAt(0) === '/' || href.charAt(0) === '#') {
 			href = href.slice(1);
@@ -3782,7 +3989,7 @@ _.mixin({
 	// _.pick, except this excepts an array of keys
 	// 
 	pickArray: function(obj, keys) {
-		return _.pick.apply(_, [obj].concat(keys));
+		return _.pick.apply([obj].concat(keys));
 	},
 	
 	// 
@@ -4182,6 +4389,7 @@ var $          = require('jquery');
 var _          = require('underscore');
 var cloak      = require('cloak');
 var base64     = require('cloak/base64');
+var Promise    = require('promise').Promise;
 var AppObject  = require('cloak/app-object');
 
 // 
@@ -4207,7 +4415,7 @@ var Queue = exports.Queue = AppObject.extend({
 					this.next();
 				});
 				this.emit('request', req);
-				req.run();
+				req.start();
 			}
 		});
 	},
@@ -4277,7 +4485,7 @@ var Request = exports.Request = AppObject.extend({
 
 		// The config object to pass to $.ajax
 		this.config = {
-			url: this.url,
+			url: url,
 			type: method.toUpperCase(),
 			async: true,
 			cache: false,
@@ -4318,22 +4526,22 @@ var Request = exports.Request = AppObject.extend({
 	// Starts running the request
 	// 
 	run: function() {
-		var deferred = this._deferred = $.Deferred();
+		var self = this;
 
-		this.config.complete = _.bind(this.oncomplete, this, deferred);
+		return new Promise(function(resolve, reject) {
+			self.config.complete = _.bind(self.oncomplete, self, resolve, reject);
 
-		cloak.log('XHR: ' + this.method.toUpperCase() + ' ' + this.url + ' ' + (this.config.data || { }));
-		this.emit('send', this);
-		this.xhr = $.ajax(this.config);
-
-		return deferred.promise();
+			cloak.log('XHR: ' + self.method.toUpperCase() + ' ' + self.url + ' ' + self.config.data);
+			self.emit('send', self);
+			self.xhr = $.ajax(self.config);
+		});
 	},
 
 	// 
 	// This is called when the XHR is complete, and handles parsing the response
 	// and emiting events.
 	// 
-	oncomplete: function(deferred, xhr, status) {
+	oncomplete: function(resolve, reject, xhr, status) {
 		try {
 			this.json = JSON.parse(xhr.responseText);
 		} catch (e) {
@@ -4348,9 +4556,9 @@ var Request = exports.Request = AppObject.extend({
 		}
 
 		if (status >= 400 || ! status) {
-			deferred.reject(this);
+			reject(this);
 		} else {
-			deferred.resolve(this);
+			resolve(this);
 		}
 	},
 
@@ -21167,6 +21375,515 @@ if (typeof JSON !== 'object') {
     }
 }()); 
  }; /* ==  End source for module /lib/json2.js  == */ return module; }());;
+;require._modules["/lib/promise/index.js"] = (function() { var __filename = "/lib/promise/index.js"; var __dirname = "/lib/promise"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /lib/promise/index.js  == */ var __module__ = function() { 
+ 
+var utils = require('./utils');
+
+// Get a reference to the global scope. We do this instead of using {global}
+// in case someone decides to bundle this up and use it in the browser
+var _global = (function() { return this; }).call();
+
+// 
+// Install the Promise constructor into the global scope, if and only if a
+// native promise constructor does not exist.
+// 
+exports.install = function() {
+	if (! _global.Promise) {
+		_global.Promise = Promise;
+	}
+};
+
+// 
+// Remove global.Promise, but only if it is our version
+// 
+exports.uninstall = function() {
+	if (_global.Promise && _global.Promise === Promise) {
+		_global.Promise = void(0);
+		delete _global.Promise;
+	}
+};
+
+// 
+// If native promises exist, do not redefine them
+// 
+if ('Promise' in _global) {
+	exports.Promise = _global.Promise;
+	return;
+}
+
+// 
+// State constants
+// 
+var PENDING      = void(0);
+var UNFULFILLED  = 0;
+var FULFILLED    = 1;
+var FAILED       = 2;
+
+// 
+// The Promise constructor
+// 
+// @param {callback} the callback that defines the process to occur
+// 
+var Promise = exports.Promise = function(callback) {
+	// Check that a function argument was given
+	if (typeof callback !== 'function') {
+		throw new TypeError('Promise constructor takes a function argument');
+	}
+
+	// Check that a new instance was created, and not just a function call was made
+	if (! (this instanceof Promise)) {
+		throw new TypeError('Failed to construct \'Promise\': Please use the \'new\' operator, this object constructor cannot be called as a function.');
+	}
+
+	var self = this;
+
+	// The queue of functions waiting for the promise to resolve/reject
+	utils.defineProperty(this, 'funcs', {
+		enumerable: false,
+		configurable: false,
+		writable: false,
+		value: [ ]
+	});
+
+	// The queue of functions waiting for the promise to resolve/reject
+	utils.defineProperty(this, 'value', {
+		enumerable: false,
+		configurable: true,
+		writable: false,
+		value: void(0)
+	});
+
+	// Call the function, passing in the resolve and reject functions
+	try {
+		callback(resolve, reject);
+	} catch (err) {
+		reject(err);
+	}
+
+	// The {resolve} callback given to the handler function
+	function resolve(value) {
+		resolvePromise(self, value);
+	}
+
+	// The {reject} callback given to the handler function
+	function reject(value) {
+		rejectPromise(self, value);
+	}
+};
+
+// --------------------------------------------------------
+
+// 
+// Assigns handler function(s) for the resolve/reject events
+// 
+// @param {onResolve} optional; a function called when the promise resolves
+// @param {onReject} optional; a function called when the promise rejects
+// @return Promise
+// 
+Promise.prototype.then = function(onResolve, onReject) {
+	var self = this;
+
+	// Create the new promise that will be returned
+	var promise = new Promise(function( ) { });
+
+	// If the promise is already completed, call the callback immediately
+	if (this.state) {
+		setImmediate(function() {
+			invokeFunction(self, promise, (self.state === FULFILLED ? onResolve : onReject));
+		});
+	}
+
+	// Otherwise, add the functions to the list
+	else {
+		this.funcs.push(promise, onResolve, onReject);
+	}
+
+	return promise;
+};
+
+// 
+// Assigns a handler function for the reject event
+// 
+// @param {onReject} a function called when the promise rejects
+// @return Promise
+// 
+Promise.prototype.catch = function(onReject) {
+	return this.then(null, onReject);
+};
+
+// --------------------------------------------------------
+
+// 
+// Returns an immediately resolving promise which resolves with {value}. If {value} is
+// a thenable, the new promise will instead follow the given thenable.
+// 
+// @param {value} the value to resolve with
+// @return Promise
+// 
+Promise.resolve = function(value) {
+	try {
+		var then = utils.thenable(value);
+	} catch (err) {
+		return new Promise(autoResolve);
+	}
+
+	var callback = then
+		? function(resolve, reject) {
+			then.call(value, resolve, reject);
+		}
+		: autoResolve;
+
+	function autoResolve(resolve) {
+		resolve(value);
+	}
+
+	return new Promise(callback);
+};
+
+// 
+// Returns an immediately rejected promise
+// 
+// @param {reason} the reason for the rejection
+// @return Promise
+// 
+Promise.reject = function(reason) {
+	return new Promise(function(resolve, reject) {
+		reject(reason);
+	});
+};
+
+// 
+// Returns a new promise which resolves/rejects based on an array of given promises
+// 
+// @param {promises} the promises to handle
+// @return Promise
+// 
+Promise.all = function(promises) {
+	return new Promise(function(resolve, reject) {
+		if (! Array.isArray(promises)) {
+			resolve([ ]);
+			return;
+		}
+
+		var values = [ ];
+		var finished = false;
+		var remaining = promises.length;
+		
+		promises.forEach(function(promise, index) {
+			var then = utils.thenable(promise);
+
+			if (! then) {
+				onResolve(promise);
+				return;
+			}
+
+			then.call(promise,
+				function onResolve(value) {
+					remaining--;
+					values[index] = value;
+					checkIfFinished();
+				},
+				function onReject(reason) {
+					finished = true;
+					reject(reason);
+				}
+			);
+		});
+
+		function checkIfFinished() {
+			if (! finished && ! remaining) {
+				finished = true;
+				resolve(values);
+			}
+		}
+	});
+};
+
+// 
+// Returns a new promise which resolve/rejects as soon as the first given promise resolves
+// or rejects
+// 
+// @param {promises} an array of promises
+// @return Promise
+// 
+Promise.race = function(promises) {
+	var promise = new Promise(function() { });
+
+	promises.forEach(function(childPromise) {
+		childPromise.then(
+			function(value) {
+				resolvePromise(promise, value);
+			},
+			function(value) {
+				rejectPromise(promise, value);
+			}
+		);
+	});
+
+	return promise;
+};
+
+// --------------------------------------------------------
+
+// 
+// Determines how to properly resolve the promise
+// 
+// @param {promise} the promise
+// @param {value} the value to give the promise
+// @return void
+// 
+function resolvePromise(promise, value) {
+	if (! handleThenable(promise, value)) {
+		fulfillPromise(promise, value);
+	}
+}
+
+// 
+// When a promise resolves with another thenable, this function handles delegating control
+// and passing around values
+// 
+// @param {child} the child promise that values will be passed to
+// @param {value} the thenable value from the previous promise
+// @return boolean
+// 
+function handleThenable(promise, value) {
+	var done, then;
+
+	// Attempt to get the `then` method from the thenable (if it is a thenable)
+	try {
+		if (! (then = utils.thenable(value))) {
+			return false;
+		}
+	} catch (err) {
+		rejectPromise(promise, err);
+		return true;
+	}
+	
+	// Ensure that the promise did not attempt to fulfill with itself
+	if (promise === value) {
+		rejectPromise(promise, new TypeError('Circular resolution of promises'));
+		return true;
+	}
+
+	try {
+		// Wait for the thenable to fulfill/reject before moving on
+		then.call(value,
+			function(subValue) {
+				if (! done) {
+					done = true;
+
+					// Once again look for circular promise resolution
+					if (value === subValue) {
+						rejectPromise(promise, new TypeError('Circular resolution of promises'));
+						return;
+					}
+
+					resolvePromise(promise, subValue);
+				}
+			},
+			function(subValue) {
+				if (! done) {
+					done = true;
+
+					rejectPromise(promise, subValue);
+				}
+			}
+		);
+	} catch (err) {
+		if (! done) {
+			done = true;
+
+			rejectPromise(promise, err);
+		}
+	}
+
+	return true;
+}
+
+// 
+// Fulfill the given promise
+// 
+// @param {promise} the promise to resolve
+// @param {value} the value of the promise
+// @return void
+// 
+function fulfillPromise(promise, value) {
+	if (promise.state !== PENDING) {return;}
+
+	setValue(promise, value);
+	setState(promise, UNFULFILLED);
+
+	setImmediate(function() {
+		setState(promise, FULFILLED);
+		invokeFunctions(promise);
+	});
+}
+
+// 
+// Reject the given promise
+// 
+// @param {promise} the promise to reject
+// @param {value} the value of the promise
+// @return void
+// 
+function rejectPromise(promise, value) {
+	if (promise.state !== PENDING) {return;}
+
+	setValue(promise, value);
+	setState(promise, UNFULFILLED);
+
+	setImmediate(function() {
+		setState(promise, FAILED);
+		invokeFunctions(promise);
+	});
+}
+
+// 
+// Set the state of a promise
+// 
+// @param {promise} the promise to modify
+// @param {state} the new state
+// @return void
+// 
+function setState(promise, state) {
+	utils.defineProperty(promise, 'state', {
+		enumerable: false,
+		// According to the spec: If the state is UNFULFILLED (0), the state can be changed;
+		// If the state is FULFILLED (1) or FAILED (2), the state cannot be changed, and therefore we
+		// lock the property
+		configurable: (! state),
+		writable: false,
+		value: state
+	});
+}
+
+// 
+// Set the value of a promise
+// 
+// @param {promise} the promise to modify
+// @param {value} the value to store
+// @return void
+// 
+function setValue(promise, value) {
+	utils.defineProperty(promise, 'value', {
+		enumerable: false,
+		configurable: false,
+		writable: false,
+		value: value
+	});
+}
+
+// 
+// Invoke all existing functions queued up on the promise
+// 
+// @param {promise} the promise to run functions for
+// @return void
+// 
+function invokeFunctions(promise) {
+	var funcs = promise.funcs;
+
+	for (var i = 0, c = funcs.length; i < c; i += 3) {
+		invokeFunction(promise, funcs[i], funcs[i + promise.state]);
+	}
+
+	// Empty out this list of functions as no one function will be called
+	// more than once, and we don't want to hold them in memory longer than needed
+	promise.funcs.length = 0;
+}
+
+// 
+// Invoke one specific function for the promise
+// 
+// @param {promise} the promise the function belongs too (that .then was called on)
+// @param {child} the promise return from the .then call; the next in line
+// @param {func} the function to call
+// @return void
+// 
+function invokeFunction(promise, child, func) {
+	var value = promise.value;
+	var state = promise.state;
+
+	// If we have a function to run, run it
+	if (typeof func === 'function') {
+		try {
+			value = func(value);
+		} catch (err) {
+			rejectPromise(child, err);
+			return;
+		}
+		
+		resolvePromise(child, value);
+	}
+
+	else if (state === FULFILLED) {
+		resolvePromise(child, value);
+	}
+
+	else if (state === FAILED) {
+		rejectPromise(child, value);
+	}
+} 
+ }; /* ==  End source for module /lib/promise/index.js  == */ return module; }());;
+;require._modules["/lib/promise/utils.js"] = (function() { var __filename = "/lib/promise/utils.js"; var __dirname = "/lib/promise"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /lib/promise/utils.js  == */ var __module__ = function() { 
+ 
+var _global = (function() { return this; }).call();
+
+// 
+// If the given value is a valid thenable, return the then method; otherwise, return false
+// 
+exports.thenable = function(value) {
+	if (value && (typeof value === 'object' || typeof value === 'function')) {
+		try {
+			var then = value.then;
+		} catch (err) {
+			throw err;
+		}
+
+		if (typeof then === 'function') {
+			return then;
+		}
+	}
+
+	return false;
+}
+
+// 
+// Shim Object.defineProperty if needed; This will never run in Node.js land, but
+// is here for when we browserify
+// 
+exports.defineProperty = function(obj, prop, opts) {
+	if (Object.defineProperty) {
+		try {
+			return Object.defineProperty(obj, prop, opts);
+		} catch (err) { }
+	}
+	
+	if (opts.value) {
+		obj[prop] = opts.value;
+	}
+};
+
+// 
+// setImmediate shim
+// 
+if (! _global.setImmediate) {
+	_global.setImmediate = function(func) {
+		setTimeout(func, 0);
+	};
+}
+
+exports.log = function(obj) {
+	console.log(
+		require('util').inspect(obj, {
+			colors: true,
+			showHidden: true,
+			depth: 2
+		})
+	)
+}; 
+ }; /* ==  End source for module /lib/promise/utils.js  == */ return module; }());;
 ;require._modules["/lib/socket.io.js"] = (function() { var __filename = "/lib/socket.io.js"; var __dirname = "/lib"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /lib/socket.io.js  == */ var __module__ = function() { 
  /*! Socket.IO.js build:0.9.16, development. Copyright(c) 2011 LearnBoost <dev@learnboost.com> MIT Licensed */
@@ -25151,10 +25868,12 @@ if (typeof define === "function" && define.amd) {
 			}
 		}
 
-		// In IE7, keys may not contain special chars. See all of https://github.com/marcuswestin/store.js/issues/40
+		// In IE7, keys cannot start with a digit or contain certain chars.
+		// See https://github.com/marcuswestin/store.js/issues/40
+		// See https://github.com/marcuswestin/store.js/issues/83
 		var forbiddenCharsRegex = new RegExp("[!\"#$%&'()*+,/\\\\:;<=>?@[\\]^`{|}~]", "g")
 		function ieKeyFix(key) {
-			return key.replace(forbiddenCharsRegex, '___')
+			return key.replace(/^d/, '___$&').replace(forbiddenCharsRegex, '___')
 		}
 		store.set = withIEStorage(function(storage, key, val) {
 			key = ieKeyFix(key)
@@ -25204,12 +25923,12 @@ if (typeof define === "function" && define.amd) {
 		store.disabled = true
 	}
 	store.enabled = !store.disabled
-	
-	if (typeof module != 'undefined' && module.exports) { module.exports = store }
+
+	if (typeof module != 'undefined' && module.exports && this.module !== module) { module.exports = store }
 	else if (typeof define === 'function' && define.amd) { define(store) }
 	else { win.store = store }
-	
-})(this.window || global); 
+
+})(Function('return this')()); 
  }; /* ==  End source for module /lib/store.js  == */ return module; }());;
 ;require._modules["/lib/underscore.js"] = (function() { var __filename = "/lib/underscore.js"; var __dirname = "/lib"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /lib/underscore.js  == */ var __module__ = function() { 
@@ -26592,74 +27311,99 @@ exports.random = function() {
 };
  
  }; /* ==  End source for module /lib/uuid-v4.js  == */ return module; }());;
-;require._modules["/mods/spin.js"] = (function() { var __filename = "/mods/spin.js"; var __dirname = "/mods"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
- /* ==  Begin source for module /mods/spin.js  == */ var __module__ = function() { 
+;require._modules["/models/user.js"] = (function() { var __filename = "/models/user.js"; var __dirname = "/models"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /models/user.js  == */ var __module__ = function() { 
  
-var $ = require('jquery');
+var Model    = require('cloak/model');
+var Request  = require('cloak/model-stores/dagger').Request;
 
-// 
-// Display a spinner in the element
-// 
-$.fn.spin = function(onOff, opts) {
-	opts = opts || { };
-	var $elem = $(this[0]);
+var User = module.exports = Model.extend({
 
-	// Turn on the spinner
-	if (onOff) {
-		if (opts.replace) {
-			$elem.data('spinner-content', elem.innerHTML);
-			$elem.html('');
-		}
+	url: '/users{/#}',
 
-		var spinner = document.createElement('div');
-		spinner.className = 'progress ' + (opts.size || '') + ' ' + (opts.classname || '');
-		spinner.innerHTML = '<div></div>';
+	attributes: {
+		username: '',
+		email: '',
+		phone: ''
+	},
 
-		$elem.append(spinner);
+	activate: function() {
+		this.set('isActivated', true);
+		return this.patch('isActivated');
 	}
 
-	// Turn off the spinner
-	else {
-		$elem.find('.progress').remove();
+});
 
-		var content = $elem.data('spinner-content');
-		if (content) {
-			$elem.html(content);
-		}
-	}
+// 
+// Do a query for users
+// 
+// @param {data} the query
+// @return promise
+// 
+User.find = function(data) {
+	return Request.send('GET', '/users', data)
+		.then(function(res) {
+			return (new User.Collection()).add(res.body);
+		});
+};
+
+// 
+// Fetch the current user from the server
+// 
+// @return promise
+// 
+User.current = function() {
+	var user = new User();
+	user.id('me');
+
+	return user.load().then(function() {
+		return user;
+	});
 };
  
- }; /* ==  End source for module /mods/spin.js  == */ return module; }());;
-;require._modules["/mods/templates.js"] = (function() { var __filename = "/mods/templates.js"; var __dirname = "/mods"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
- /* ==  Begin source for module /mods/templates.js  == */ var __module__ = function() { 
+ }; /* ==  End source for module /models/user.js  == */ return module; }());;
+;require._modules["/routers/dashboard.js"] = (function() { var __filename = "/routers/dashboard.js"; var __dirname = "/routers"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /routers/dashboard.js  == */ var __module__ = function() { 
  
-// 
-// Modify the View::render function to consider strings in template
-// properties to be a template path to be resolved
-// 
+var cloak          = require('cloak');
+var Router         = require('cloak/router');
+var auth           = require('common/auth');
+var DashboardView  = require('views/dashboard/dashboard');
+var Request        = require('cloak/model-stores/dagger').Request;
 
-var templates  = require('templates');
-var View       = require('cloak/view');
+var DashboardRouter = module.exports = Router.extend({
 
-var render = View.prototype.render;
+	routes: {
+		'/dashboard':    'dashboard',
+	},
 
-View.prototype.render = function(data, templateProperty) {
-	templateProperty = templateProperty || 'template';
+	initialize: function() {
+		// 
+	},
 
-	if (typeof this[templateProperty] === 'string') {
-		this[templateProperty] = templates[this[templateProperty]];
+// --------------------------------------------------------
+	
+	// 
+	// The logged-in home page, the main dashboard
+	// 
+	dashboard: function() {
+		if ( auth.user) {
+			this.redirectTo('/');
+			return;
+		}
+
+		this.parent.renderView(new DashboardView());
 	}
 
-	return render.apply(this, arguments);
-};
- 
- }; /* ==  End source for module /mods/templates.js  == */ return module; }());;
+}); 
+ }; /* ==  End source for module /routers/dashboard.js  == */ return module; }());;
 ;require._modules["/routers/main.js"] = (function() { var __filename = "/routers/main.js"; var __dirname = "/routers"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /routers/main.js  == */ var __module__ = function() { 
  
-var $       = require('jquery');
-var cloak   = require('cloak');
-var Router  = require('cloak/router');
+var $             = require('jquery');
+var cloak         = require('cloak');
+var Router        = require('cloak/router');
+var NotFoundView  = require('views/notfound/notfound');
 
 var MainRouter = module.exports = Router.extend({
 
@@ -26687,7 +27431,7 @@ var MainRouter = module.exports = Router.extend({
 	},
 
 	notfound: function() {
-		console.log('not found');
+		this.renderView(new NotFoundView());
 	},
 
 	renderView: function(view, opts) {
@@ -26735,18 +27479,23 @@ var MainRouter = module.exports = Router.extend({
 ;require._modules["/routers/welcome.js"] = (function() { var __filename = "/routers/welcome.js"; var __dirname = "/routers"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /routers/welcome.js  == */ var __module__ = function() { 
  
-var $            = require('jquery');
-var cloak        = require('cloak');
-var Router       = require('cloak/router');
-var WelcomeView  = require('views/welcome/welcome');
-var SignupView   = require('views/welcome/signup/signup');
+var purl                   = require('purl');
+var cloak                  = require('cloak');
+var Router                 = require('cloak/router');
+var auth                   = require('common/auth');
+var WelcomeView            = require('views/welcome/welcome');
+var SignupView             = require('views/welcome/signup/signup');
+var EmailConfirmationView  = require('views/welcome/auth/email-confirmation/email-confirmation');
+var Request                = require('cloak/model-stores/dagger').Request;
 
 var WelcomeRouter = module.exports = Router.extend({
 
 	routes: {
-		'/':         'welcome',
-		'/welcome':  'welcome',
-		'/signup':   'signup'
+		'/':                      'welcome',
+		'/welcome':               'welcome',
+		'/signup':                'signup',
+		'/auth/email-confirm':    'emailConfirm',
+		'/auth/ping-fail':        'pingFail'
 	},
 
 	initialize: function() {
@@ -26759,24 +27508,141 @@ var WelcomeRouter = module.exports = Router.extend({
 	// The logged-out home page
 	// 
 	welcome: function() {
-		this.parent.renderView(new WelcomeView(), {
-			// 
-		});
+		if (auth.user) {
+			this.redirectTo('/dashboard');
+			return;
+		}
+		this.parent.renderView(new WelcomeView());
 	},
 
 	// 
 	// Signup step-two page
 	// 
 	signup: function(params, href, route) {
-		var data = route.state.data;
+		if (auth.user) {
+			this.redirectTo('/dashboard');
+			return;
+		}
 
-		this.parent.renderView(new SignupView(data), {
-			// 
-		});
+		this.parent.renderView(new SignupView(route.state.data));
+	},
+
+	// 
+	// Email confirmation
+	// 
+	emailConfirm: function(params) {
+		var view = new EmailConfirmationView();
+		var token = purl(location).param('token');
+
+		this.parent.renderView(view);
+
+		// Send the email confirmation request
+		Request.send('PUT', '/auth/email-confirmation/' + token)
+			.then(
+				function(res) {
+					view.showSuccess();
+				},
+				function(res) {
+					view.showError();
+				}
+			);
+	},
+
+	// 
+	// User session ended
+	// 
+	pingFail: function() {
+		var self = this;
+
+		setTimeout(function() {
+			try {
+				this.parent.currentView.nav.showLogin();
+				this.parent.currentView.nav.modal.showError('Your authentication token expired');
+			} catch (err) {
+				// 
+			}
+		}, 3000);
+
+		this.parent.redirectTo('/');
 	}
 
 }); 
  }; /* ==  End source for module /routers/welcome.js  == */ return module; }());;
+;require._modules["/startup.js"] = (function() { var __filename = "/startup.js"; var __dirname = "/"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /startup.js  == */ var __module__ = function() { 
+ 
+exports.run = function(opts) {
+	// History.js config
+	window.History = {options: {html4Mode: true}};
+
+	// Polyfill JSON if needed
+	if (! ('JSON' in window)) {
+		require('json2');
+	}
+	
+	// Polyfill Promise if needed
+	if (! ('Promise' in window)) {
+		require('promise').install();
+	}
+
+	// Google Analytics
+	googleAnalytics();
+
+	// Socket.io config
+	socketio(opts.apiServer);
+
+	// Use <section> tags for views
+	require('cloak').config.viewTag = 'section';
+
+	// Load the template compiler
+	require('common/templates');
+
+	// Load in the auth module and router
+	var auth = require('common/auth');
+	var MainRouter = require('routers/main');
+
+	// Check for a logged in user before loading up the router
+	auth.check().then(function() {
+		window.router = new MainRouter({ autoStart: false })
+			.use(require('routers/welcome'))
+			.use(require('routers/dashboard'))
+			.start();
+	})
+	.catch(function(err) {
+		console.error(err.stack || err);
+	});
+};
+
+// 
+// Load and setup google analytics
+// 
+function googleAnalytics() {
+	/* jshint ignore:start */
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+	/* jshint ignore:end */
+
+	ga('create', 'UA-55524086-1', 'auto');
+	if (! require('history').enabled) {
+		ga('send', 'pageview');
+	}
+}
+
+// 
+// Set up socket.io communication with the api server
+// 
+function socketio(api) {
+	var io = require('socket.io');
+	var config = require('cloak').config;
+	var socketUrl = location.protocol + '//' + api;
+
+	config.socket = io.connect(socketUrl);
+	config.modelStore = require('cloak/model-stores/dagger');
+}
+ 
+ }; /* ==  End source for module /startup.js  == */ return module; }());;
 ;require._modules["/templates.js"] = (function() { var __filename = "/templates.js"; var __dirname = "/"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /templates.js  == */ var __module__ = function() { 
  var glob = ('undefined' === typeof window) ? global : window,
@@ -26799,13 +27665,13 @@ function program1(depth0,data) {
 function program3(depth0,data) {
   
   
-  return "'//api.collabish.me'";
+  return "'api.collabish.me'";
   }
 
 function program5(depth0,data) {
   
   
-  return "'//localhost:3000'";
+  return "'localhost:3000'";
   }
 
   buffer += "<!doctype html>\n<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->\n<!--[if lt IE 7]> <html class=\"no-js lt-ie9 lt-ie8 lt-ie7\" lang=\"en\"> <![endif]-->\n<!--[if IE 7]>    <html class=\"no-js lt-ie9 lt-ie8\" lang=\"en\"> <![endif]-->\n<!--[if IE 8]>    <html class=\"no-js lt-ie9\" lang=\"en\"> <![endif]-->\n<!--[if gt IE 8]><!--> <html lang=\"en\"> <!--<![endif]-->\n<head>\n\n	<title>Collabish</title>\n\n	<meta charset=\"utf-8\" />\n	<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge,chrome=1\">\n	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=0, maximum-scale=1.0\" />\n\n	<link rel=\"stylesheet\" type=\"text/css\" href=\"//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,700,300,400,600,800\" />\n	<link rel=\"stylesheet\" type=\"text/css\" href=\"//";
@@ -26822,10 +27688,19 @@ function program5(depth0,data) {
     + "/build";
   stack1 = helpers['if'].call(depth0, (depth0 && depth0.production), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += ".js\"></script>\n\n	<script>\n\n		window.History = {options: {html4Mode: true}};\n\n		// Add the /lib directory to the require path\n		require.paths.push('/lib', '/vendor');\n\n		// Google Analytics\n		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){\n		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),\n		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)\n		})(window,document,'script','//www.google-analytics.com/analytics.js','ga');\n\n		ga('create', 'UA-55524086-1', 'auto');\n		if (! require('history').enabled) {\n			ga('send', 'pageview');\n		}\n\n		// Load in underscore\n		var _ = require('cloak/underscore');\n\n		var io = require('socket.io');\n		var config = require('cloak').config;\n		var socketUrl = location.protocol + ";
+  buffer += ".js\"></script>\n	<script>\n		require.paths.push('/lib', '/vendor');\n		require('startup').run({\n			apiServer: ";
   stack1 = helpers['if'].call(depth0, (depth0 && depth0.production), {hash:{},inverse:self.program(5, program5, data),fn:self.program(3, program3, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += ";\n\n		config.socket = io.connect(socketUrl);\n		config.modelStore = require('cloak/model-stores/dagger');\n		config.viewTag = 'section';\n\n		// Polyfill JSON if needed\n		JSON || require('json2');\n\n		// Load in any cloak mods\n		require('mods/templates');\n\n		// Tell the router to start listening...\n		var MainRouter = require('routers/main');\n		\n		var router = new MainRouter({ autoStart: false })\n			.use(require('routers/welcome'))\n			.start();\n\n	</script>\n\n	<script>\n		\n	</script>\n\n</body>\n</html>";
+  buffer += "\n		});\n	</script>\n\n</body>\n</html>";
+  return buffer;
+  });
+
+this["exports"]["views/dashboard/dashboard.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "";
+
+
   return buffer;
   });
 
@@ -26847,6 +27722,58 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   return buffer;
   });
 
+this["exports"]["views/notfound/notfound.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, self=this;
+
+function program1(depth0,data) {
+  
+  
+  return "\n	<a href=\"#/dashboard\">Dashboard</a>\n	<a href=\"#/search\">Document Search</a>\n	";
+  }
+
+function program3(depth0,data) {
+  
+  
+  return "\n	<a href=\"#/\">Home</a>\n	<a href=\"#/signup\">Signup</a>\n	";
+  }
+
+  buffer += "<header>\n	<h1><a href=\"#/\">Collabish</a></h1>\n</header>\n\n<main>\n	<h2>Not Found</h2>\n	<p>\n		You broke it. It's all your fault. The website is dead.\n	</p>\n</main>\n\n<nav>\n	";
+  stack1 = helpers['if'].call(depth0, (depth0 && depth0.loggedIn), {hash:{},inverse:self.program(3, program3, data),fn:self.program(1, program1, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n</nav>\n";
+  return buffer;
+  });
+
+this["exports"]["views/welcome/auth/email-confirmation/email-confirmation.error.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<h2>Uh-oh!</h2>\n<p>\n	We could not successfully confirm your email address. This could be caused by a number of\n	things such as an expired confirmation token or a server error.\n</p>\n";
+  });
+
+this["exports"]["views/welcome/auth/email-confirmation/email-confirmation.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "";
+
+
+  buffer += "<header>\n	<h1><a href=\"#/\">Collabish</a></h1>\n</header>\n\n<main>\n	<p class=\"confirming\">\n		Confirming your email address ...\n	</p>\n</main>\n\n<nav class=\"welcome\">\n	\n</nav>";
+  return buffer;
+  });
+
+this["exports"]["views/welcome/auth/email-confirmation/email-confirmation.success.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<h2>Success!</h2>\n<p>\n	Your email address has been successfully confirmed. You can now <a class=\"login\">login</a> to your\n	account.\n</p>\n";
+  });
+
 this["exports"]["views/welcome/nav/modals/login/login.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
@@ -26862,7 +27789,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   
 
 
-  return "<h3>Privacy Policy</h3>\n<main>\n	<h4>Information We Collect</h4>\n	<ul>\n		<li>\n			<strong>Information you give us.</strong>\n			When you sign up for an account, we will ask you for some personal information, like email\n			address and phone number.\n		</li>\n\n		<li>\n			<strong>Information generated by using our services.</strong>\n			Using collabish.me automatically generates information in a number of ways which we may collect\n			for later use. This information includes the following:\n			<ul>\n				<li>\n					Analytics Information\n					<p>\n						We use <a href=\"http://analytics.google.com\">Google Analytics</a> to collect analytics\n						data about our users and the ways in which they use our services. You can see their\n						<a href=\"https://www.google.com/intl/en/policies/privacy/\">privacy policy</a> on their\n						website.\n					</p>\n				</li>\n				<li>\n					Server Logs\n					<p>\n						Our servers constantly generate log files of their activities, some of which may contain\n						your information. Specifically, we keep logs of each individual request to both our main\n						web server and our API server, and these logs may contain information such as IP addresses,\n						request bodies (which may contain personal information), search queries, and any data stored\n						in the request headers, including cookies.\n					</p>\n				</li>\n			</ul>\n		</li>\n	</ul>\n\n\n\n	<h4>How we use the information we collect</h4>\n	<p>\n		The information we collect is used to help us to provide you with better service and an overall better\n		experience. For example, the analytics information helps us to gauge interest in specific features to\n		know where we should focus our efforts. The server logs we collect help us to debug and fix problems\n		that might arise in our application.\n	</p>\n\n\n\n	<h4>Information we share</h4>\n	<p>\n		We do <strong>not</strong> share personal information with third parties unless one of the following\n		situations applies:\n	</p>\n	<ul>\n		<li>\n			<strong>We have your consent.</strong>\n			We will share information with others if you give us permission to do so.\n		</li>\n		<li>\n			<strong>Hosting and storage.</strong>\n			We have to store your data somewhere. We do not operate our own servers; We make use of the wonderful\n			hosting services at <a href=\"http://heroku.com\">Heroku</a>, and as such, all data that goes to and from\n			our app goes through their servers. You can view their <a href=\"https://www.heroku.com/policy/privacy\">\n			privacy policy</a> on their website. We also make use of <a href=\"https://www.compose.io/\"></a>Compose</a>,\n			a database hosting service, where our app data is stored in their MongoDB servers. You can also read\n			their <a href=\"https://docs.compose.io/policies/privacy.html\">privacy policy</a> at their website.\n		</li>\n		<li>\n			<strong>External processing.</strong>\n			As we mentioned above, we make use of Google Analytics' services. This means that information about\n			page views and our users ends up on their analytics servers.\n		</li>\n		<li>\n			<strong>Legal reasons.</strong>\n			We will share personal information if we believe it is reasonably necessary to meet an applicable law\n			or enforceable government request, or to protect the right and safety of Collabish and our users.\n		</li>\n	</ul>\n\n\n\n	<h4>Security</h4>\n	<p>\n		We take several precautions to protect your data. We use SSL encryption for both our web server and API\n		server. We also provide our users with several different authentication methods, including two-step\n		verification for logins.\n	</p>\n</main>";
+  return "<h3>Privacy Policy</h3>\n<main>\n	<h4>Information We Collect</h4>\n	<ul>\n		<li>\n			<strong>Information you give us.</strong>\n			When you sign up for an account, we will ask you for some personal information, like email\n			address and phone number.\n		</li>\n\n		<li>\n			<strong>Information generated by using our services.</strong>\n			Using collabish.me automatically generates information in a number of ways which we may collect\n			for later use. This information includes the following:\n			<ul>\n				<li>\n					Analytics Information\n					<p>\n						We use <a href=\"http://analytics.google.com\">Google Analytics</a> to collect analytics\n						data about our users and the ways in which they use our services. You can see their\n						<a href=\"https://www.google.com/intl/en/policies/privacy/\">privacy policy</a> on their\n						website.\n					</p>\n				</li>\n				<li>\n					Server Logs\n					<p>\n						Our servers constantly generate log files of their activities, some of which may contain\n						your information. Specifically, we keep logs of each individual request to both our main\n						web server and our API server, and these logs may contain information such as IP addresses,\n						request bodies (which may contain personal information), search queries, and any data stored\n						in the request headers, including cookies.\n					</p>\n				</li>\n			</ul>\n		</li>\n	</ul>\n\n\n\n	<h4>How we use the information we collect</h4>\n	<p>\n		The information we collect is used to help us to provide you with better service and an overall better\n		experience. For example, the analytics information helps us to gauge interest in specific features to\n		know where we should focus our efforts. The server logs we collect help us to debug and fix problems\n		that might arise in our application.\n	</p>\n\n\n\n	<h4>Information we share</h4>\n	<p>\n		We do <strong>not</strong> share personal information with third parties unless one of the following\n		situations applies:\n	</p>\n	<ul>\n		<li>\n			<strong>We have your consent.</strong>\n			We will share information with others if you give us permission to do so.\n		</li>\n		<li>\n			<strong>Hosting and storage.</strong>\n			We have to store your data somewhere. We do not operate our own servers; We make use of the wonderful\n			hosting services at <a href=\"http://heroku.com\">Heroku</a>, and as such, all data that goes to and from\n			our app goes through their servers. You can view their <a href=\"https://www.heroku.com/policy/privacy\">\n			privacy policy</a> on their website. We also make use of <a href=\"https://www.compose.io/\">Compose</a>,\n			a database hosting service, where our app data is stored in their MongoDB servers. You can also read\n			their <a href=\"https://docs.compose.io/policies/privacy.html\">privacy policy</a> at their website.\n		</li>\n		<li>\n			<strong>External processing.</strong>\n			As we mentioned above, we make use of Google Analytics' services. This means that information about\n			page views and our users ends up on their analytics servers.\n		</li>\n		<li>\n			<strong>Legal reasons.</strong>\n			We will share personal information if we believe it is reasonably necessary to meet an applicable law\n			or enforceable government request, or to protect the rights and safety of Collabish and our users.\n		</li>\n	</ul>\n\n\n\n	<h4>Security</h4>\n	<p>\n		We use SSL encryption for both our web server and API server, protecting your information while it is\n		in transit between you and our servers. We also provide our users with several different authentication methods, including two-step verification for logins, to provide our users with extra protection against\n		attempts to gain access to their account.\n	</p>\n</main>";
   });
 
 this["exports"]["views/welcome/nav/modals/terms/terms.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -26897,7 +27824,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   if (helper = helpers.email) { stack1 = helper.call(depth0, {hash:{},data:data}); }
   else { helper = (depth0 && depth0.email); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
   buffer += escapeExpression(stack1)
-    + "\" />\n			</label>\n			<label class=\"auth-method\" aria-describedby=\"auth-method-tooltip\">\n				Auth Method\n				<span\n					id=\"auth-method-tooltip\"\n					class=\"tooltip-left\"\n					role=\"tooltip\"\n					aria-haspopup=\"true\"\n					data-tooltip=\"Determines how you log in to Collabish\"\n				>?</span>\n				<select>\n					<option value=\"password\">Password</option>\n					<option value=\"email\">Email</option>\n					<option value=\"twostep-email\">Two-Step (Password + Email)</option>\n					<option value=\"twostep-sms\">Two-Step (Password + SMS)</option>\n				</select>\n			</label>\n			<label class=\"password\">\n				Password (twice)\n				<input type=\"password\" />\n				<input type=\"password\" />\n			</label>\n			<label class=\"mobile\" aria-describedby=\"mobile-tooltip\">\n				Mobile Phone\n				<span\n					id=\"mobile-tooltip\"\n					class=\"tooltip-left\"\n					role=\"tooltip\"\n					aria-haspopup=\"true\"\n					data-tooltip=\"We will only ever text you to send you login codes\"\n				>?</span>\n				<div class=\"row collapse\">\n					<div class=\"small-1 columns\">\n						<span class=\"prefix\">+1</span>\n					</div>\n					<div class=\"small-11 columns\">\n						<input type=\"tel\" />\n					</div>\n				</div>\n			</label>\n			<div class=\"button-wrapper\">\n				<button class=\"button\">Sign Up</button>\n			</div>\n		</form>\n	</div>\n</main>\n\n<nav class=\"welcome\">\n	\n</nav>\n";
+    + "\" />\n			</label>\n			<label class=\"auth-method\" aria-describedby=\"auth-method-tooltip\">\n				Auth Method\n				<span\n					id=\"auth-method-tooltip\"\n					class=\"tooltip-left\"\n					role=\"tooltip\"\n					aria-haspopup=\"true\"\n					data-tooltip=\"Determines how you log in to Collabish\"\n				>?</span>\n				<select>\n					<option value=\"password\">Password</option>\n					<option value=\"email\">Email</option>\n					<option value=\"twostep-email\">Two-Step (Password + Email)</option>\n					\n				</select>\n			</label>\n			<label class=\"password\">\n				Password (twice)\n				<input type=\"password\" />\n				<input type=\"password\" />\n			</label>\n			<label class=\"mobile\" aria-describedby=\"mobile-tooltip\">\n				Mobile Phone\n				<span\n					id=\"mobile-tooltip\"\n					class=\"tooltip-left\"\n					role=\"tooltip\"\n					aria-haspopup=\"true\"\n					data-tooltip=\"We will only ever text you to send you login codes\"\n				>?</span>\n				<div class=\"row collapse\">\n					<div class=\"small-1 columns\">\n						<span class=\"prefix\">+1</span>\n					</div>\n					<div class=\"small-11 columns\">\n						<input type=\"tel\" />\n					</div>\n				</div>\n			</label>\n			<div class=\"button-wrapper\">\n				<button class=\"button\">Sign Up</button>\n			</div>\n		</form>\n	</div>\n</main>\n\n<nav class=\"welcome\">\n	\n</nav>\n";
   return buffer;
   });
 
@@ -27872,6 +28799,314 @@ delete window.jQuery;
 window.jQuery = void(0);
  
  }; /* ==  End source for module /vendor/foundation/index.js  == */ return module; }());;
+;require._modules["/vendor/purl/index.js"] = (function() { var __filename = "/vendor/purl/index.js"; var __dirname = "/vendor/purl"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /vendor/purl/index.js  == */ var __module__ = function() { 
+ 
+require('./purl');
+
+module.exports = window.purl;
+
+window.purl = void(0);
+delete window.purl;
+ 
+ }; /* ==  End source for module /vendor/purl/index.js  == */ return module; }());;
+;require._modules["/vendor/purl/purl.js"] = (function() { var __filename = "/vendor/purl/purl.js"; var __dirname = "/vendor/purl"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /vendor/purl/purl.js  == */ var __module__ = function() { 
+ /*
+ * Purl (A JavaScript URL parser) v2.3.1
+ * Developed and maintanined by Mark Perkins, mark@allmarkedup.com
+ * Source repository: https://github.com/allmarkedup/jQuery-URL-Parser
+ * Licensed under an MIT-style license. See https://github.com/allmarkedup/jQuery-URL-Parser/blob/master/LICENSE for details.
+ */
+
+;(function(factory) {
+    if (typeof define === 'function' && define.amd) {
+        define(factory);
+    } else {
+        window.purl = factory();
+    }
+})(function() {
+
+    var tag2attr = {
+            a       : 'href',
+            img     : 'src',
+            form    : 'action',
+            base    : 'href',
+            script  : 'src',
+            iframe  : 'src',
+            link    : 'href',
+            embed   : 'src',
+            object  : 'data'
+        },
+
+        key = ['source', 'protocol', 'authority', 'userInfo', 'user', 'password', 'host', 'port', 'relative', 'path', 'directory', 'file', 'query', 'fragment'], // keys available to query
+
+        aliases = { 'anchor' : 'fragment' }, // aliases for backwards compatability
+
+        parser = {
+            strict : /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,  //less intuitive, more accurate to the specs
+            loose :  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/ // more intuitive, fails on relative paths and deviates from specs
+        },
+
+        isint = /^[0-9]+$/;
+
+    function parseUri( url, strictMode ) {
+        var str = decodeURI( url ),
+        res   = parser[ strictMode || false ? 'strict' : 'loose' ].exec( str ),
+        uri = { attr : {}, param : {}, seg : {} },
+        i   = 14;
+
+        while ( i-- ) {
+            uri.attr[ key[i] ] = res[i] || '';
+        }
+
+        // build query and fragment parameters
+        uri.param['query'] = parseString(uri.attr['query']);
+        uri.param['fragment'] = parseString(uri.attr['fragment']);
+
+        // split path and fragement into segments
+        uri.seg['path'] = uri.attr.path.replace(/^\/+|\/+$/g,'').split('/');
+        uri.seg['fragment'] = uri.attr.fragment.replace(/^\/+|\/+$/g,'').split('/');
+
+        // compile a 'base' domain attribute
+        uri.attr['base'] = uri.attr.host ? (uri.attr.protocol ?  uri.attr.protocol+'://'+uri.attr.host : uri.attr.host) + (uri.attr.port ? ':'+uri.attr.port : '') : '';
+
+        return uri;
+    }
+
+    function getAttrName( elm ) {
+        var tn = elm.tagName;
+        if ( typeof tn !== 'undefined' ) return tag2attr[tn.toLowerCase()];
+        return tn;
+    }
+
+    function promote(parent, key) {
+        if (parent[key].length === 0) return parent[key] = {};
+        var t = {};
+        for (var i in parent[key]) t[i] = parent[key][i];
+        parent[key] = t;
+        return t;
+    }
+
+    function parse(parts, parent, key, val) {
+        var part = parts.shift();
+        if (!part) {
+            if (isArray(parent[key])) {
+                parent[key].push(val);
+            } else if ('object' == typeof parent[key]) {
+                parent[key] = val;
+            } else if ('undefined' == typeof parent[key]) {
+                parent[key] = val;
+            } else {
+                parent[key] = [parent[key], val];
+            }
+        } else {
+            var obj = parent[key] = parent[key] || [];
+            if (']' == part) {
+                if (isArray(obj)) {
+                    if ('' !== val) obj.push(val);
+                } else if ('object' == typeof obj) {
+                    obj[keys(obj).length] = val;
+                } else {
+                    obj = parent[key] = [parent[key], val];
+                }
+            } else if (~part.indexOf(']')) {
+                part = part.substr(0, part.length - 1);
+                if (!isint.test(part) && isArray(obj)) obj = promote(parent, key);
+                parse(parts, obj, part, val);
+                // key
+            } else {
+                if (!isint.test(part) && isArray(obj)) obj = promote(parent, key);
+                parse(parts, obj, part, val);
+            }
+        }
+    }
+
+    function merge(parent, key, val) {
+        if (~key.indexOf(']')) {
+            var parts = key.split('[');
+            parse(parts, parent, 'base', val);
+        } else {
+            if (!isint.test(key) && isArray(parent.base)) {
+                var t = {};
+                for (var k in parent.base) t[k] = parent.base[k];
+                parent.base = t;
+            }
+            if (key !== '') {
+                set(parent.base, key, val);
+            }
+        }
+        return parent;
+    }
+
+    function parseString(str) {
+        return reduce(String(str).split(/&|;/), function(ret, pair) {
+            try {
+                pair = decodeURIComponent(pair.replace(/\+/g, ' '));
+            } catch(e) {
+                // ignore
+            }
+            var eql = pair.indexOf('='),
+                brace = lastBraceInKey(pair),
+                key = pair.substr(0, brace || eql),
+                val = pair.substr(brace || eql, pair.length);
+
+            val = val.substr(val.indexOf('=') + 1, val.length);
+
+            if (key === '') {
+                key = pair;
+                val = '';
+            }
+
+            return merge(ret, key, val);
+        }, { base: {} }).base;
+    }
+
+    function set(obj, key, val) {
+        var v = obj[key];
+        if (typeof v === 'undefined') {
+            obj[key] = val;
+        } else if (isArray(v)) {
+            v.push(val);
+        } else {
+            obj[key] = [v, val];
+        }
+    }
+
+    function lastBraceInKey(str) {
+        var len = str.length,
+            brace,
+            c;
+        for (var i = 0; i < len; ++i) {
+            c = str[i];
+            if (']' == c) brace = false;
+            if ('[' == c) brace = true;
+            if ('=' == c && !brace) return i;
+        }
+    }
+
+    function reduce(obj, accumulator){
+        var i = 0,
+            l = obj.length >> 0,
+            curr = arguments[2];
+        while (i < l) {
+            if (i in obj) curr = accumulator.call(undefined, curr, obj[i], i, obj);
+            ++i;
+        }
+        return curr;
+    }
+
+    function isArray(vArg) {
+        return Object.prototype.toString.call(vArg) === "[object Array]";
+    }
+
+    function keys(obj) {
+        var key_array = [];
+        for ( var prop in obj ) {
+            if ( obj.hasOwnProperty(prop) ) key_array.push(prop);
+        }
+        return key_array;
+    }
+
+    function purl( url, strictMode ) {
+        if ( arguments.length === 1 && url === true ) {
+            strictMode = true;
+            url = undefined;
+        }
+        strictMode = strictMode || false;
+        url = url || window.location.toString();
+
+        return {
+
+            data : parseUri(url, strictMode),
+
+            // get various attributes from the URI
+            attr : function( attr ) {
+                attr = aliases[attr] || attr;
+                return typeof attr !== 'undefined' ? this.data.attr[attr] : this.data.attr;
+            },
+
+            // return query string parameters
+            param : function( param ) {
+                return typeof param !== 'undefined' ? this.data.param.query[param] : this.data.param.query;
+            },
+
+            // return fragment parameters
+            fparam : function( param ) {
+                return typeof param !== 'undefined' ? this.data.param.fragment[param] : this.data.param.fragment;
+            },
+
+            // return path segments
+            segment : function( seg ) {
+                if ( typeof seg === 'undefined' ) {
+                    return this.data.seg.path;
+                } else {
+                    seg = seg < 0 ? this.data.seg.path.length + seg : seg - 1; // negative segments count from the end
+                    return this.data.seg.path[seg];
+                }
+            },
+
+            // return fragment segments
+            fsegment : function( seg ) {
+                if ( typeof seg === 'undefined' ) {
+                    return this.data.seg.fragment;
+                } else {
+                    seg = seg < 0 ? this.data.seg.fragment.length + seg : seg - 1; // negative segments count from the end
+                    return this.data.seg.fragment[seg];
+                }
+            }
+
+        };
+
+    }
+    
+    purl.jQuery = function($){
+        if ($ != null) {
+            $.fn.url = function( strictMode ) {
+                var url = '';
+                if ( this.length ) {
+                    url = $(this).attr( getAttrName(this[0]) ) || '';
+                }
+                return purl( url, strictMode );
+            };
+
+            $.url = purl;
+        }
+    };
+
+    purl.jQuery(window.jQuery);
+
+    return purl;
+
+}); 
+ }; /* ==  End source for module /vendor/purl/purl.js  == */ return module; }());;
+;require._modules["/views/dashboard/dashboard.js"] = (function() { var __filename = "/views/dashboard/dashboard.js"; var __dirname = "/views/dashboard"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/dashboard/dashboard.js  == */ var __module__ = function() { 
+ 
+var View  = require('cloak/view');
+var auth  = require('common/auth');
+
+var DashboardView = module.exports = View.extend({
+
+	className: 'dashboard',
+	template: 'views/dashboard/dashboard.hbs',
+
+	events: {
+		// 
+	},
+
+	initialize: function() {
+		// 
+	},
+
+	draw: function() {
+		this.$elem.html(this.render());
+		this.bindEvents();
+	}
+
+});
+ 
+ }; /* ==  End source for module /views/dashboard/dashboard.js  == */ return module; }());;
 ;require._modules["/views/modal/modal.js"] = (function() { var __filename = "/views/modal/modal.js"; var __dirname = "/views/modal"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/modal/modal.js  == */ var __module__ = function() { 
  
@@ -27908,6 +29143,7 @@ var ModalView = module.exports = View.extend({
 		var self = this;
 
 		this.$elem.removeClass('open');
+		this.emit('close');
 		
 		setTimeout(function() {
 			self.remove();
@@ -27964,9 +29200,108 @@ ModalView.template = function(defaults) {
 };
  
  }; /* ==  End source for module /views/modal/modal.js  == */ return module; }());;
+;require._modules["/views/notfound/notfound.js"] = (function() { var __filename = "/views/notfound/notfound.js"; var __dirname = "/views/notfound"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/notfound/notfound.js  == */ var __module__ = function() { 
+ 
+var View  = require('cloak/view');
+var auth  = require('common/auth');
+
+var NotFoundView = module.exports = View.extend({
+
+	className: 'notfound',
+	template: 'views/notfound/notfound.hbs',
+
+	events: {
+		// 
+	},
+
+	initialize: function() {
+		// 
+	},
+
+	draw: function() {
+		this.$elem.html(this.render({
+			loggedIn: !! auth.user
+		}));
+		this.bindEvents();
+	}
+
+});
+ 
+ }; /* ==  End source for module /views/notfound/notfound.js  == */ return module; }());;
+;require._modules["/views/welcome/auth/email-confirmation/email-confirmation.js"] = (function() { var __filename = "/views/welcome/auth/email-confirmation/email-confirmation.js"; var __dirname = "/views/welcome/auth/email-confirmation"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/welcome/auth/email-confirmation/email-confirmation.js  == */ var __module__ = function() { 
+ 
+var View            = require('cloak/view');
+var WelcomeNavView  = require('views/welcome/nav/nav');
+var Request         = require('cloak/model-stores/dagger').Request;
+
+require('common/spin.js');
+
+var EmailConfirmationView = module.exports = View.extend({
+
+	className: 'welcome-auth email-confirm',
+	template: 'views/welcome/auth/email-confirmation/email-confirmation.hbs',
+	errorTemplate: 'views/welcome/auth/email-confirmation/email-confirmation.error.hbs',
+	successTemplate: 'views/welcome/auth/email-confirmation/email-confirmation.success.hbs',
+
+	events: {
+		'click a.login':    'showLogin'
+	},
+
+	initialize: function() {
+		// 
+	},
+
+	draw: function() {
+		this.$elem.html(this.render());
+		
+		this.nav = new WelcomeNavView();
+		this.nav.$elem = this.$('nav');
+		this.nav.draw();
+		
+		this.$main = this.$('main', {size: 'large'});
+		this.$main.spin(true);
+
+		this.bindEvents();
+	},
+
+	showSuccess: function() {
+		this.animateToTemplate('successTemplate');
+	},
+
+	showError: function() {
+		this.animateToTemplate('errorTemplate');
+	},
+
+	animateToTemplate: function(template) {
+		var self = this;
+
+		this.$main.animate({ opacity: 0 }, 600, function() {
+			self.$main.html(self.render({ }, template));
+			self.$main.animate({ opacity: 1 }, 600, function() {
+				self.bindEvents();
+			});
+		});
+	},
+
+	showLogin: function(evt) {
+		if (evt) {
+			evt.preventDefault();
+		}
+		
+		this.nav.showLogin();
+	}
+
+});
+
+
+ 
+ }; /* ==  End source for module /views/welcome/auth/email-confirmation/email-confirmation.js  == */ return module; }());;
 ;require._modules["/views/welcome/nav/modals/login/login.js"] = (function() { var __filename = "/views/welcome/nav/modals/login/login.js"; var __dirname = "/views/welcome/nav/modals/login"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/welcome/nav/modals/login/login.js  == */ var __module__ = function() { 
  
+var auth       = require('common/auth');
 var ModalView  = require('views/modal/modal');
 var Request    = require('cloak/model-stores/dagger').Request;
 
@@ -27999,27 +29334,25 @@ exports.open = ModalView.template({
 				return;
 			}
 
-			Request.send('POST', '/auth', { username: username, password: password })
-				.then(
-					function(res) {
-						switch (res.status) {
-							case 200:
-								alert('Authentication successful\n\n' + res.body.token);
-							break;
-							case 202:
-								alert('Authentication message sent');
-							break;
-							default:
-								// umm ... something broke ...
-							break;
-						}
-					},
-					function(res) {
-						if (res.status === 401) {
-							return self.showError('Username or password was incorrect');
-						}
+			this.disable(true);
 
-						self.showError('An unknown error occured on our server; Please try your request again');
+			auth.login(username, password)
+				.then(
+					function(result) {
+						self.disable(false);
+
+						if (result.complete) {
+							console.log(auth.user);
+							router.redirectTo('/dashboard');
+						} else {
+							router.redirectTo('/auth/twostep');
+						}
+						
+						self.close();
+					},
+					function(err) {
+						self.disable(false);
+						self.showError(err);
 					}
 				);
 		},
@@ -28035,6 +29368,16 @@ exports.open = ModalView.template({
 			
 			$error.html(message);
 			$error.removeClass('hide');
+		},
+
+		disable: function(flag) {
+			this.$('input, button').prop('disabled', flag);
+
+			if (flag) {
+				this.$('button').spin(true, {replace: false, size: 'tiny', classname: 'transparent'});
+			} else {
+				this.$('button').spin(false);
+			}
 		}
 	}
 
@@ -28108,7 +29451,7 @@ var WelcomeNavView = module.exports = View.extend({
 			evt.preventDefault();
 		}
 
-		LoginModal.open();
+		this.openModal(LoginModal);
 	},
 
 	// 
@@ -28119,7 +29462,7 @@ var WelcomeNavView = module.exports = View.extend({
 			evt.preventDefault();
 		}
 
-		TermsModal.open();
+		this.openModal(TermsModal);
 	},
 
 	// 
@@ -28130,7 +29473,26 @@ var WelcomeNavView = module.exports = View.extend({
 			evt.preventDefault();
 		}
 
-		PrivacyModal.open();
+		this.openModal(PrivacyModal);
+	},
+
+	// 
+	// Opens a modal, and stores a reference to it
+	// 
+	// @param {modal} the modal to open
+	// @return void
+	// 
+	openModal: function(modal) {
+		var self = this;
+
+		if (this.modal) {
+			return;
+		}
+
+		this.modal = modal.open();
+		this.modal.on('close', function() {
+			self.modal = null;
+		});
 	}
 
 });
@@ -28143,7 +29505,7 @@ var View            = require('cloak/view');
 var WelcomeNavView  = require('views/welcome/nav/nav');
 var Request         = require('cloak/model-stores/dagger').Request;
 
-require('mods/spin');
+require('common/spin');
 
 
 var SignupView = module.exports = View.extend({
@@ -28154,7 +29516,7 @@ var SignupView = module.exports = View.extend({
 
 	events: {
 		'change .auth-method select':     'changeAuthMethod',
-		'click .button-wrapper button':  'signup'
+		'click .button-wrapper button':   'signup'
 	},
 
 	initialize: function(data) {
@@ -28233,15 +29595,19 @@ var SignupView = module.exports = View.extend({
 	// 
 	// Send the signup request
 	// 
-	signup: function() {
+	signup: function(evt) {
 		var self = this;
+
+		if (evt) {
+			evt.preventDefault();
+		}
 
 		if (! this.validate()) {
 			return;
 		}
 		this.showError();
 		this.disable(true);
-
+		
 		Request.send('POST', '/users', this.getData())
 			.then(
 				function(res) {
@@ -28266,7 +29632,7 @@ var SignupView = module.exports = View.extend({
 		this.$('input, select, button').prop('disabled', flag);
 
 		if (flag) {
-			this.$('button').spin(true, {replace: false, size: 'tiny', classname: 'invert'});
+			this.$('button').spin(true, {replace: false, size: 'tiny', classname: 'transparent'});
 		} else {
 			this.$('button').spin(false);
 		}
@@ -28378,7 +29744,7 @@ var WelcomeView = module.exports = View.extend({
 	events: {
 		'blur .signup .username input':  'checkUsername',
 		'blur .signup .email input':     'checkEmail',
-		'click .signup button':         'continueSignup'
+		'click .signup button':          'continueSignup'
 	},
 
 	initialize: function() {
@@ -28424,7 +29790,7 @@ var WelcomeView = module.exports = View.extend({
 		}
 
 		if (value.length > 30) {
-			return showError('Cannot exceed 30 characters')
+			return showError('Cannot exceed 30 characters');
 		}
 
 		if (! /^[a-zA-Z0-9_\-]+$/.test(value)) {

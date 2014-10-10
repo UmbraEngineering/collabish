@@ -23,7 +23,11 @@ module.exports = function(grunt) {
 		
 		jshint: {
 			files: [
-				srcPath + '/app/**/*.js'
+				srcPath + '/common/**/*.js',
+				srcPath + '/models/**/*.js',
+				srcPath + '/routers/**/*.js',
+				srcPath + '/views/**/*.js',
+				srcPath + '/*.js'
 			],
 			options: {
 				sub: true,

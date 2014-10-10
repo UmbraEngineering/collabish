@@ -106,10 +106,12 @@
 			}
 		}
 
-		// In IE7, keys may not contain special chars. See all of https://github.com/marcuswestin/store.js/issues/40
+		// In IE7, keys cannot start with a digit or contain certain chars.
+		// See https://github.com/marcuswestin/store.js/issues/40
+		// See https://github.com/marcuswestin/store.js/issues/83
 		var forbiddenCharsRegex = new RegExp("[!\"#$%&'()*+,/\\\\:;<=>?@[\\]^`{|}~]", "g")
 		function ieKeyFix(key) {
-			return key.replace(forbiddenCharsRegex, '___')
+			return key.replace(/^d/, '___$&').replace(forbiddenCharsRegex, '___')
 		}
 		store.set = withIEStorage(function(storage, key, val) {
 			key = ieKeyFix(key)
@@ -159,10 +161,10 @@
 		store.disabled = true
 	}
 	store.enabled = !store.disabled
-	
-	if (typeof module != 'undefined' && module.exports) { module.exports = store }
+
+	if (typeof module != 'undefined' && module.exports && this.module !== module) { module.exports = store }
 	else if (typeof define === 'function' && define.amd) { define(store) }
 	else { win.store = store }
-	
-})(this.window || global); 
+
+})(Function('return this')()); 
  }; /* ==  End source for module /lib/store.js  == */ return module; }());;

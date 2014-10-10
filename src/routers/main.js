@@ -1,7 +1,8 @@
 
-var $       = require('jquery');
-var cloak   = require('cloak');
-var Router  = require('cloak/router');
+var $             = require('jquery');
+var cloak         = require('cloak');
+var Router        = require('cloak/router');
+var NotFoundView  = require('views/notfound/notfound');
 
 var MainRouter = module.exports = Router.extend({
 
@@ -29,7 +30,7 @@ var MainRouter = module.exports = Router.extend({
 	},
 
 	notfound: function() {
-		console.log('not found');
+		this.renderView(new NotFoundView());
 	},
 
 	renderView: function(view, opts) {

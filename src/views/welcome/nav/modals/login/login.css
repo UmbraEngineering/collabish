@@ -21,8 +21,15 @@
 				width: 100%;
 				background: #ff7941;
 				margin-bottom: 0;
+				position: relative;
 			}
 
 			.login.modal form .button:hover {
 				background: #ff712c;
 			}
+
+				.login.modal form .button .progress {
+					position: absolute;
+					top: 20px;
+					right: 19px;
+				}

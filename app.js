@@ -6,7 +6,7 @@ var methodOverride  = require('method-override');
 var app = module.exports = express();
 
 app.use(express.compress());
-app.use(express.bodyParser({ strict: false }));
+// app.use(express.bodyParser({ strict: false }));
 app.use(methodOverride('X-HTTP-Method-Override'));
 app.use(function() {
 	var staticServer = express.static(conf.static.path, {

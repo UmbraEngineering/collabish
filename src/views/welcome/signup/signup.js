@@ -3,7 +3,7 @@ var View            = require('cloak/view');
 var WelcomeNavView  = require('views/welcome/nav/nav');
 var Request         = require('cloak/model-stores/dagger').Request;
 
-require('mods/spin');
+require('common/spin');
 
 
 var SignupView = module.exports = View.extend({
@@ -14,7 +14,7 @@ var SignupView = module.exports = View.extend({
 
 	events: {
 		'change .auth-method select':     'changeAuthMethod',
-		'click .button-wrapper button':  'signup'
+		'click .button-wrapper button':   'signup'
 	},
 
 	initialize: function(data) {
@@ -93,15 +93,19 @@ var SignupView = module.exports = View.extend({
 	// 
 	// Send the signup request
 	// 
-	signup: function() {
+	signup: function(evt) {
 		var self = this;
+
+		if (evt) {
+			evt.preventDefault();
+		}
 
 		if (! this.validate()) {
 			return;
 		}
 		this.showError();
 		this.disable(true);
-
+		
 		Request.send('POST', '/users', this.getData())
 			.then(
 				function(res) {
@@ -126,7 +130,7 @@ var SignupView = module.exports = View.extend({
 		this.$('input, select, button').prop('disabled', flag);
 
 		if (flag) {
-			this.$('button').spin(true, {replace: false, size: 'tiny', classname: 'invert'});
+			this.$('button').spin(true, {replace: false, size: 'tiny', classname: 'transparent'});
 		} else {
 			this.$('button').spin(false);
 		}
