@@ -1,14 +1,17 @@
 ;require._modules["/routers/welcome.js"] = (function() { var __filename = "/routers/welcome.js"; var __dirname = "/routers"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /routers/welcome.js  == */ var __module__ = function() { 
  
-var purl                   = require('purl');
 var cloak                  = require('cloak');
 var Router                 = require('cloak/router');
+var Request                = require('cloak/model-stores/dagger').Request;
+
+var purl                   = require('purl');
 var auth                   = require('common/auth');
+
 var WelcomeView            = require('views/welcome/welcome');
 var SignupView             = require('views/welcome/signup/signup');
+var TwoStepAuthView        = require('views/welcome/auth/twostep/twostep');
 var EmailConfirmationView  = require('views/welcome/auth/email-confirmation/email-confirmation');
-var Request                = require('cloak/model-stores/dagger').Request;
 
 var WelcomeRouter = module.exports = Router.extend({
 
@@ -17,6 +20,7 @@ var WelcomeRouter = module.exports = Router.extend({
 		'/welcome':               'welcome',
 		'/signup':                'signup',
 		'/auth/email-confirm':    'emailConfirm',
+		'/auth/twostep':          'twostepAuth',
 		'/auth/ping-fail':        'pingFail'
 	},
 
@@ -68,6 +72,18 @@ var WelcomeRouter = module.exports = Router.extend({
 					view.showError();
 				}
 			);
+	},
+
+	// 
+	// A page for users to enter their two step auth code
+	// 
+	twostepAuth: function() {
+		if (auth.user) {
+			this.redirectTo('/dashboard');
+			return;
+		}
+
+		this.parent.renderView(new TwoStepAuthView());
 	},
 
 	// 

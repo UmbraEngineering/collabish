@@ -27,6 +27,9 @@ exports.run = function(opts) {
 	// Load the template compiler
 	require('common/templates');
 
+	// Load in the handlebars helpers
+	require('common/handlebars-helpers');
+
 	// Load in the auth module and router
 	var auth = require('common/auth');
 	var MainRouter = require('routers/main');

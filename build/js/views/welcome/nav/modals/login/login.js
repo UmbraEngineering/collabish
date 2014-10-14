@@ -42,7 +42,6 @@ exports.open = ModalView.template({
 						self.disable(false);
 
 						if (result.complete) {
-							console.log(auth.user);
 							router.redirectTo('/dashboard');
 						} else {
 							router.redirectTo('/auth/twostep');

@@ -36,7 +36,7 @@ function program5(depth0,data) {
     + "/css/app";
   stack1 = helpers['if'].call(depth0, (depth0 && depth0.production), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += ".css\" />\n\n</head>\n<body>\n\n	<div id=\"wrapper\"></div>\n\n	<script src=\"//";
+  buffer += ".css\" />\n\n</head>\n<body>\n\n	<div id=\"wrapper\">\n		<header></header>\n		<main></main>\n	</div>\n\n	<script src=\"//";
   if (helper = helpers['static']) { stack1 = helper.call(depth0, {hash:{},data:data}); }
   else { helper = (depth0 && depth0['static']); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
   buffer += escapeExpression(stack1)
@@ -56,6 +56,22 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   var buffer = "";
 
 
+  return buffer;
+  });
+
+this["exports"]["views/header/header.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, helper, options, functionType="function", escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing;
+
+
+  buffer += "<h1><a href=\"#/\">Collabish</a></h1>\n<div class=\"controls\">\n	<a class=\"profile\" href=\"#/user/"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.user)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\">\n		<img src=\""
+    + escapeExpression((helper = helpers.gravatar || (depth0 && depth0.gravatar),options={hash:{},data:data},helper ? helper.call(depth0, (depth0 && depth0.gravatarHash), "s=32", options) : helperMissing.call(depth0, "gravatar", (depth0 && depth0.gravatarHash), "s=32", options)))
+    + "\" width=\"32\" height=\"32\" alt=\"\" title=\"\" />\n		"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.user)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\n	</a>\n	<div class=\"icons\">\n		<a class=\"inbox\" href=\"#/inbox\" title=\"Inbox\">\n			<i class=\"fa fa-inbox\"></i>\n		</a>\n		<a class=\"settings\" href=\"#/settings\" title=\"Account Settings\">\n			<i class=\"fa fa-gears\"></i>\n		</a>\n		<a class=\"signout\" title=\"Sign Out\">\n			<i class=\"fa fa-sign-out\"></i>\n		</a>\n	</div>\n</div>\n";
   return buffer;
   });
 
@@ -127,6 +143,15 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
 
 
   return "<h2>Success!</h2>\n<p>\n	Your email address has been successfully confirmed. You can now <a class=\"login\">login</a> to your\n	account.\n</p>\n";
+  });
+
+this["exports"]["views/welcome/auth/twostep/twostep.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<header>\n	<h1><a href=\"#/\">Collabish</a></h1>\n</header>\n\n<main>\n	<p>\n		Your two-step confirmation token has been sent. Go check for your message, and enter your\n		code below.\n	</p>\n	<form>\n		<div class=\"error hide\"></div>\n		<label>\n			Confirmation Code\n			<input type=\"text\" class=\"code\" placeholder=\"eg. ABC123\" />\n		</label>\n		<div class=\"button-wrapper\">\n			<button class=\"button\">Confirm Login</button>\n		</div>\n	</form>\n</main>";
   });
 
 this["exports"]["views/welcome/nav/modals/login/login.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {

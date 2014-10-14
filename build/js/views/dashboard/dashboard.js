@@ -2,7 +2,6 @@
  /* ==  Begin source for module /views/dashboard/dashboard.js  == */ var __module__ = function() { 
  
 var View  = require('cloak/view');
-var auth  = require('common/auth');
 
 var DashboardView = module.exports = View.extend({
 

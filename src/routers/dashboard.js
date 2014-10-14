@@ -21,7 +21,7 @@ var DashboardRouter = module.exports = Router.extend({
 	// The logged-in home page, the main dashboard
 	// 
 	dashboard: function() {
-		if ( auth.user) {
+		if (! auth.user) {
 			this.redirectTo('/');
 			return;
 		}

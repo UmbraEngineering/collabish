@@ -3,6 +3,7 @@
  
 var Model    = require('cloak/model');
 var Request  = require('cloak/model-stores/dagger').Request;
+var md5      = require('common/md5');
 
 var User = module.exports = Model.extend({
 
@@ -17,6 +18,10 @@ var User = module.exports = Model.extend({
 	activate: function() {
 		this.set('isActivated', true);
 		return this.patch('isActivated');
+	},
+
+	gravatarHash: function() {
+		return md5(this.get('email').toLowerCase().replace(/^\s+/, '').replace(/\s+$/, ''));
 	}
 
 });

@@ -1,12 +1,15 @@
 
-var purl                   = require('purl');
 var cloak                  = require('cloak');
 var Router                 = require('cloak/router');
+var Request                = require('cloak/model-stores/dagger').Request;
+
+var purl                   = require('purl');
 var auth                   = require('common/auth');
+
 var WelcomeView            = require('views/welcome/welcome');
 var SignupView             = require('views/welcome/signup/signup');
+var TwoStepAuthView        = require('views/welcome/auth/twostep/twostep');
 var EmailConfirmationView  = require('views/welcome/auth/email-confirmation/email-confirmation');
-var Request                = require('cloak/model-stores/dagger').Request;
 
 var WelcomeRouter = module.exports = Router.extend({
 
@@ -15,6 +18,7 @@ var WelcomeRouter = module.exports = Router.extend({
 		'/welcome':               'welcome',
 		'/signup':                'signup',
 		'/auth/email-confirm':    'emailConfirm',
+		'/auth/twostep':          'twostepAuth',
 		'/auth/ping-fail':        'pingFail'
 	},
 
@@ -66,6 +70,18 @@ var WelcomeRouter = module.exports = Router.extend({
 					view.showError();
 				}
 			);
+	},
+
+	// 
+	// A page for users to enter their two step auth code
+	// 
+	twostepAuth: function() {
+		if (auth.user) {
+			this.redirectTo('/dashboard');
+			return;
+		}
+
+		this.parent.renderView(new TwoStepAuthView());
 	},
 
 	// 

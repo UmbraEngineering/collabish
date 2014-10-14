@@ -1,11 +1,17 @@
 
-var store    = require('store');
-var $        = require('jquery');
-var User     = require('models/user');
-var Request  = require('cloak/model-stores/dagger').Request;
+var store      = require('store');
+var $          = require('jquery');
+var User       = require('models/user');
+var AppObject  = require('cloak/app-object');
+var Request    = require('cloak/model-stores/dagger').Request;
 
 var autoPing;
 var autoPingInterval = 1000 * 60 * 30;  // 30 minutes
+
+// 
+// Make the auth module an AppObject
+// 
+exports = module.exports = new AppObject();
 
 // 
 // Attempt to log in with the given user credentials
@@ -22,6 +28,7 @@ exports.login = function(username, password) {
 					case 200:
 						setAuthToken(res.body.token);
 						return exports.getUser().then(function() {
+							exports.emit('login');
 							return { complete: true };
 						});
 					case 202:
@@ -41,6 +48,48 @@ exports.login = function(username, password) {
 };
 
 // 
+// Complete a two-step authorization
+// 
+// @param {code} the confirmation code
+// @return promise
+// 
+exports.twostepConfirm = function(code) {
+	return Request.send('POST', '/auth/twostep', { code: code })
+		.then(
+			function(res) {
+				if (res.status === 200) {
+					setAuthToken(res.body.token);
+					return exports.getUser().then(function() {
+						exports.emit('login');
+					});
+				}
+
+				throw 'Something broke D:';
+			},
+			function(res) {
+				if (res.status === 401) {
+					throw 'We could not confirm your login code';
+				}
+
+				throw 'An unknown error occured on our server; Please try your request again';
+			}
+		);
+};
+
+// 
+// Logout the current user
+// 
+// @return void
+// 
+exports.logout = function() {
+	unsetAuthToken();
+	exports.user = null;
+	exports.autoPing(false);
+	exports.emit('logout');
+	router.redirectTo('/');
+};
+
+// 
 // Check for a stored auth token and confirm it
 // 
 // @return promise
@@ -56,6 +105,7 @@ exports.check = function() {
 	return exports.ping()
 		.then(exports.getUser)
 		.then(function() {
+			exports.emit('login');
 			exports.autoPing(autoPingInterval);
 		});
 };
@@ -79,7 +129,6 @@ exports.ping = function() {
 				// back in.
 				if (res.status === 401) {
 					unsetAuthToken();
-					router.redirectTo('/auth/ping-fail');
 				}
 			}
 		);
@@ -103,7 +152,11 @@ exports.autoPing = function(interval) {
 		exports.autoPing(false);
 	}
 
-	autoPing = setInterval(exports.touch, interval);
+	autoPing = setInterval(function() {
+		exports.ping().catch(function() {
+			router.redirectTo('/auth/ping-fail');
+		});
+	}, interval);
 };
 
 // 

@@ -1,0 +1,18 @@
+<h1><a href="#/">Collabish</a></h1>
+<div class="controls">
+	<a class="profile" href="#/user/{{ user.username }}">
+		<img src="{{gravatar gravatarHash "s=32"}}" width="32" height="32" alt="" title="" />
+		{{ user.username }}
+	</a>
+	<div class="icons">
+		<a class="inbox" href="#/inbox" title="Inbox">
+			<i class="fa fa-inbox"></i>
+		</a>
+		<a class="settings" href="#/settings" title="Account Settings">
+			<i class="fa fa-gears"></i>
+		</a>
+		<a class="signout" title="Sign Out">
+			<i class="fa fa-sign-out"></i>
+		</a>
+	</div>
+</div>

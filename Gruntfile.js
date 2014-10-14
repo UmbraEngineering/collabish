@@ -7,6 +7,7 @@ var buildPath = './build';
 
 module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-mkdir');
+	grunt.loadNpmTasks('grunt-contrib-copy');
 	grunt.loadNpmTasks('grunt-contrib-clean');
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
@@ -56,6 +57,14 @@ module.exports = function(grunt) {
 					mode: 0777,
 					create: [ buildPath ]
 				}
+			}
+		},
+
+		copy: {
+			assets: {
+				files: [
+					{expand: true, src: ['assets/**'], dest: buildPath}
+				]
 			}
 		},
 		
@@ -182,7 +191,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('js', ['jshint', 'templates', 'commonjs', 'concat:js']);
 	grunt.registerTask('css', ['concat:baseCss', 'concat:css', 'myth', 'cssmin']);
 	grunt.registerTask('templates', ['handlebars']);
-	grunt.registerTask('default', ['clean', 'mkdir:build', 'js', 'css']);
+	grunt.registerTask('default', ['clean', 'mkdir:build', 'copy:assets', 'js', 'css']);
 	grunt.registerTask('deploy', ['default', 'uglify:commonjs', 'uglify:src',
 		'gitcommit:deploy_build', 'gitpush:github', 'gitpush:heroku']);
 

@@ -38,6 +38,10 @@ section.notfound {
 		text-align: center;
 	}
 
+	section.notfound main {
+		padding: 2rem;
+	}
+
 		section.notfound nav a {
 			margin: 0 1rem;
 		}

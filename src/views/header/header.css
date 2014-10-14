@@ -1,0 +1,78 @@
+
+#wrapper > header {
+	padding: 1rem;
+	background: rgba(41,41,41,1);
+	background: linear-gradient(to bottom, rgba(48,48,48,1) 0%, rgba(31,31,31,1) 100%);
+	position: relative;
+}
+
+#wrapper > header:empty {
+	display: none;
+}
+
+	#wrapper > header * {
+		color: #fff;
+	}
+
+	#wrapper > header h1 {
+		font-size: 32px;
+		line-height: 32px;
+		height: 32px;
+		margin: 0;
+		padding: 0;
+	}
+
+	#wrapper > header .controls {
+		position: absolute;
+		top: 1rem;
+		right: 1.5rem;
+	}
+
+		#wrapper > header .controls > *,
+		#wrapper > header .controls .icons a {
+			float: left;
+		}
+
+		#wrapper > header .icons a {
+			display: block;
+			width: 24px;
+			height: 24px;
+			font-size: 24px;
+			margin: 4px 1rem;
+		}
+
+		#wrapper > header .profile {
+			font-size: .8rem;
+			font-weight: bold;
+			margin: 0 1rem;
+		}
+
+			#wrapper > header .profile img {
+				width: 32px;
+				height: 32px;
+				display: inline-block;
+				border: 2px #fff solid;
+				border-radius: 2px;
+				margin: 0 1rem;
+			}
+
+
+
+@media only screen and (max-width: 40em) {
+	#wrapper > header .icons {
+		padding: 1rem;
+		background: rgba(41,41,41,1);
+		background: linear-gradient(to bottom, rgba(48,48,48,1) 0%, rgba(31,31,31,1) 100%);
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		text-align: center;
+	}
+
+		#wrapper > header .controls .icons a {
+			display: inline-block;
+			float: none;
+			margin: 0 2rem;
+		}
+}

@@ -10,15 +10,24 @@ app.use(express.compress());
 app.use(methodOverride('X-HTTP-Method-Override'));
 app.use(function() {
 	var staticServer = express.static(conf.static.path, {
-		maxAge: conf.static.ttl
+		maxAge: conf.static.ttl,
+		setHeaders: function(res, path) {
+			res.header('Access-Control-Allow-Origin', '*');
+			res.header('Access-Control-Allow-Methods', 'GET');
+		}
 	});
 
 	return function(req, res, next) {
+		console.log(req.header('host'), conf.static.host);
 		if (req.header('host') !== conf.static.host) {
 			return next();
 		}
+		console.log(req.url);
 
-		staticServer(req, res, next);
+		staticServer(req, res, function() {
+			res.contentType('text/plain');
+			res.send(404, 'Not Found')
+		});
 	};
 }());
 app.use(app.router);

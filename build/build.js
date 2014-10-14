@@ -295,13 +295,19 @@
 ;require._modules["/common/auth/index.js"] = (function() { var __filename = "/common/auth/index.js"; var __dirname = "/common/auth"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /common/auth/index.js  == */ var __module__ = function() { 
  
-var store    = require('store');
-var $        = require('jquery');
-var User     = require('models/user');
-var Request  = require('cloak/model-stores/dagger').Request;
+var store      = require('store');
+var $          = require('jquery');
+var User       = require('models/user');
+var AppObject  = require('cloak/app-object');
+var Request    = require('cloak/model-stores/dagger').Request;
 
 var autoPing;
 var autoPingInterval = 1000 * 60 * 30;  // 30 minutes
+
+// 
+// Make the auth module an AppObject
+// 
+exports = module.exports = new AppObject();
 
 // 
 // Attempt to log in with the given user credentials
@@ -318,6 +324,7 @@ exports.login = function(username, password) {
 					case 200:
 						setAuthToken(res.body.token);
 						return exports.getUser().then(function() {
+							exports.emit('login');
 							return { complete: true };
 						});
 					case 202:
@@ -337,6 +344,48 @@ exports.login = function(username, password) {
 };
 
 // 
+// Complete a two-step authorization
+// 
+// @param {code} the confirmation code
+// @return promise
+// 
+exports.twostepConfirm = function(code) {
+	return Request.send('POST', '/auth/twostep', { code: code })
+		.then(
+			function(res) {
+				if (res.status === 200) {
+					setAuthToken(res.body.token);
+					return exports.getUser().then(function() {
+						exports.emit('login');
+					});
+				}
+
+				throw 'Something broke D:';
+			},
+			function(res) {
+				if (res.status === 401) {
+					throw 'We could not confirm your login code';
+				}
+
+				throw 'An unknown error occured on our server; Please try your request again';
+			}
+		);
+};
+
+// 
+// Logout the current user
+// 
+// @return void
+// 
+exports.logout = function() {
+	unsetAuthToken();
+	exports.user = null;
+	exports.autoPing(false);
+	exports.emit('logout');
+	router.redirectTo('/');
+};
+
+// 
 // Check for a stored auth token and confirm it
 // 
 // @return promise
@@ -352,6 +401,7 @@ exports.check = function() {
 	return exports.ping()
 		.then(exports.getUser)
 		.then(function() {
+			exports.emit('login');
 			exports.autoPing(autoPingInterval);
 		});
 };
@@ -375,7 +425,6 @@ exports.ping = function() {
 				// back in.
 				if (res.status === 401) {
 					unsetAuthToken();
-					router.redirectTo('/auth/ping-fail');
 				}
 			}
 		);
@@ -399,7 +448,11 @@ exports.autoPing = function(interval) {
 		exports.autoPing(false);
 	}
 
-	autoPing = setInterval(exports.touch, interval);
+	autoPing = setInterval(function() {
+		exports.ping().catch(function() {
+			router.redirectTo('/auth/ping-fail');
+		});
+	}, interval);
 };
 
 // 
@@ -441,6 +494,257 @@ function unsetAuthToken() {
 }
  
  }; /* ==  End source for module /common/auth/index.js  == */ return module; }());;
+;require._modules["/common/handlebars-helpers/gravatar.js"] = (function() { var __filename = "/common/handlebars-helpers/gravatar.js"; var __dirname = "/common/handlebars-helpers"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /common/handlebars-helpers/gravatar.js  == */ var __module__ = function() { 
+ 
+var handlebars = require('handlebars');
+
+handlebars.registerHelper('gravatar', function(hash, params) {
+	params = params || '';
+
+	// Default to identicons
+	if (params.indexOf('d=') < 0) {
+		params += (params.length ? '?' : '&') + 'd=identicon';
+	}
+
+	// Default to a rating of R or below
+	if (params.indexOf('r=') < 0) {
+		params += (params.length ? '?' : '&') + 'r=r';
+	}
+
+	return location.protocol + '//www.gravatar.com/avatar/' + hash + (params ? '?' + params : '');
+});
+ 
+ }; /* ==  End source for module /common/handlebars-helpers/gravatar.js  == */ return module; }());;
+;require._modules["/common/handlebars-helpers/index.js"] = (function() { var __filename = "/common/handlebars-helpers/index.js"; var __dirname = "/common/handlebars-helpers"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /common/handlebars-helpers/index.js  == */ var __module__ = function() { 
+ 
+require('./gravatar');
+ 
+ }; /* ==  End source for module /common/handlebars-helpers/index.js  == */ return module; }());;
+;require._modules["/common/md5/index.js"] = (function() { var __filename = "/common/md5/index.js"; var __dirname = "/common/md5"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /common/md5/index.js  == */ var __module__ = function() { 
+ 
+module.exports = function(s) {
+	function L(k, d) {
+		return (k << d) | (k >>> (32 - d));
+	}
+
+	function K(G, k) {
+		var I, d, F, H, x;
+		F = (G & 2147483648);
+		H = (k & 2147483648);
+		I = (G & 1073741824);
+		d = (k & 1073741824);
+		x = (G & 1073741823) + (k & 1073741823);
+		if (I & d) {
+			return (x ^ 2147483648 ^ F ^ H);
+		}
+		if (I | d) {
+			if (x & 1073741824) {
+				return (x ^ 3221225472 ^ F ^ H);
+			} else {
+				return (x ^ 1073741824 ^ F ^ H);
+			}
+		} else {
+			return (x ^ F ^ H);
+		}
+	}
+
+	function r(d, F, k) {
+		return (d & F) | ((~d) & k);
+	}
+
+	function q(d, F, k) {
+		return (d & k) | (F & (~k));
+	}
+
+	function p(d, F, k) {
+		return (d ^ F ^ k);
+	}
+
+	function n(d, F, k) {
+		return (F ^ (d | (~k)));
+	}
+
+	function u(G, F, aa, Z, k, H, I) {
+		G = K(G, K(K(r(F, aa, Z), k), I));
+		return K(L(G, H), F);
+	}
+
+	function f(G, F, aa, Z, k, H, I) {
+		G = K(G, K(K(q(F, aa, Z), k), I));
+		return K(L(G, H), F);
+	}
+
+	function D(G, F, aa, Z, k, H, I) {
+		G = K(G, K(K(p(F, aa, Z), k), I));
+		return K(L(G, H), F);
+	}
+
+	function t(G, F, aa, Z, k, H, I) {
+		G = K(G, K(K(n(F, aa, Z), k), I));
+		return K(L(G, H), F);
+	}
+
+	function e(G) {
+		var Z;
+		var F = G.length;
+		var x = F + 8;
+		var k = (x - (x % 64)) / 64;
+		var I = (k + 1) * 16;
+		var aa = Array(I - 1);
+		var d = 0;
+		var H = 0;
+		while (H < F) {
+			Z = (H - (H % 4)) / 4;
+			d = (H % 4) * 8;
+			aa[Z] = (aa[Z] | (G.charCodeAt(H) << d));
+			H++;
+		}
+		Z = (H - (H % 4)) / 4;
+		d = (H % 4) * 8;
+		aa[Z] = aa[Z] | (128 << d);
+		aa[I - 2] = F << 3;
+		aa[I - 1] = F >>> 29;
+		return aa;
+	}
+
+	function B(x) {
+		var k = "",
+			F = "",
+			G, d;
+		for (d = 0; d <= 3; d++) {
+			G = (x >>> (d * 8)) & 255;
+			F = "0" + G.toString(16);
+			k = k + F.substr(F.length - 2, 2);
+		}
+		return k;
+	}
+
+	function J(k) {
+		k = k.replace(/rn/g, "n");
+		var d = "";
+		for (var F = 0; F < k.length; F++) {
+			var x = k.charCodeAt(F);
+			if (x < 128) {
+				d += String.fromCharCode(x);
+			} else {
+				if ((x > 127) && (x < 2048)) {
+					d += String.fromCharCode((x >> 6) | 192);
+					d += String.fromCharCode((x & 63) | 128);
+				} else {
+					d += String.fromCharCode((x >> 12) | 224);
+					d += String.fromCharCode(((x >> 6) & 63) | 128);
+					d += String.fromCharCode((x & 63) | 128);
+				}
+			}
+		}
+		return d;
+	}
+	var C = Array();
+	var P, h, E, v, g, Y, X, W, V;
+	var S = 7,
+		Q = 12,
+		N = 17,
+		M = 22;
+	var A = 5,
+		z = 9,
+		y = 14,
+		w = 20;
+	var o = 4,
+		m = 11,
+		l = 16,
+		j = 23;
+	var U = 6,
+		T = 10,
+		R = 15,
+		O = 21;
+	s = J(s);
+	C = e(s);
+	Y = 1732584193;
+	X = 4023233417;
+	W = 2562383102;
+	V = 271733878;
+	for (P = 0; P < C.length; P += 16) {
+		h = Y;
+		E = X;
+		v = W;
+		g = V;
+		Y = u(Y, X, W, V, C[P + 0], S, 3614090360);
+		V = u(V, Y, X, W, C[P + 1], Q, 3905402710);
+		W = u(W, V, Y, X, C[P + 2], N, 606105819);
+		X = u(X, W, V, Y, C[P + 3], M, 3250441966);
+		Y = u(Y, X, W, V, C[P + 4], S, 4118548399);
+		V = u(V, Y, X, W, C[P + 5], Q, 1200080426);
+		W = u(W, V, Y, X, C[P + 6], N, 2821735955);
+		X = u(X, W, V, Y, C[P + 7], M, 4249261313);
+		Y = u(Y, X, W, V, C[P + 8], S, 1770035416);
+		V = u(V, Y, X, W, C[P + 9], Q, 2336552879);
+		W = u(W, V, Y, X, C[P + 10], N, 4294925233);
+		X = u(X, W, V, Y, C[P + 11], M, 2304563134);
+		Y = u(Y, X, W, V, C[P + 12], S, 1804603682);
+		V = u(V, Y, X, W, C[P + 13], Q, 4254626195);
+		W = u(W, V, Y, X, C[P + 14], N, 2792965006);
+		X = u(X, W, V, Y, C[P + 15], M, 1236535329);
+		Y = f(Y, X, W, V, C[P + 1], A, 4129170786);
+		V = f(V, Y, X, W, C[P + 6], z, 3225465664);
+		W = f(W, V, Y, X, C[P + 11], y, 643717713);
+		X = f(X, W, V, Y, C[P + 0], w, 3921069994);
+		Y = f(Y, X, W, V, C[P + 5], A, 3593408605);
+		V = f(V, Y, X, W, C[P + 10], z, 38016083);
+		W = f(W, V, Y, X, C[P + 15], y, 3634488961);
+		X = f(X, W, V, Y, C[P + 4], w, 3889429448);
+		Y = f(Y, X, W, V, C[P + 9], A, 568446438);
+		V = f(V, Y, X, W, C[P + 14], z, 3275163606);
+		W = f(W, V, Y, X, C[P + 3], y, 4107603335);
+		X = f(X, W, V, Y, C[P + 8], w, 1163531501);
+		Y = f(Y, X, W, V, C[P + 13], A, 2850285829);
+		V = f(V, Y, X, W, C[P + 2], z, 4243563512);
+		W = f(W, V, Y, X, C[P + 7], y, 1735328473);
+		X = f(X, W, V, Y, C[P + 12], w, 2368359562);
+		Y = D(Y, X, W, V, C[P + 5], o, 4294588738);
+		V = D(V, Y, X, W, C[P + 8], m, 2272392833);
+		W = D(W, V, Y, X, C[P + 11], l, 1839030562);
+		X = D(X, W, V, Y, C[P + 14], j, 4259657740);
+		Y = D(Y, X, W, V, C[P + 1], o, 2763975236);
+		V = D(V, Y, X, W, C[P + 4], m, 1272893353);
+		W = D(W, V, Y, X, C[P + 7], l, 4139469664);
+		X = D(X, W, V, Y, C[P + 10], j, 3200236656);
+		Y = D(Y, X, W, V, C[P + 13], o, 681279174);
+		V = D(V, Y, X, W, C[P + 0], m, 3936430074);
+		W = D(W, V, Y, X, C[P + 3], l, 3572445317);
+		X = D(X, W, V, Y, C[P + 6], j, 76029189);
+		Y = D(Y, X, W, V, C[P + 9], o, 3654602809);
+		V = D(V, Y, X, W, C[P + 12], m, 3873151461);
+		W = D(W, V, Y, X, C[P + 15], l, 530742520);
+		X = D(X, W, V, Y, C[P + 2], j, 3299628645);
+		Y = t(Y, X, W, V, C[P + 0], U, 4096336452);
+		V = t(V, Y, X, W, C[P + 7], T, 1126891415);
+		W = t(W, V, Y, X, C[P + 14], R, 2878612391);
+		X = t(X, W, V, Y, C[P + 5], O, 4237533241);
+		Y = t(Y, X, W, V, C[P + 12], U, 1700485571);
+		V = t(V, Y, X, W, C[P + 3], T, 2399980690);
+		W = t(W, V, Y, X, C[P + 10], R, 4293915773);
+		X = t(X, W, V, Y, C[P + 1], O, 2240044497);
+		Y = t(Y, X, W, V, C[P + 8], U, 1873313359);
+		V = t(V, Y, X, W, C[P + 15], T, 4264355552);
+		W = t(W, V, Y, X, C[P + 6], R, 2734768916);
+		X = t(X, W, V, Y, C[P + 13], O, 1309151649);
+		Y = t(Y, X, W, V, C[P + 4], U, 4149444226);
+		V = t(V, Y, X, W, C[P + 11], T, 3174756917);
+		W = t(W, V, Y, X, C[P + 2], R, 718787259);
+		X = t(X, W, V, Y, C[P + 9], O, 3951481745);
+		Y = K(Y, h);
+		X = K(X, E);
+		W = K(W, v);
+		V = K(V, g);
+	}
+	var i = B(Y) + B(X) + B(W) + B(V);
+	return i.toLowerCase();
+};
+ 
+ }; /* ==  End source for module /common/md5/index.js  == */ return module; }());;
 ;require._modules["/common/spin/index.js"] = (function() { var __filename = "/common/spin/index.js"; var __dirname = "/common/spin"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /common/spin/index.js  == */ var __module__ = function() { 
  
@@ -27316,6 +27620,7 @@ exports.random = function() {
  
 var Model    = require('cloak/model');
 var Request  = require('cloak/model-stores/dagger').Request;
+var md5      = require('common/md5');
 
 var User = module.exports = Model.extend({
 
@@ -27330,6 +27635,10 @@ var User = module.exports = Model.extend({
 	activate: function() {
 		this.set('isActivated', true);
 		return this.patch('isActivated');
+	},
+
+	gravatarHash: function() {
+		return md5(this.get('email').toLowerCase().replace(/^\s+/, '').replace(/\s+$/, ''));
 	}
 
 });
@@ -27387,7 +27696,7 @@ var DashboardRouter = module.exports = Router.extend({
 	// The logged-in home page, the main dashboard
 	// 
 	dashboard: function() {
-		if ( auth.user) {
+		if (! auth.user) {
 			this.redirectTo('/');
 			return;
 		}
@@ -27402,7 +27711,9 @@ var DashboardRouter = module.exports = Router.extend({
  
 var $             = require('jquery');
 var cloak         = require('cloak');
+var auth          = require('common/auth');
 var Router        = require('cloak/router');
+var HeaderView    = require('views/header/header');
 var NotFoundView  = require('views/notfound/notfound');
 
 var MainRouter = module.exports = Router.extend({
@@ -27412,7 +27723,11 @@ var MainRouter = module.exports = Router.extend({
 	},
 
 	initialize: function() {
-		this.$content = $('#wrapper');
+		this.$header = $('#wrapper > header');
+		this.$content = $('#wrapper > main');
+
+		// Store the header view
+		this.header = null;
 
 		// Store the currently active view object here
 		this.currentView = null;
@@ -27420,6 +27735,14 @@ var MainRouter = module.exports = Router.extend({
 		// Handle 404 errors
 		this.bind('notfound');
 		this.on('notfound', this.notfound);
+
+		// When a user logs in, draw the header to the screen
+		this.bind('drawHeader', 'removeHeader');
+		auth.on('login', this.drawHeader);
+		auth.on('logout', this.removeHeader);
+		if (auth.user) {
+			this.drawHeader();
+		}
 
 		// Handle internal anchors with the router
 		$('#wrapper').on('click', 'a[href^="#"], a[href^="/#"]', this.handleAnchor);
@@ -27432,6 +27755,25 @@ var MainRouter = module.exports = Router.extend({
 
 	notfound: function() {
 		this.renderView(new NotFoundView());
+	},
+
+	drawHeader: function() {
+		if (this.header) {
+			return;
+		}
+
+		this.header = new HeaderView();
+
+		// Render directly to the header element
+		this.header.$elem = this.$header;
+		this.header.draw();
+	},
+
+	removeHeader: function() {
+		if (this.header) {
+			this.header.remove();
+			this.header = null;
+		}
 	},
 
 	renderView: function(view, opts) {
@@ -27479,14 +27821,17 @@ var MainRouter = module.exports = Router.extend({
 ;require._modules["/routers/welcome.js"] = (function() { var __filename = "/routers/welcome.js"; var __dirname = "/routers"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /routers/welcome.js  == */ var __module__ = function() { 
  
-var purl                   = require('purl');
 var cloak                  = require('cloak');
 var Router                 = require('cloak/router');
+var Request                = require('cloak/model-stores/dagger').Request;
+
+var purl                   = require('purl');
 var auth                   = require('common/auth');
+
 var WelcomeView            = require('views/welcome/welcome');
 var SignupView             = require('views/welcome/signup/signup');
+var TwoStepAuthView        = require('views/welcome/auth/twostep/twostep');
 var EmailConfirmationView  = require('views/welcome/auth/email-confirmation/email-confirmation');
-var Request                = require('cloak/model-stores/dagger').Request;
 
 var WelcomeRouter = module.exports = Router.extend({
 
@@ -27495,6 +27840,7 @@ var WelcomeRouter = module.exports = Router.extend({
 		'/welcome':               'welcome',
 		'/signup':                'signup',
 		'/auth/email-confirm':    'emailConfirm',
+		'/auth/twostep':          'twostepAuth',
 		'/auth/ping-fail':        'pingFail'
 	},
 
@@ -27549,6 +27895,18 @@ var WelcomeRouter = module.exports = Router.extend({
 	},
 
 	// 
+	// A page for users to enter their two step auth code
+	// 
+	twostepAuth: function() {
+		if (auth.user) {
+			this.redirectTo('/dashboard');
+			return;
+		}
+
+		this.parent.renderView(new TwoStepAuthView());
+	},
+
+	// 
 	// User session ended
 	// 
 	pingFail: function() {
@@ -27596,6 +27954,9 @@ exports.run = function(opts) {
 
 	// Load the template compiler
 	require('common/templates');
+
+	// Load in the handlebars helpers
+	require('common/handlebars-helpers');
 
 	// Load in the auth module and router
 	var auth = require('common/auth');
@@ -27681,7 +28042,7 @@ function program5(depth0,data) {
     + "/css/app";
   stack1 = helpers['if'].call(depth0, (depth0 && depth0.production), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += ".css\" />\n\n</head>\n<body>\n\n	<div id=\"wrapper\"></div>\n\n	<script src=\"//";
+  buffer += ".css\" />\n\n</head>\n<body>\n\n	<div id=\"wrapper\">\n		<header></header>\n		<main></main>\n	</div>\n\n	<script src=\"//";
   if (helper = helpers['static']) { stack1 = helper.call(depth0, {hash:{},data:data}); }
   else { helper = (depth0 && depth0['static']); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
   buffer += escapeExpression(stack1)
@@ -27701,6 +28062,22 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   var buffer = "";
 
 
+  return buffer;
+  });
+
+this["exports"]["views/header/header.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, helper, options, functionType="function", escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing;
+
+
+  buffer += "<h1><a href=\"#/\">Collabish</a></h1>\n<div class=\"controls\">\n	<a class=\"profile\" href=\"#/user/"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.user)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\">\n		<img src=\""
+    + escapeExpression((helper = helpers.gravatar || (depth0 && depth0.gravatar),options={hash:{},data:data},helper ? helper.call(depth0, (depth0 && depth0.gravatarHash), "s=32", options) : helperMissing.call(depth0, "gravatar", (depth0 && depth0.gravatarHash), "s=32", options)))
+    + "\" width=\"32\" height=\"32\" alt=\"\" title=\"\" />\n		"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.user)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\n	</a>\n	<div class=\"icons\">\n		<a class=\"inbox\" href=\"#/inbox\" title=\"Inbox\">\n			<i class=\"fa fa-inbox\"></i>\n		</a>\n		<a class=\"settings\" href=\"#/settings\" title=\"Account Settings\">\n			<i class=\"fa fa-gears\"></i>\n		</a>\n		<a class=\"signout\" title=\"Sign Out\">\n			<i class=\"fa fa-sign-out\"></i>\n		</a>\n	</div>\n</div>\n";
   return buffer;
   });
 
@@ -27772,6 +28149,15 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
 
 
   return "<h2>Success!</h2>\n<p>\n	Your email address has been successfully confirmed. You can now <a class=\"login\">login</a> to your\n	account.\n</p>\n";
+  });
+
+this["exports"]["views/welcome/auth/twostep/twostep.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<header>\n	<h1><a href=\"#/\">Collabish</a></h1>\n</header>\n\n<main>\n	<p>\n		Your two-step confirmation token has been sent. Go check for your message, and enter your\n		code below.\n	</p>\n	<form>\n		<div class=\"error hide\"></div>\n		<label>\n			Confirmation Code\n			<input type=\"text\" class=\"code\" placeholder=\"eg. ABC123\" />\n		</label>\n		<div class=\"button-wrapper\">\n			<button class=\"button\">Confirm Login</button>\n		</div>\n	</form>\n</main>";
   });
 
 this["exports"]["views/welcome/nav/modals/login/login.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -29084,7 +29470,6 @@ delete window.purl;
  /* ==  Begin source for module /views/dashboard/dashboard.js  == */ var __module__ = function() { 
  
 var View  = require('cloak/view');
-var auth  = require('common/auth');
 
 var DashboardView = module.exports = View.extend({
 
@@ -29107,6 +29492,43 @@ var DashboardView = module.exports = View.extend({
 });
  
  }; /* ==  End source for module /views/dashboard/dashboard.js  == */ return module; }());;
+;require._modules["/views/header/header.js"] = (function() { var __filename = "/views/header/header.js"; var __dirname = "/views/header"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/header/header.js  == */ var __module__ = function() { 
+ 
+var View  = require('cloak/view');
+var auth  = require('common/auth');
+
+var HeaderView = module.exports = View.extend({
+
+	template: 'views/header/header.hbs',
+
+	events: {
+		'click .signout':      'signout'
+	},
+
+	initialize: function() {
+		// 
+	},
+
+	draw: function() {
+		this.$elem.html(this.render({
+			user: auth.user.serialize({ deep: false }),
+			gravatarHash: auth.user.gravatarHash()
+		}));
+		this.bindEvents();
+	},
+
+	signout: function(evt) {
+		if (evt) {
+			evt.preventDefault();
+		}
+
+		auth.logout();
+	}
+
+});
+ 
+ }; /* ==  End source for module /views/header/header.js  == */ return module; }());;
 ;require._modules["/views/modal/modal.js"] = (function() { var __filename = "/views/modal/modal.js"; var __dirname = "/views/modal"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/modal/modal.js  == */ var __module__ = function() { 
  
@@ -29298,6 +29720,100 @@ var EmailConfirmationView = module.exports = View.extend({
 
  
  }; /* ==  End source for module /views/welcome/auth/email-confirmation/email-confirmation.js  == */ return module; }());;
+;require._modules["/views/welcome/auth/twostep/twostep.js"] = (function() { var __filename = "/views/welcome/auth/twostep/twostep.js"; var __dirname = "/views/welcome/auth/twostep"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/welcome/auth/twostep/twostep.js  == */ var __module__ = function() { 
+ 
+var View          = require('cloak/view');
+var auth          = require('common/auth');
+var ModalView     = require('views/modal/modal');
+
+var TwoStepAuthView = module.exports = View.extend({
+
+	className: 'twostep',
+	template: 'views/welcome/auth/twostep/twostep.hbs',
+
+	events: {
+		'click button':    'confirm'
+	},
+
+	initialize: function() {
+		// 
+	},
+
+	draw: function() {
+		this.$elem.html(this.render());
+
+		this.$error   = this.$('.error');
+		this.$button  = this.$('button');
+		this.$input   = this.$('input.code');
+
+		this.bindEvents();
+	},
+
+	// 
+	// Submit the confirmation code
+	// 
+	// @return void
+	// 
+	confirm: function(evt) {
+		if (evt) {
+			evt.preventDefault();
+		}
+
+		var self = this;
+		var code = this.$input.val();
+
+		this.showError();
+		if (! code) {
+			this.showError('You must enter your confirmation code');
+			return;
+		}
+
+		auth.twostepConfirm(code)
+			.then(function() {
+				router.redirectTo('/dashboard');
+			})
+			.catch(function(err) {
+				self.disable(false);
+				self.showError(err);
+			});
+	},
+
+	// 
+	// Disable the form
+	// 
+	// @param {flag} disable or enable
+	// @return void
+	// 
+	disable: function(flag) {
+		this.$('input, button').prop('disabled', flag);
+
+		if (flag) {
+			this.$button.spin(true, {replace: false, size: 'tiny', classname: 'transparent'});
+		} else {
+			this.$button.spin(false);
+		}
+	},
+
+	// 
+	// Shows an error message
+	// 
+	// @param {message} the message to display
+	// 
+	showError: function(message) {
+		if (! message) {
+			this.$error.html('');
+			this.$error.addClass('hide');
+			return;
+		}
+
+		this.$error.html(message);
+		this.$error.removeClass('hide');
+	}
+
+});
+ 
+ }; /* ==  End source for module /views/welcome/auth/twostep/twostep.js  == */ return module; }());;
 ;require._modules["/views/welcome/nav/modals/login/login.js"] = (function() { var __filename = "/views/welcome/nav/modals/login/login.js"; var __dirname = "/views/welcome/nav/modals/login"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/welcome/nav/modals/login/login.js  == */ var __module__ = function() { 
  
@@ -29342,7 +29858,6 @@ exports.open = ModalView.template({
 						self.disable(false);
 
 						if (result.complete) {
-							console.log(auth.user);
 							router.redirectTo('/dashboard');
 						} else {
 							router.redirectTo('/auth/twostep');
