@@ -1,0 +1,55 @@
+
+section.dashboard section.document {
+	padding: 1rem;
+	position: relative;
+}
+	
+	section.dashboard section.document h3 {
+		font-size: 2rem;
+	}
+
+	section.dashboard section.document .icons {
+		position: absolute;
+		top: 1rem;
+		right: 1rem;
+	}
+
+		section.dashboard section.document .icons i {
+			font-size: 1.4rem;
+			color: #888;
+			margin: 5px;
+		}
+
+	section.dashboard section.document .description {
+		margin-bottom: .5rem;
+	}
+
+	section.dashboard section.document .tags {
+		/**/
+	}
+
+	section.dashboard section.document .meta {
+		margin-top: 3rem;
+	}
+
+		section.dashboard section.document .meta:after {
+			display: block;
+			visibility: hidden;
+			content: " ";
+			height: 0;
+			line-height: 0;
+			clear: both;
+		}
+
+		section.dashboard section.document .updated {
+			font-size: .8rem;
+			font-style: italic;
+			float: left;
+			margin: 0;
+		}
+
+		section.dashboard section.document .stars {
+			font-size: .8rem;
+			float: right;
+			margin: 0;
+		}

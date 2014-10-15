@@ -56,6 +56,65 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   var buffer = "";
 
 
+  buffer += "<h1>Dashboard</h1>\n<div class=\"row\">\n	<div class=\"small-12 medium-6 columns\">\n		<h2>Your Documents</h2>\n		<section class=\"documents\">\n			\n		</section>\n	</div>\n	<div class=\"small-12 medium-6 columns\">\n		<h2>Recently Stared Documents</h2>\n	</div>\n</div>";
+  return buffer;
+  });
+
+this["exports"]["views/dashboard/document/document.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, helper, options, functionType="function", escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = "", stack1;
+  buffer += "\n	<span data-tooltip=\"This document is shared with "
+    + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.collaborators)),stack1 == null || stack1 === false ? stack1 : stack1.length)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + " collaborators\">\n		<i class=\"fa fa-share-alt\"></i>\n	</span>\n	";
+  return buffer;
+  }
+
+function program3(depth0,data) {
+  
+  
+  return "\n	<span data-tooltip=\"This document is private\">\n		<i class=\"fa fa-lock\"></i>\n	</span>\n	";
+  }
+
+function program5(depth0,data) {
+  
+  
+  return "\n	<span data-tooltip=\"This document is public\">\n		<i class=\"fa fa-users\"></i>\n	</span>\n	";
+  }
+
+function program7(depth0,data) {
+  
+  var buffer = "", helper, options;
+  buffer += "\n	<a href=\"/#search?tags="
+    + escapeExpression((helper = helpers.encode || (depth0 && depth0.encode),options={hash:{},data:data},helper ? helper.call(depth0, depth0, options) : helperMissing.call(depth0, "encode", depth0, options)))
+    + "\">\n		<span class=\"label radius\">"
+    + escapeExpression((typeof depth0 === functionType ? depth0.apply(depth0) : depth0))
+    + "</span>\n	</a>\n	";
+  return buffer;
+  }
+
+  buffer += "<h3>\n	<a href=\"/#document/"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1._id)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\">"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.name)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "</a>\n</h3>\n<div class=\"icons\">\n	";
+  stack1 = helpers['if'].call(depth0, ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.collaborators)),stack1 == null || stack1 === false ? stack1 : stack1.length), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n	";
+  stack1 = helpers.unless.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1['public']), {hash:{},inverse:self.program(5, program5, data),fn:self.program(3, program3, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n</div>\n<p class=\"description\">\n	"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.description)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\n</p>\n<div class=\"tags\">\n	";
+  stack1 = helpers.each.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.tags), {hash:{},inverse:self.noop,fn:self.program(7, program7, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n</div>\n<div class=\"meta\">\n	<p class=\"updated\">\n		Last updated: "
+    + escapeExpression((helper = helpers.fromNow || (depth0 && depth0.fromNow),options={hash:{},data:data},helper ? helper.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.updated), options) : helperMissing.call(depth0, "fromNow", ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.updated), options)))
+    + "\n	</p>\n	<p class=\"stars\">\n		37 <i class=\"fa fa-star\"></i>\n	</p>\n</div>";
   return buffer;
   });
 
@@ -65,13 +124,13 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   var buffer = "", stack1, helper, options, functionType="function", escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing;
 
 
-  buffer += "<h1><a href=\"#/\">Collabish</a></h1>\n<div class=\"controls\">\n	<a class=\"profile\" href=\"#/user/"
+  buffer += "<h1><a href=\"/#\">Collabish</a></h1>\n<div class=\"controls\">\n	<a class=\"profile\" href=\"/#user/"
     + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.user)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + "\">\n		<img src=\""
+    + "\">\n		<span data-tooltip=\"Profile\">\n			<img src=\""
     + escapeExpression((helper = helpers.gravatar || (depth0 && depth0.gravatar),options={hash:{},data:data},helper ? helper.call(depth0, (depth0 && depth0.gravatarHash), "s=32", options) : helperMissing.call(depth0, "gravatar", (depth0 && depth0.gravatarHash), "s=32", options)))
-    + "\" width=\"32\" height=\"32\" alt=\"\" title=\"\" />\n		"
+    + "\" width=\"32\" height=\"32\" alt=\"\" title=\"\" />\n			"
     + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.user)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + "\n	</a>\n	<div class=\"icons\">\n		<a class=\"inbox\" href=\"#/inbox\" title=\"Inbox\">\n			<i class=\"fa fa-inbox\"></i>\n		</a>\n		<a class=\"settings\" href=\"#/settings\" title=\"Account Settings\">\n			<i class=\"fa fa-gears\"></i>\n		</a>\n		<a class=\"signout\" title=\"Sign Out\">\n			<i class=\"fa fa-sign-out\"></i>\n		</a>\n	</div>\n</div>\n";
+    + "\n		</span>\n	</a>\n	<div class=\"icons\">\n		<a class=\"inbox\" href=\"/#inbox\">\n			<span data-tooltip=\"Inbox\">\n				<i class=\"fa fa-inbox\"></i>\n			</span>\n		</a>\n		<a class=\"settings\" href=\"/#settings\">\n			<span data-tooltip=\"Account Settings\">\n				<i class=\"fa fa-gears\"></i>\n			</span>\n		</a>\n		<a class=\"signout\">\n			<span data-tooltip=\"Sign Out\">\n				<i class=\"fa fa-sign-out\"></i>\n			</span>\n		</a>\n	</div>\n</div>\n";
   return buffer;
   });
 
@@ -101,16 +160,16 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
 function program1(depth0,data) {
   
   
-  return "\n	<a href=\"#/dashboard\">Dashboard</a>\n	<a href=\"#/search\">Document Search</a>\n	";
+  return "\n	<a href=\"/#dashboard\">Dashboard</a>\n	<a href=\"/#search\">Document Search</a>\n	";
   }
 
 function program3(depth0,data) {
   
   
-  return "\n	<a href=\"#/\">Home</a>\n	<a href=\"#/signup\">Signup</a>\n	";
+  return "\n	<a href=\"/#\">Home</a>\n	<a href=\"/#signup\">Signup</a>\n	";
   }
 
-  buffer += "<header>\n	<h1><a href=\"#/\">Collabish</a></h1>\n</header>\n\n<main>\n	<h2>Not Found</h2>\n	<p>\n		You broke it. It's all your fault. The website is dead.\n	</p>\n</main>\n\n<nav>\n	";
+  buffer += "<header>\n	<h1><a href=\"/#\">Collabish</a></h1>\n</header>\n\n<main>\n	<h2>Not Found</h2>\n	<p>\n		You broke it. It's all your fault. The website is dead.\n	</p>\n</main>\n\n<nav>\n	";
   stack1 = helpers['if'].call(depth0, (depth0 && depth0.loggedIn), {hash:{},inverse:self.program(3, program3, data),fn:self.program(1, program1, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "\n</nav>\n";
@@ -132,7 +191,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   var buffer = "";
 
 
-  buffer += "<header>\n	<h1><a href=\"#/\">Collabish</a></h1>\n</header>\n\n<main>\n	<p class=\"confirming\">\n		Confirming your email address ...\n	</p>\n</main>\n\n<nav class=\"welcome\">\n	\n</nav>";
+  buffer += "<header>\n	<h1><a href=\"/#\">Collabish</a></h1>\n</header>\n\n<main>\n	<p class=\"confirming\">\n		Confirming your email address ...\n	</p>\n</main>\n\n<nav class=\"welcome\">\n	\n</nav>";
   return buffer;
   });
 
@@ -151,7 +210,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   
 
 
-  return "<header>\n	<h1><a href=\"#/\">Collabish</a></h1>\n</header>\n\n<main>\n	<p>\n		Your two-step confirmation token has been sent. Go check for your message, and enter your\n		code below.\n	</p>\n	<form>\n		<div class=\"error hide\"></div>\n		<label>\n			Confirmation Code\n			<input type=\"text\" class=\"code\" placeholder=\"eg. ABC123\" />\n		</label>\n		<div class=\"button-wrapper\">\n			<button class=\"button\">Confirm Login</button>\n		</div>\n	</form>\n</main>";
+  return "<header>\n	<h1><a href=\"/#\">Collabish</a></h1>\n</header>\n\n<main>\n	<p>\n		Your two-step confirmation token has been sent. Go check for your message, and enter your\n		code below.\n	</p>\n	<form>\n		<div class=\"error hide\"></div>\n		<label>\n			Confirmation Code\n			<input type=\"text\" class=\"code\" placeholder=\"eg. ABC123\" />\n		</label>\n		<div class=\"button-wrapper\">\n			<button class=\"button\">Confirm Login</button>\n		</div>\n	</form>\n</main>";
   });
 
 this["exports"]["views/welcome/nav/modals/login/login.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -196,7 +255,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   var buffer = "", stack1, helper, functionType="function", escapeExpression=this.escapeExpression;
 
 
-  buffer += "<header>\n	<h1><a href=\"#/\">Collabish</a></h1>\n</header>\n\n<main class=\"row\">\n	<div class=\"small-12 medium-4 medium-centered columns\">\n		<h2>Signup</h2>\n		<div class=\"error hide\"></div>\n		<form>\n			<label class=\"username\">\n				Username\n				<input type=\"text\" value=\"";
+  buffer += "<header>\n	<h1><a href=\"/#\">Collabish</a></h1>\n</header>\n\n<main class=\"row\">\n	<div class=\"small-12 medium-4 medium-centered columns\">\n		<h2>Signup</h2>\n		<div class=\"error hide\"></div>\n		<form>\n			<label class=\"username\">\n				Username\n				<input type=\"text\" value=\"";
   if (helper = helpers.username) { stack1 = helper.call(depth0, {hash:{},data:data}); }
   else { helper = (depth0 && depth0.username); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
   buffer += escapeExpression(stack1)
@@ -204,7 +263,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   if (helper = helpers.email) { stack1 = helper.call(depth0, {hash:{},data:data}); }
   else { helper = (depth0 && depth0.email); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
   buffer += escapeExpression(stack1)
-    + "\" />\n			</label>\n			<label class=\"auth-method\" aria-describedby=\"auth-method-tooltip\">\n				Auth Method\n				<span\n					id=\"auth-method-tooltip\"\n					class=\"tooltip-left\"\n					role=\"tooltip\"\n					aria-haspopup=\"true\"\n					data-tooltip=\"Determines how you log in to Collabish\"\n				>?</span>\n				<select>\n					<option value=\"password\">Password</option>\n					<option value=\"email\">Email</option>\n					<option value=\"twostep-email\">Two-Step (Password + Email)</option>\n					\n				</select>\n			</label>\n			<label class=\"password\">\n				Password (twice)\n				<input type=\"password\" />\n				<input type=\"password\" />\n			</label>\n			<label class=\"mobile\" aria-describedby=\"mobile-tooltip\">\n				Mobile Phone\n				<span\n					id=\"mobile-tooltip\"\n					class=\"tooltip-left\"\n					role=\"tooltip\"\n					aria-haspopup=\"true\"\n					data-tooltip=\"We will only ever text you to send you login codes\"\n				>?</span>\n				<div class=\"row collapse\">\n					<div class=\"small-1 columns\">\n						<span class=\"prefix\">+1</span>\n					</div>\n					<div class=\"small-11 columns\">\n						<input type=\"tel\" />\n					</div>\n				</div>\n			</label>\n			<div class=\"button-wrapper\">\n				<button class=\"button\">Sign Up</button>\n			</div>\n		</form>\n	</div>\n</main>\n\n<nav class=\"welcome\">\n	\n</nav>\n";
+    + "\" />\n			</label>\n			<label class=\"auth-method\" aria-describedby=\"auth-method-tooltip\">\n				Auth Method\n				<span id=\"auth-method-tooltip\" data-tooltip=\"Determines how you log in to Collabish\">?</span>\n				<select>\n					<option value=\"password\">Password</option>\n					<option value=\"email\">Email</option>\n					<option value=\"twostep-email\">Two-Step (Password + Email)</option>\n					\n				</select>\n			</label>\n			<label class=\"password\">\n				Password (twice)\n				<input type=\"password\" />\n				<input type=\"password\" />\n			</label>\n			<label class=\"mobile\" aria-describedby=\"mobile-tooltip\">\n				Mobile Phone\n				<span id=\"mobile-tooltip\" data-tooltip=\"We will only ever text you to send you login codes\">?</span>\n				<div class=\"row collapse\">\n					<div class=\"small-1 columns\">\n						<span class=\"prefix\">+1</span>\n					</div>\n					<div class=\"small-11 columns\">\n						<input type=\"tel\" />\n					</div>\n				</div>\n			</label>\n			<div class=\"button-wrapper\">\n				<button class=\"button\">Sign Up</button>\n			</div>\n		</form>\n	</div>\n</main>\n\n<nav class=\"welcome\">\n	\n</nav>\n";
   return buffer;
   });
 

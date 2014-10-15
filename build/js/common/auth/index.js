@@ -132,6 +132,8 @@ exports.ping = function() {
 				if (res.status === 401) {
 					unsetAuthToken();
 				}
+
+				return Promise.reject(new Error('Token validation failure'));
 			}
 		);
 };

@@ -7,6 +7,8 @@ var auth           = require('common/auth');
 var DashboardView  = require('views/dashboard/dashboard');
 var Request        = require('cloak/model-stores/dagger').Request;
 
+var Document = require('models/document');
+
 var DashboardRouter = module.exports = Router.extend({
 
 	routes: {
@@ -28,7 +30,56 @@ var DashboardRouter = module.exports = Router.extend({
 			return;
 		}
 
-		this.parent.renderView(new DashboardView());
+		var view = new DashboardView();
+
+		this.parent.renderView(view);
+
+
+
+		setTimeout(function() {
+			view.documents.push(
+				new Document({
+					_id: '123456789',
+					name: 'Document One',
+					description: 'This is the first document',
+					public: false,
+					owner: require('common/auth').user.id(),
+					created: Date.now(),
+					updated: Date.now(),
+					collaborators: [ ],
+					mainRevision: { },
+					adultContent: false,
+					tags: [ 'Totally porn' ]
+				}),
+				new Document({
+					_id: '123456789',
+					name: 'Document Two',
+					description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut dui purus, rhoncus in congue nec, semper et risus. Aliquam erat volutpat. Vivamus ultrices fringilla rutrum. Duis porttitor lacus ac nullam.',
+					public: true,
+					owner: require('common/auth').user.id(),
+					created: Date.now(),
+					updated: Date.now(),
+					collaborators: [ ],
+					mainRevision: { },
+					adultContent: false,
+					tags: [ 'Totally porn' ]
+				}),
+				new Document({
+					_id: '123456789',
+					name: 'Document Three',
+					description: 'This is yet another document',
+					public: false,
+					owner: require('common/auth').user.id(),
+					created: Date.now(),
+					updated: Date.now(),
+					collaborators: [ '1234', '2345', '3456' ],
+					mainRevision: { },
+					adultContent: false,
+					tags: [ 'Not porn', 'Food', 'Chocolate' ]
+				})
+			);
+			view.drawDocuments();
+		}, 0);
 	}
 
 }); 

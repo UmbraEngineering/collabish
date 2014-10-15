@@ -13,11 +13,6 @@ var User = module.exports = Model.extend({
 		phone: ''
 	},
 
-	activate: function() {
-		this.set('isActivated', true);
-		return this.patch('isActivated');
-	},
-
 	gravatarHash: function() {
 		return md5(this.get('email').toLowerCase().replace(/^\s+/, '').replace(/\s+$/, ''));
 	}

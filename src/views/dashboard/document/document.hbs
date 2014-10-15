@@ -1,0 +1,37 @@
+<h3>
+	<a href="/#document/{{ document._id }}">{{ document.name }}</a>
+</h3>
+<div class="icons">
+	{{#if document.collaborators.length}}
+	<span data-tooltip="This document is shared with {{ document.collaborators.length }} collaborators">
+		<i class="fa fa-share-alt"></i>
+	</span>
+	{{/if}}
+	{{#unless document.public }}
+	<span data-tooltip="This document is private">
+		<i class="fa fa-lock"></i>
+	</span>
+	{{else}}
+	<span data-tooltip="This document is public">
+		<i class="fa fa-users"></i>
+	</span>
+	{{/unless}}
+</div>
+<p class="description">
+	{{ document.description }}
+</p>
+<div class="tags">
+	{{#each document.tags}}
+	<a href="/#search?tags={{encode this}}">
+		<span class="label radius">{{ this }}</span>
+	</a>
+	{{/each}}
+</div>
+<div class="meta">
+	<p class="updated">
+		Last updated: {{fromNow document.updated }}
+	</p>
+	<p class="stars">
+		37 <i class="fa fa-star"></i>
+	</p>
+</div>

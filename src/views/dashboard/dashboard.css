@@ -1,0 +1,38 @@
+
+section.dashboard {
+	/**/
+}
+
+	section.dashboard h1 {
+		padding: 1rem;
+		text-align: center;
+	}
+
+	section.dashboard section.documents {
+		padding: 1rem 0;
+	}
+
+
+
+@media only screen and (max-width: 40em) {
+	section.dashboard {
+		/**/
+	}
+
+		section.dashboard h2 {
+			text-align: center;
+		}
+
+		section.dashboard section.documents {
+			border-bottom: 1px #ccc solid;
+			margin-bottom: 3rem;
+		}
+}
+
+
+
+@media only screen and (min-width:40.063em) {
+	section.dashboard {
+		padding: 2rem;
+	}
+}
