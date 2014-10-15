@@ -27736,9 +27736,10 @@ Revision.find = function(data) {
 ;require._modules["/models/user.js"] = (function() { var __filename = "/models/user.js"; var __dirname = "/models"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /models/user.js  == */ var __module__ = function() { 
  
-var Model    = require('cloak/model');
-var Request  = require('cloak/model-stores/dagger').Request;
-var md5      = require('common/md5');
+var Model     = require('cloak/model');
+var Request   = require('cloak/model-stores/dagger').Request;
+var md5       = require('common/md5');
+var Document  = require('models/document');
 
 var User = module.exports = Model.extend({
 
@@ -27750,8 +27751,40 @@ var User = module.exports = Model.extend({
 		phone: ''
 	},
 
+	// 
+	// Generate a gravatar hash for this user
+	// 
+	// @return string
+	// 
 	gravatarHash: function() {
 		return md5(this.get('email').toLowerCase().replace(/^\s+/, '').replace(/\s+$/, ''));
+	},
+
+	// 
+	// Fetch all documents owned by this user
+	// 
+	// @return promise
+	// 
+	fetchDocuments: function() {
+		var filter = {owner: this.id()};
+
+		return Request.send('GET', '/documents', {filter: filter})
+			.then(function(res) {
+				return (new Document.Collection()).add(res.body);
+			});
+	},
+
+	// 
+	// Fetch all recently starred documents for this user
+	// 
+	// @return promise
+	// 
+	fetchRecentlyStarred: function() {
+		return Promise.resolve(new Document.Collection());
+		// return Request.send('GET', '/users/me/activity/recent')
+		// 	.then(function(res) {
+		// 		return (new Document.Collection()).add(res.body);
+		// 	});
 	}
 
 });
@@ -27787,11 +27820,12 @@ User.current = function() {
 ;require._modules["/routers/dashboard.js"] = (function() { var __filename = "/routers/dashboard.js"; var __dirname = "/routers"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /routers/dashboard.js  == */ var __module__ = function() { 
  
-var cloak          = require('cloak');
-var Router         = require('cloak/router');
-var auth           = require('common/auth');
-var DashboardView  = require('views/dashboard/dashboard');
-var Request        = require('cloak/model-stores/dagger').Request;
+var cloak               = require('cloak');
+var Router              = require('cloak/router');
+var auth                = require('common/auth');
+var DashboardView       = require('views/dashboard/dashboard');
+var CreateDocumentView  = require('views/create-document/create-document');
+var Request             = require('cloak/model-stores/dagger').Request;
 
 var Document = require('models/document');
 
@@ -27799,6 +27833,7 @@ var DashboardRouter = module.exports = Router.extend({
 
 	routes: {
 		'/dashboard':    'dashboard',
+		'/create':       'createDocument'
 	},
 
 	initialize: function() {
@@ -27820,52 +27855,31 @@ var DashboardRouter = module.exports = Router.extend({
 
 		this.parent.renderView(view);
 
+		auth.user.fetchDocuments()
+			.then(function(docs) {
+				view.documents = docs;
+				view.drawDocuments();
+			});
 
+		auth.user.fetchRecentlyStarred()
+			.then(function(docs) {
+				view.recent = docs;
+				view.drawRecentlyStarred();
+			});
+	},
 
-		setTimeout(function() {
-			view.documents.push(
-				new Document({
-					_id: '123456789',
-					name: 'Document One',
-					description: 'This is the first document',
-					public: false,
-					owner: require('common/auth').user.id(),
-					created: Date.now(),
-					updated: Date.now(),
-					collaborators: [ ],
-					mainRevision: { },
-					adultContent: false,
-					tags: [ 'Totally porn' ]
-				}),
-				new Document({
-					_id: '123456789',
-					name: 'Document Two',
-					description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut dui purus, rhoncus in congue nec, semper et risus. Aliquam erat volutpat. Vivamus ultrices fringilla rutrum. Duis porttitor lacus ac nullam.',
-					public: true,
-					owner: require('common/auth').user.id(),
-					created: Date.now(),
-					updated: Date.now(),
-					collaborators: [ ],
-					mainRevision: { },
-					adultContent: false,
-					tags: [ 'Totally porn' ]
-				}),
-				new Document({
-					_id: '123456789',
-					name: 'Document Three',
-					description: 'This is yet another document',
-					public: false,
-					owner: require('common/auth').user.id(),
-					created: Date.now(),
-					updated: Date.now(),
-					collaborators: [ '1234', '2345', '3456' ],
-					mainRevision: { },
-					adultContent: false,
-					tags: [ 'Not porn', 'Food', 'Chocolate' ]
-				})
-			);
-			view.drawDocuments();
-		}, 0);
+// --------------------------------------------------------
+
+	// 
+	// Create document page
+	// 
+	createDocument: function() {
+		if (! auth.user) {
+			this.redirectTo('/');
+			return;
+		}
+
+		this.parent.renderView(new CreateDocumentView());
 	}
 
 }); 
@@ -28220,13 +28234,22 @@ function program5(depth0,data) {
   return buffer;
   });
 
+this["exports"]["views/create-document/create-document.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<main class=\"row\">\n	<div class=\"small-12 medium-4 medium-centered columns\">\n		<h2>Create Document</h2>\n		<div class=\"error hide\"></div>\n		<form>\n			<label class=\"name\">\n				Name\n				<input type=\"text\" />\n			</label>\n			<label class=\"description\">\n				Email\n				<input type=\"description\" />\n			</label>\n			<label class=\"public\">\n				Privacy\n				<select>\n					<option value=\"true\">Public</option>\n					<option value=\"false\">Private</option>\n				</select>\n			</label>\n			<label class=\"tags\">\n				Tags\n				<input type=\"text\" />\n			</label>\n			<div class=\"button-wrapper\">\n				<button class=\"button\">Create</button>\n			</div>\n		</form>\n	</div>\n</main>";
+  });
+
 this["exports"]["views/dashboard/dashboard.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   var buffer = "";
 
 
-  buffer += "<h1>Dashboard</h1>\n<div class=\"row\">\n	<div class=\"small-12 medium-6 columns\">\n		<h2>Your Documents</h2>\n		<section class=\"documents\">\n			\n		</section>\n	</div>\n	<div class=\"small-12 medium-6 columns\">\n		<h2>Recently Stared Documents</h2>\n	</div>\n</div>";
+  buffer += "<h1>Dashboard</h1>\n<div class=\"row\">\n	<div class=\"small-12 medium-6 columns\">\n		<h2>Your Documents</h2>\n		<section class=\"documents\">\n			\n		</section>\n	</div>\n	<div class=\"small-12 medium-6 columns\">\n		<h2>Recently Starred Documents</h2>\n		<section class=\"recent\">\n			\n		</section>\n	</div>\n</div>";
   return buffer;
   });
 
@@ -28237,6 +28260,12 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
 
 function program1(depth0,data) {
   
+  
+  return "\n	<span data-tooltip=\"This document may contain adult content\">\n		<i class=\"fa fa-eye-slash\"></i>\n	</span>\n	";
+  }
+
+function program3(depth0,data) {
+  
   var buffer = "", stack1;
   buffer += "\n	<span data-tooltip=\"This document is shared with "
     + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.collaborators)),stack1 == null || stack1 === false ? stack1 : stack1.length)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
@@ -28244,19 +28273,19 @@ function program1(depth0,data) {
   return buffer;
   }
 
-function program3(depth0,data) {
+function program5(depth0,data) {
   
   
   return "\n	<span data-tooltip=\"This document is private\">\n		<i class=\"fa fa-lock\"></i>\n	</span>\n	";
   }
 
-function program5(depth0,data) {
+function program7(depth0,data) {
   
   
   return "\n	<span data-tooltip=\"This document is public\">\n		<i class=\"fa fa-users\"></i>\n	</span>\n	";
   }
 
-function program7(depth0,data) {
+function program9(depth0,data) {
   
   var buffer = "", helper, options;
   buffer += "\n	<a href=\"/#search?tags="
@@ -28272,20 +28301,43 @@ function program7(depth0,data) {
     + "\">"
     + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.name)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
     + "</a>\n</h3>\n<div class=\"icons\">\n	";
-  stack1 = helpers['if'].call(depth0, ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.collaborators)),stack1 == null || stack1 === false ? stack1 : stack1.length), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  stack1 = helpers['if'].call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.adultContent), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "\n	";
-  stack1 = helpers.unless.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1['public']), {hash:{},inverse:self.program(5, program5, data),fn:self.program(3, program3, data),data:data});
+  stack1 = helpers['if'].call(depth0, ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.collaborators)),stack1 == null || stack1 === false ? stack1 : stack1.length), {hash:{},inverse:self.noop,fn:self.program(3, program3, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n	";
+  stack1 = helpers.unless.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1['public']), {hash:{},inverse:self.program(7, program7, data),fn:self.program(5, program5, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "\n</div>\n<p class=\"description\">\n	"
     + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.description)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
     + "\n</p>\n<div class=\"tags\">\n	";
-  stack1 = helpers.each.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.tags), {hash:{},inverse:self.noop,fn:self.program(7, program7, data),data:data});
+  stack1 = helpers.each.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.tags), {hash:{},inverse:self.noop,fn:self.program(9, program9, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "\n</div>\n<div class=\"meta\">\n	<p class=\"updated\">\n		Last updated: "
     + escapeExpression((helper = helpers.fromNow || (depth0 && depth0.fromNow),options={hash:{},data:data},helper ? helper.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.updated), options) : helperMissing.call(depth0, "fromNow", ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.updated), options)))
-    + "\n	</p>\n	<p class=\"stars\">\n		37 <i class=\"fa fa-star\"></i>\n	</p>\n</div>";
+    + "\n	</p>\n	<p class=\"stars\">\n		"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.starred)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + " <i class=\"fa fa-star\"></i>\n	</p>\n</div>";
   return buffer;
+  });
+
+this["exports"]["views/dashboard/no-docs.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<div class=\"no-results panel\">\n	<h3>You haven't created any documents</h3>\n	<p>\n		Why not <a href=\"/#create\">create one</a>?\n	</p>\n</div>";
+  });
+
+this["exports"]["views/dashboard/no-recents.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<div class=\"no-results panel\">\n	<h3>You haven't starred any documents recently</h3>\n	<p>\n		Why not <a href=\"/#search\">take a look around</a>?\n	</p>\n</div>";
   });
 
 this["exports"]["views/header/header.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -28296,11 +28348,11 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
 
   buffer += "<h1><a href=\"/#\">Collabish</a></h1>\n<div class=\"controls\">\n	<a class=\"profile\" href=\"/#user/"
     + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.user)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + "\">\n		<span data-tooltip=\"Profile\">\n			<img src=\""
+    + "\">\n		<img src=\""
     + escapeExpression((helper = helpers.gravatar || (depth0 && depth0.gravatar),options={hash:{},data:data},helper ? helper.call(depth0, (depth0 && depth0.gravatarHash), "s=32", options) : helperMissing.call(depth0, "gravatar", (depth0 && depth0.gravatarHash), "s=32", options)))
-    + "\" width=\"32\" height=\"32\" alt=\"\" title=\"\" />\n			"
+    + "\" width=\"32\" height=\"32\" alt=\"\" title=\"\" />\n		"
     + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.user)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + "\n		</span>\n	</a>\n	<div class=\"icons\">\n		<a class=\"inbox\" href=\"/#inbox\">\n			<span data-tooltip=\"Inbox\">\n				<i class=\"fa fa-inbox\"></i>\n			</span>\n		</a>\n		<a class=\"settings\" href=\"/#settings\">\n			<span data-tooltip=\"Account Settings\">\n				<i class=\"fa fa-gears\"></i>\n			</span>\n		</a>\n		<a class=\"signout\">\n			<span data-tooltip=\"Sign Out\">\n				<i class=\"fa fa-sign-out\"></i>\n			</span>\n		</a>\n	</div>\n</div>\n";
+    + "\n	</a>\n	<div class=\"icons\">\n		<a class=\"create\" href=\"/#create\">\n			<span data-tooltip=\"Create Document\">\n				<i class=\"fa fa-plus-circle\"></i>\n			</span>\n		</a>\n		<a class=\"inbox\" href=\"/#inbox\">\n			<span data-tooltip=\"Inbox\">\n				<i class=\"fa fa-inbox\"></i>\n			</span>\n			<span class=\"notification\"></span>\n		</a>\n		<a class=\"settings\" href=\"/#settings\">\n			<span data-tooltip=\"Account Settings\">\n				<i class=\"fa fa-gears\"></i>\n			</span>\n		</a>\n		<a class=\"signout\">\n			<span data-tooltip=\"Sign Out\">\n				<i class=\"fa fa-sign-out\"></i>\n			</span>\n		</a>\n	</div>\n</div>\n";
   return buffer;
   });
 
@@ -32548,6 +32600,33 @@ delete window.purl;
 
 }); 
  }; /* ==  End source for module /vendor/purl/purl.js  == */ return module; }());;
+;require._modules["/views/create-document/create-document.js"] = (function() { var __filename = "/views/create-document/create-document.js"; var __dirname = "/views/create-document"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/create-document/create-document.js  == */ var __module__ = function() { 
+ 
+var View  = require('cloak/view');
+
+var CreateDocumentView = module.exports = View.extend({
+
+	className: 'create-document',
+	template: 'views/create-document/create-document.hbs',
+
+	events: {
+		// 
+	},
+
+	initialize: function() {
+		// 
+	},
+
+	draw: function() {
+		this.$elem.html(this.render());
+
+		this.bindEvents();
+	}
+
+});
+ 
+ }; /* ==  End source for module /views/create-document/create-document.js  == */ return module; }());;
 ;require._modules["/views/dashboard/dashboard.js"] = (function() { var __filename = "/views/dashboard/dashboard.js"; var __dirname = "/views/dashboard"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/dashboard/dashboard.js  == */ var __module__ = function() { 
  
@@ -32562,6 +32641,8 @@ var DashboardView = module.exports = View.extend({
 
 	className: 'dashboard',
 	template: 'views/dashboard/dashboard.hbs',
+	noDocsTemplate: 'views/dashboard/no-docs.hbs',
+	noRecentsTemplate: 'views/dashboard/no-recents.hbs',
 
 	events: {
 		// 
@@ -32569,6 +32650,7 @@ var DashboardView = module.exports = View.extend({
 
 	initialize: function() {
 		this.documents = [ ];
+		this.recent = [ ];
 
 		// 
 	},
@@ -32577,17 +32659,39 @@ var DashboardView = module.exports = View.extend({
 		this.$elem.html(this.render());
 
 		this.$documents = this.$('section.documents');
+		this.$recent    = this.$('section.recent');
+
+		this.$documents.spin(true, {size: 'medium', classname: 'centered'});
+		this.$recent.spin(true, {size: 'medium', classname: 'centered'});
 
 		this.bindEvents();
 	},
 
 	drawDocuments: function() {
-		var $documents = this.$documents;
+		this.drawDocumentSection(this.documents, this.$documents, 'noDocsTemplate');
+	},
 
-		this.documents.forEach(function(document) {
-			var view = new DashboardDocumentView(document);
-			view.$elem.appendTo($documents);
-			view.draw();
+	drawRecentlyStarred: function() {
+		this.drawDocumentSection(this.recent, this.$recent, 'noRecentsTemplate');
+	},
+
+	drawDocumentSection: function(documents, $documents, noResultsTemplate) {
+		var self = this;
+
+		$documents.animate({ opacity: 0 }, 600, function() {
+			$documents.spin(false);
+
+			if (documents.len()) {
+				documents.forEach(function(document) {
+					var view = new DashboardDocumentView(document);
+					view.$elem.appendTo($documents);
+					view.draw();
+				});
+			} else {
+				$documents.html(self.render({ }, noResultsTemplate));
+			}
+			
+			$documents.animate({ opacity: 1 }, 600);
 		});
 	}
 
@@ -32646,6 +32750,9 @@ var HeaderView = module.exports = View.extend({
 			user: auth.user.serialize({ deep: false }),
 			gravatarHash: auth.user.gravatarHash()
 		}));
+
+		this.$inbox = this.$('.inbox');
+
 		this.bindEvents();
 	},
 
@@ -32655,6 +32762,24 @@ var HeaderView = module.exports = View.extend({
 		}
 
 		auth.logout();
+	},
+
+	setInboxCount: function(count) {
+		var $notifier = this.$inbox.find('.notification');
+		$notifier.removeClass('small medium large');
+
+		if (count < 1) {
+			// pass
+		} else if (count < 10) {
+			$notifier.addClass('small');
+		} else if (count < 20) {
+			$notifier.addClass('medium');
+		} else {
+			$notifier.addClass('large');
+		}
+
+		$tooltip = this.$inbox.find('[data-tooltip]');
+		$tooltip.attr('data-tooltip', 'Inbox' + (count ? ' (' + count + ')' : ''));
 	}
 
 });

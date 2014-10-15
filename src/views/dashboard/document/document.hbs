@@ -2,6 +2,11 @@
 	<a href="/#document/{{ document._id }}">{{ document.name }}</a>
 </h3>
 <div class="icons">
+	{{#if document.adultContent}}
+	<span data-tooltip="This document may contain adult content">
+		<i class="fa fa-eye-slash"></i>
+	</span>
+	{{/if}}
 	{{#if document.collaborators.length}}
 	<span data-tooltip="This document is shared with {{ document.collaborators.length }} collaborators">
 		<i class="fa fa-share-alt"></i>
@@ -32,6 +37,6 @@
 		Last updated: {{fromNow document.updated }}
 	</p>
 	<p class="stars">
-		37 <i class="fa fa-star"></i>
+		{{ document.starred }} <i class="fa fa-star"></i>
 	</p>
 </div>

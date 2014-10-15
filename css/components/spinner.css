@@ -22,12 +22,22 @@
 	animation: spin .75s infinite steps(8);
 }
 
+.centered.progress {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
 .tiny.progress {
 	font-size: 3px;
 }
 
 .small.progress {
 	font-size: 6px;
+}
+
+.medium.progress {
+	font-size: 16px;
 }
 
 .large.progress {

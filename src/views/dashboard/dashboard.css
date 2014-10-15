@@ -8,9 +8,20 @@ section.dashboard {
 		text-align: center;
 	}
 
-	section.dashboard section.documents {
+	section.dashboard section.documents,
+	section.dashboard section.recent {
 		padding: 1rem 0;
 	}
+
+		section.dashboard section.documents .progress,
+		section.dashboard section.recent .progress {
+			margin: 5rem auto;
+		}
+
+		section.dashboard .no-results {
+			margin: 0 auto 5rem auto;
+			text-align: center;
+		}
 
 
 

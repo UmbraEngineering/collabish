@@ -19,6 +19,9 @@ var HeaderView = module.exports = View.extend({
 			user: auth.user.serialize({ deep: false }),
 			gravatarHash: auth.user.gravatarHash()
 		}));
+
+		this.$inbox = this.$('.inbox');
+
 		this.bindEvents();
 	},
 
@@ -28,6 +31,24 @@ var HeaderView = module.exports = View.extend({
 		}
 
 		auth.logout();
+	},
+
+	setInboxCount: function(count) {
+		var $notifier = this.$inbox.find('.notification');
+		$notifier.removeClass('small medium large');
+
+		if (count < 1) {
+			// pass
+		} else if (count < 10) {
+			$notifier.addClass('small');
+		} else if (count < 20) {
+			$notifier.addClass('medium');
+		} else {
+			$notifier.addClass('large');
+		}
+
+		$tooltip = this.$inbox.find('[data-tooltip]');
+		$tooltip.attr('data-tooltip', 'Inbox' + (count ? ' (' + count + ')' : ''));
 	}
 
 });

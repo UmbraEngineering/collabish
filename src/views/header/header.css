@@ -23,12 +23,17 @@
 		padding: 0;
 	}
 
-	#wrapper > header .settings [data-tooltip]:after {
-		width: 120px;
-	}
-
 	#wrapper > header [data-tooltip]:after {
 		width: 70px;
+	}
+
+	#wrapper > header .inbox [data-tooltip]:after {
+		width: 80px;
+	}
+
+	#wrapper > header .create [data-tooltip]:after,
+	#wrapper > header .settings [data-tooltip]:after {
+		width: 120px;
 	}
 
 	#wrapper > header .controls {
@@ -63,6 +68,38 @@
 				border: 2px #fff solid;
 				border-radius: 2px;
 				margin: 0 1rem;
+			}
+
+		#wrapper > header .inbox {
+			position: relative;
+		}
+
+			#wrapper > header .inbox .notification {
+				display: none;
+			}
+
+			#wrapper > header .inbox .notification.small,
+			#wrapper > header .inbox .notification.medium,
+			#wrapper > header .inbox .notification.large {
+				display: block;
+				position: absolute;
+				bottom: -3px;
+				left: -3px;
+				width: 8px;
+				height: 8px;
+				border-radius: 50%;
+			}
+
+			#wrapper > header .inbox .notification.small {
+				background: #2ba6cb;
+			}
+
+			#wrapper > header .inbox .notification.medium {
+				background: #cbb72b;
+			}
+
+			#wrapper > header .inbox .notification.large {
+				background: #cb2b2b;
 			}
 
 

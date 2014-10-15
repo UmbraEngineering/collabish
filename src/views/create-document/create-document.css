@@ -1,0 +1,55 @@
+
+section.create-document {
+	/**/
+}
+
+	section.create-document main {
+		/**/
+	}
+	
+		section.create-document main .error {
+			color: #a22;
+			padding: 5px 0 20px;
+		}
+
+		section.create-document main .button-wrapper .button {
+			width: 100%;
+			background: #ff7941;
+		}
+
+		section.create-document main .button-wrapper .button:hover {
+			background: #ff712c;
+		}
+
+			section.create-document main .button-wrapper .button .progress {
+				position: absolute;
+				top: 20px;
+				right: 19px;
+			}
+
+	section.create-document main [data-tooltip] {
+		color: #ff7941;
+		font-weight: bold;
+		float: right;
+	}
+
+@media only screen and (max-width: 40em) {
+	section.create-document main h2 {
+		text-align: center;
+		margin-bottom: 2rem;
+	}
+}
+
+@media only screen and (min-width: 40.063em) {
+	section.create-document main {
+		padding-top: 3rem;
+	}
+
+	section.create-document main.success {
+		max-width: 800px;
+	}
+
+		section.create-document main h2 {
+			padding-bottom: 1rem;
+		}
+}
