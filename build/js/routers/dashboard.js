@@ -33,18 +33,17 @@ var DashboardRouter = module.exports = Router.extend({
 		}
 
 		var view = new DashboardView();
+		var renderPromise = this.parent.renderView(view);
 
-		this.parent.renderView(view);
-
-		auth.user.fetchDocuments()
+		Promise.all([ auth.user.fetchDocuments(), renderPromise ])
 			.then(function(docs) {
-				view.documents = docs;
+				view.documents = docs[0];
 				view.drawDocuments();
 			});
 
-		auth.user.fetchRecentlyStarred()
+		Promise.all([ auth.user.fetchRecentlyStarred(), renderPromise ])
 			.then(function(docs) {
-				view.recent = docs;
+				view.recent = docs[0];
 				view.drawRecentlyStarred();
 			});
 	},

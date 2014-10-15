@@ -5,6 +5,7 @@ var $             = require('jquery');
 var cloak         = require('cloak');
 var auth          = require('common/auth');
 var Router        = require('cloak/router');
+var Promise       = require('promise').Promise;
 var HeaderView    = require('views/header/header');
 var FooterView    = require('views/footer/footer');
 var NotFoundView  = require('views/notfound/notfound');
@@ -89,21 +90,28 @@ var MainRouter = module.exports = Router.extend({
 		var animate =! (opts && opts.animate === false);
 		var duration = (opts && opts.duration) || 600;
 		var onDone = (opts && opts.callback) || function() { };
-	
-		hideCurrent(function() {
-			self.currentView = view;
 
-			view.draw();
-			view.$elem.appendTo(self.$content);
+		return new Promise(function(resolve, reject) {
+			hideCurrent(function() {
+				self.currentView = view;
 
-			if (! animate) {
-				return onDone();
-			}
+				view.draw();
+				view.$elem.appendTo(self.$content);
 
-			self.$content.animate({ opacity: 1 }, duration, function() {
-				onDone();
+				if (! animate) {
+					onDone();
+					resolve();
+					return;
+				}
+
+				self.$content.animate({ opacity: 1 }, duration, function() {
+					onDone();
+					resolve();
+					return;
+				});
 			});
 		});
+	
 
 		function hideCurrent(callback) {
 			if (! self.currentView) {

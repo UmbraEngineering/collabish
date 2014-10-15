@@ -27864,18 +27864,17 @@ var DashboardRouter = module.exports = Router.extend({
 		}
 
 		var view = new DashboardView();
+		var renderPromise = this.parent.renderView(view);
 
-		this.parent.renderView(view);
-
-		auth.user.fetchDocuments()
+		Promise.all([ auth.user.fetchDocuments(), renderPromise ])
 			.then(function(docs) {
-				view.documents = docs;
+				view.documents = docs[0];
 				view.drawDocuments();
 			});
 
-		auth.user.fetchRecentlyStarred()
+		Promise.all([ auth.user.fetchRecentlyStarred(), renderPromise ])
 			.then(function(docs) {
-				view.recent = docs;
+				view.recent = docs[0];
 				view.drawRecentlyStarred();
 			});
 	},
@@ -27903,6 +27902,7 @@ var $             = require('jquery');
 var cloak         = require('cloak');
 var auth          = require('common/auth');
 var Router        = require('cloak/router');
+var Promise       = require('promise').Promise;
 var HeaderView    = require('views/header/header');
 var FooterView    = require('views/footer/footer');
 var NotFoundView  = require('views/notfound/notfound');
@@ -27987,21 +27987,28 @@ var MainRouter = module.exports = Router.extend({
 		var animate =! (opts && opts.animate === false);
 		var duration = (opts && opts.duration) || 600;
 		var onDone = (opts && opts.callback) || function() { };
-	
-		hideCurrent(function() {
-			self.currentView = view;
 
-			view.draw();
-			view.$elem.appendTo(self.$content);
+		return new Promise(function(resolve, reject) {
+			hideCurrent(function() {
+				self.currentView = view;
 
-			if (! animate) {
-				return onDone();
-			}
+				view.draw();
+				view.$elem.appendTo(self.$content);
 
-			self.$content.animate({ opacity: 1 }, duration, function() {
-				onDone();
+				if (! animate) {
+					onDone();
+					resolve();
+					return;
+				}
+
+				self.$content.animate({ opacity: 1 }, duration, function() {
+					onDone();
+					resolve();
+					return;
+				});
 			});
 		});
+	
 
 		function hideCurrent(callback) {
 			if (! self.currentView) {
@@ -32876,6 +32883,7 @@ delete window.purl;
  /* ==  Begin source for module /views/create-document/create-document.js  == */ var __module__ = function() { 
  
 var View           = require('cloak/view');
+var Document       = require('models/document');
 var TagEditorView  = require('views/tag-editor/tag-editor');
 
 var CreateDocumentView = module.exports = View.extend({
@@ -32894,6 +32902,7 @@ var CreateDocumentView = module.exports = View.extend({
 	draw: function() {
 		this.$elem.html(this.render());
 
+		this.$error         = this.$('.error');
 		this.$name          = this.$('.name input');
 		this.$description   = this.$('.description input');
 		this.$adultContent  = this.$('.adult-content input');
@@ -32907,17 +32916,48 @@ var CreateDocumentView = module.exports = View.extend({
 	},
 
 // --------------------------------------------------------
-
+	
+	// 
+	// Submit the form, creating a new document
+	// 
 	submit: function(evt) {
 		if (evt) {
 			evt.preventDefault();
 		}
 
-		var data = this.getData();
+		var self = this;
 
-		// 
+		this.showError();
+		this.disable(true);
+
+		var data = this.getData();
+		if (! this.validate(data)) {
+			this.disable(false);
+			return;
+		}
+
+		var doc = new Document(data);
+		doc.save()
+			.then(
+				function(res) {
+					self.disable(false);
+					router.redirectTo('/dashboard');
+				},
+				function(res) {
+					self.disable(false);
+					if (res.body.message) {
+						self.showError(res.body.message);
+						return;
+					}
+
+					self.showError('An unknown error has occured; please try again');
+				}
+			);
 	},
 
+	// 
+	// Fetch the data out of the form for processing
+	// 
 	getData: function() {
 		return {
 			name: this.$name.val(),
@@ -32926,7 +32966,70 @@ var CreateDocumentView = module.exports = View.extend({
 			public: this.$public.prop('checked'),
 			tags: this.tagEditor.tags.slice()
 		};
-	}
+	},
+
+	// 
+	// Do some basic validation before we go to the server
+	// 
+	validate: function(data) {
+		var self = this;
+
+		if (! data.name) {
+			return error('The name field is required');
+		}
+
+		if (! data.description) {
+			return error('The description field is required');
+		}
+
+		if (data.name.length > 80) {
+			return error('Name cannot be more than 80 characters long');
+		}
+
+		if (data.description.length > 200) {
+			return error('Description cannot be more than 200 characters long');
+		}
+
+		if (data.tags.length > 10) {
+			return error('Cannot have more than 10 tags on a single document');
+		}
+
+		return true;
+
+		function error(message) {
+			self.showError(message);
+			return false;
+		}
+	},
+
+	// 
+	// Shows an error message
+	// 
+	// @param {message} the message to display
+	// 
+	showError: function(message) {
+		if (! message) {
+			this.$error.html('');
+			this.$error.addClass('hide');
+			return;
+		}
+
+		this.$error.html(message);
+		this.$error.removeClass('hide');
+	},
+
+	// 
+	// Disable the form
+	// 
+	disable: function(flag) {
+		this.$('input, select, button').prop('disabled', flag);
+
+		if (flag) {
+			this.$('button').spin(true, {replace: false, size: 'tiny', classname: 'transparent'});
+		} else {
+			this.$('button').spin(false);
+		}
+	},
 
 });
  
