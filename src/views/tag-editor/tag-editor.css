@@ -1,0 +1,25 @@
+
+.tag-editor {
+	margin-top: 5px;
+	background: #fff;
+	border: 1px #ccc solid;
+	padding: .5rem;
+}
+
+	.tag-editor .tags {
+		/**/
+	}
+
+		.tag-editor .tags span {
+			margin: 5px;
+		}
+
+	.tag-editor input[type="text"] {
+		border: 0;
+		padding: 0;
+		margin: 0;
+		box-shadow: none;
+		width: auto;
+		height: auto;
+		display: inline-block;
+	}

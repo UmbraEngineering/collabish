@@ -4,54 +4,39 @@ var ModalView  = require('views/modal/modal');
 var Request    = require('cloak/model-stores/dagger').Request;
 
 // 
-// Opens a new login modal
+// Opens a new report modal
 // 
 exports.open = ModalView.template({
 
-	classname: 'login',
-	template: 'views/welcome/nav/modals/login/login.hbs',
+	classname: 'report',
+	template: 'views/modals/report/report.hbs',
 	
 	events: {
-		'click .login button':    'login'
+		'click button':    'submit'
 	},
 	
 	props: {
-		login: function(evt) {
+		submit: function(evt) {
 			if (evt) {
 				evt.preventDefault();
 			}
 
 			var self = this;
-			var username = this.$('.username').val();
-			var password = this.$('.password').val();
+			var subject = this.$('.subject').val();
+			var description = this.$('.description').val();
 
 			this.showError();
 
-			if (! username) {
-				this.showError('Username or email is required');
+			if (! subject || ! description) {
+				this.showError('Both subject and description are required');
 				return;
 			}
 
 			this.disable(true);
 
-			auth.login(username, password)
-				.then(
-					function(result) {
-						self.disable(false);
-
-						if (result.complete) {
-							router.redirectTo('/dashboard');
-						} else {
-							router.redirectTo('/auth/twostep');
-						}
-						
-						self.close();
-					},
-					function(err) {
-						self.disable(false);
-						self.showError(err);
-					}
-				);
+			// 
+			// 
+			// 
 		},
 
 		showError: function(message) {

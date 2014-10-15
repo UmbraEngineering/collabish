@@ -3,9 +3,9 @@
  
 var View          = require('cloak/view');
 var ModalView     = require('views/modal/modal');
-var LoginModal    = require('views/welcome/nav/modals/login/login');
-var TermsModal    = require('views/welcome/nav/modals/terms/terms');
-var PrivacyModal  = require('views/welcome/nav/modals/privacy/privacy');
+var LoginModal    = require('views/modals/login/login');
+var TermsModal    = require('views/modals/terms/terms');
+var PrivacyModal  = require('views/modals/privacy/privacy');
 
 var WelcomeNavView = module.exports = View.extend({
 

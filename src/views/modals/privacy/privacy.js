@@ -6,5 +6,5 @@ var ModalView = require('views/modal/modal');
 // 
 exports.open = ModalView.template({
 	classname: 'privacy',
-	template: 'views/welcome/nav/modals/privacy/privacy.hbs'
+	template: 'views/modals/privacy/privacy.hbs'
 });

@@ -4081,12 +4081,25 @@ th.hide-for-touch {
 .touch th.show-for-touch {
   display: table-cell !important; }
 
+html, body {
+	height: 100%;
+}
+
 body {
 	font-family: "Open Sans", "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
 }
 
 *:not(input):not(textarea) {
 	user-select: none;
+}
+
+#wrapper {
+	min-height: 100%;
+	position: relative;
+}
+
+#wrapper > main {
+	padding-bottom: 150px;
 }
 
 .row {
@@ -4099,12 +4112,6 @@ input[type="week"], input[type="email"], input[type="number"],
 input[type="search"], input[type="tel"], input[type="time"],
 input[type="url"], textarea, select {
 	margin-top: 5px;
-}
-
-@media only screen and (max-width: 40em) {
-	#wrapper {
-		padding-bottom: 5rem;
-	}
 }
 
 /*!
@@ -6046,20 +6053,63 @@ section.create-document {
 			padding: 5px 0 20px;
 		}
 
-		section.create-document main .button-wrapper .button {
-			width: 100%;
-			background: #ff7941;
+		section.create-document main .adult-content {
+			/**/
 		}
 
-		section.create-document main .button-wrapper .button:hover {
-			background: #ff712c;
-		}
-
-			section.create-document main .button-wrapper .button .progress {
-				position: absolute;
-				top: 20px;
-				right: 19px;
+			section.create-document main .adult-content div {
+				padding: 1rem 2rem;
 			}
+
+			section.create-document main .adult-content input {
+				margin: 5px;
+			}
+
+		section.create-document main .privacy {
+			/**/
+		}
+
+			section.create-document main .privacy .row {
+				margin: 1rem;
+			}
+
+				section.create-document main .privacy .icon {
+					margin-top: 1.5rem;
+					text-align: center;
+				}
+
+					section.create-document main .privacy .icon i {
+						color: #aaa;
+						font-size: 2rem;
+					}
+
+				section.create-document main .privacy .row label {
+					padding: 10px;
+					line-height: 1.4;
+				}
+
+					section.create-document main .privacy input {
+						margin-bottom: 0;
+					}
+
+		section.create-document main .button-wrapper {
+			margin-top: 20px;
+		}
+
+			section.create-document main .button-wrapper .button {
+				width: 100%;
+				background: #ff7941;
+			}
+
+			section.create-document main .button-wrapper .button:hover {
+				background: #ff712c;
+			}
+
+				section.create-document main .button-wrapper .button .progress {
+					position: absolute;
+					top: 20px;
+					right: 19px;
+				}
 
 	section.create-document main [data-tooltip] {
 		color: #ff7941;
@@ -6103,6 +6153,10 @@ section.dashboard {
 		padding: 1rem 0;
 	}
 
+		section.dashboard h2 {
+			text-align: center;
+		}
+
 		section.dashboard section.documents .progress,
 		section.dashboard section.recent .progress {
 			margin: 5rem auto;
@@ -6119,10 +6173,6 @@ section.dashboard {
 	section.dashboard {
 		/**/
 	}
-
-		section.dashboard h2 {
-			text-align: center;
-		}
 
 		section.dashboard section.documents {
 			border-bottom: 1px #ccc solid;
@@ -6193,6 +6243,59 @@ section.dashboard section.document {
 			float: right;
 			margin: 0;
 		}
+
+
+#wrapper > footer {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 40px;
+	padding: 10px;
+	font-size: .8rem;
+	color: #444;
+}
+	
+	#wrapper > footer .links a {
+		color: #888;
+		margin: 0 15px;
+	}
+
+
+
+
+
+@media only screen and (max-width: 40em) {
+	#wrapper > footer {
+		height: 150px;
+		width: 90%;
+		left: 5%;
+		border-top: 1px #ccc solid;
+	}
+
+		#wrapper > footer div {
+			margin: 10px auto;
+			text-align: center;
+		}
+	
+		#wrapper > footer .links a {
+			margin: 0 7px;
+		}
+}
+
+@media only screen and (min-width:40.063em) {
+	#wrapper > footer {
+		/**/
+	}
+
+		#wrapper > footer .copyright {
+			float: left;
+		}
+
+		#wrapper > footer .links {
+			float: right;
+		}
+}
 
 
 #wrapper > header {
@@ -6328,6 +6431,7 @@ section.dashboard section.document {
 	width: 100%;
 	height: 100%;
 	background-color: transparent;
+	-webkit-transform: translateZ(0);
 	transition: background-color .25s linear;
 	z-index: 10000;
 }
@@ -6346,6 +6450,7 @@ section.dashboard section.document {
 		position: relative;
 		top: -200px;
 		opacity: 0;
+		-webkit-transform: translateZ(0);
 		transition: opacity .25s linear, top .5s ease-out;
 	}
 
@@ -6367,6 +6472,163 @@ section.dashboard section.document {
 @media only screen and (min-width: 40.063em) {
 	.modal.wrapper .modal.box {
 		width: 500px;
+	}
+}
+
+
+.login.modal {
+	/**/
+}
+	
+	.login.modal .error {
+		color: #a22;
+		padding: 5px 0 20px;
+	}
+
+	.login.modal form {
+		/**/
+	}
+
+		.login.modal form .button-wrapper {
+			padding-top: 10px;
+			text-align: center;
+		}
+
+			.login.modal form .button {
+				width: 100%;
+				background: #ff7941;
+				margin-bottom: 0;
+				position: relative;
+			}
+
+			.login.modal form .button:hover {
+				background: #ff712c;
+			}
+
+				.login.modal form .button .progress {
+					position: absolute;
+					top: 20px;
+					right: 19px;
+				}
+
+
+.modal.wrapper .privacy.modal {
+	margin-top: 2rem;
+	width: 90%;
+}
+
+	.modal.wrapper .privacy.modal main {
+		height: 450px;
+		overflow-y: auto;
+	}
+
+		.modal.wrapper .privacy.modal main h4 {
+			font-size: 1rem;
+			font-weight: 500;
+		}
+
+		.modal.wrapper .privacy.modal main li,
+		.modal.wrapper .privacy.modal main p {
+			font-size: 0.8rem;
+		}
+
+		.modal.wrapper .privacy.modal main li,
+		.modal.wrapper .privacy.modal main > p {
+			margin: 1rem 0;
+		}
+
+@media only screen and (min-width: 40.063em) {
+	.modal.wrapper .privacy.modal {
+		max-width: 800px;
+		margin-top: 3rem;
+	}
+
+		.modal.wrapper .privacy.modal main {
+			height: 450px;
+			padding-right: 10px;
+		}
+
+			.modal.wrapper .privacy.modal main li,
+			.modal.wrapper .privacy.modal main > p {
+				margin: 1rem;
+			}
+}
+
+@media only screen and (min-width: 64.063em) {
+	.modal.wrapper .privacy.modal {
+		margin-top: 4rem;
+	}
+}
+
+
+.report.modal {
+	/**/
+}
+	
+	.report.modal .error {
+		color: #a22;
+		padding: 5px 0 20px;
+	}
+
+	.report.modal form {
+		/**/
+	}
+
+		.report.modal form textarea {
+			height: 100px;
+		}
+
+		.report.modal form .button-wrapper {
+			padding-top: 10px;
+			text-align: center;
+		}
+
+			.report.modal form .button {
+				width: 100%;
+				background: #ff7941;
+				margin-bottom: 0;
+				position: relative;
+			}
+
+			.report.modal form .button:hover {
+				background: #ff712c;
+			}
+
+				.report.modal form .button .progress {
+					position: absolute;
+					top: 20px;
+					right: 19px;
+				}
+
+
+.modal.wrapper .terms.modal {
+	margin-top: 2rem;
+	width: 90%;
+}
+
+	.modal.wrapper .terms.modal main {
+		height: 450px;
+		overflow-y: auto;
+	}
+
+		.modal.wrapper .terms.modal main p {
+			font-size: 0.8rem;
+		}
+
+@media only screen and (min-width: 40.063em) {
+	.modal.wrapper .terms.modal {
+		margin-top: 3rem;
+	}
+
+		.modal.wrapper .terms.modal main {
+			height: 450px;
+			padding-right: 10px;
+		}
+}
+
+@media only screen and (min-width: 64.063em) {
+	.modal.wrapper .terms.modal {
+		margin-top: 4rem;
 	}
 }
 
@@ -6418,6 +6680,32 @@ section.notfound {
 			margin: 0 1rem;
 		}
 }
+
+
+.tag-editor {
+	margin-top: 5px;
+	background: #fff;
+	border: 1px #ccc solid;
+	padding: .5rem;
+}
+
+	.tag-editor .tags {
+		/**/
+	}
+
+		.tag-editor .tags span {
+			margin: 5px;
+		}
+
+	.tag-editor input[type="text"] {
+		border: 0;
+		padding: 0;
+		margin: 0;
+		box-shadow: none;
+		width: auto;
+		height: auto;
+		display: inline-block;
+	}
 
 
 section.welcome-auth {
@@ -6538,123 +6826,6 @@ section.twostep {
 @media only screen and (max-width: 40em) {
 	section.twostep header {
 		text-align: center;
-	}
-}
-
-
-.login.modal {
-	/**/
-}
-	
-	.login.modal .error {
-		color: #a22;
-		padding: 5px 0 20px;
-	}
-
-	.login.modal form {
-		/**/
-	}
-
-		.login.modal form .button-wrapper {
-			padding-top: 10px;
-			text-align: center;
-		}
-
-			.login.modal form .button {
-				width: 100%;
-				background: #ff7941;
-				margin-bottom: 0;
-				position: relative;
-			}
-
-			.login.modal form .button:hover {
-				background: #ff712c;
-			}
-
-				.login.modal form .button .progress {
-					position: absolute;
-					top: 20px;
-					right: 19px;
-				}
-
-
-.modal.wrapper .privacy.modal {
-	margin-top: 2rem;
-	width: 90%;
-}
-
-	.modal.wrapper .privacy.modal main {
-		height: 450px;
-		overflow-y: auto;
-	}
-
-		.modal.wrapper .privacy.modal main h4 {
-			font-size: 1rem;
-			font-weight: 500;
-		}
-
-		.modal.wrapper .privacy.modal main li,
-		.modal.wrapper .privacy.modal main p {
-			font-size: 0.8rem;
-		}
-
-		.modal.wrapper .privacy.modal main li,
-		.modal.wrapper .privacy.modal main > p {
-			margin: 1rem 0;
-		}
-
-@media only screen and (min-width: 40.063em) {
-	.modal.wrapper .privacy.modal {
-		width: 600px;
-		margin-top: 3rem;
-	}
-
-		.modal.wrapper .privacy.modal main {
-			height: 450px;
-			padding-right: 10px;
-		}
-
-			.modal.wrapper .privacy.modal main li,
-			.modal.wrapper .privacy.modal main > p {
-				margin: 1rem;
-			}
-}
-
-@media only screen and (min-width: 64.063em) {
-	.modal.wrapper .privacy.modal {
-		margin-top: 4rem;
-	}
-}
-
-
-.modal.wrapper .terms.modal {
-	margin-top: 2rem;
-	width: 90%;
-}
-
-	.modal.wrapper .terms.modal main {
-		height: 450px;
-		overflow-y: auto;
-	}
-
-		.modal.wrapper .terms.modal main p {
-			font-size: 0.8rem;
-		}
-
-@media only screen and (min-width: 40.063em) {
-	.modal.wrapper .terms.modal {
-		margin-top: 3rem;
-	}
-
-		.modal.wrapper .terms.modal main {
-			height: 450px;
-			padding-right: 10px;
-		}
-}
-
-@media only screen and (min-width: 64.063em) {
-	.modal.wrapper .terms.modal {
-		margin-top: 4rem;
 	}
 }
 

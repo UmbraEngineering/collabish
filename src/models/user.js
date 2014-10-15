@@ -43,11 +43,19 @@ var User = module.exports = Model.extend({
 	// @return promise
 	// 
 	fetchRecentlyStarred: function() {
-		return Promise.resolve(new Document.Collection());
-		// return Request.send('GET', '/users/me/activity/recent')
-		// 	.then(function(res) {
-		// 		return (new Document.Collection()).add(res.body);
-		// 	});
+		var query = {
+			limit: 5,
+			fields: '-starredBy',
+			sort: '-starredBy.datetime',
+			filter: {
+				'starredBy.user': this.id()
+			}
+		};
+		
+		return Request.send('GET', '/documents', query)
+			.then(function(res) {
+				return (new Document.Collection()).add(res.body);
+			});
 	}
 
 });

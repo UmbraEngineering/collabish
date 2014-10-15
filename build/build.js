@@ -546,6 +546,10 @@ handlebars.registerHelper('moment', function(date, format) {
 	return moment(date).format(format);
 });
 
+handlebars.registerHelper('now', function(format) {
+	return moment().format(format);
+});
+
 handlebars.registerHelper('fromNow', function(date) {
 	return moment(date).fromNow();
 });
@@ -27780,11 +27784,19 @@ var User = module.exports = Model.extend({
 	// @return promise
 	// 
 	fetchRecentlyStarred: function() {
-		return Promise.resolve(new Document.Collection());
-		// return Request.send('GET', '/users/me/activity/recent')
-		// 	.then(function(res) {
-		// 		return (new Document.Collection()).add(res.body);
-		// 	});
+		var query = {
+			limit: 5,
+			fields: '-starredBy',
+			sort: '-starredBy.datetime',
+			filter: {
+				'starredBy.user': this.id()
+			}
+		};
+		
+		return Request.send('GET', '/documents', query)
+			.then(function(res) {
+				return (new Document.Collection()).add(res.body);
+			});
 	}
 
 });
@@ -27892,6 +27904,7 @@ var cloak         = require('cloak');
 var auth          = require('common/auth');
 var Router        = require('cloak/router');
 var HeaderView    = require('views/header/header');
+var FooterView    = require('views/footer/footer');
 var NotFoundView  = require('views/notfound/notfound');
 
 var MainRouter = module.exports = Router.extend({
@@ -27903,9 +27916,11 @@ var MainRouter = module.exports = Router.extend({
 	initialize: function() {
 		this.$header = $('#wrapper > header');
 		this.$content = $('#wrapper > main');
+		this.$footer = $('#wrapper > footer');
 
-		// Store the header view
+		// Store the header/footer views
 		this.header = null;
+		this.footer = null;
 
 		// Store the currently active view object here
 		this.currentView = null;
@@ -27921,6 +27936,9 @@ var MainRouter = module.exports = Router.extend({
 		if (auth.user) {
 			this.drawHeader();
 		}
+
+		// Draw the footer
+		this.drawFooter();
 
 		// Handle internal anchors with the router
 		$('#wrapper').on('click', 'a[href^="#"], a[href^="/#"]', this.handleAnchor);
@@ -27945,6 +27963,16 @@ var MainRouter = module.exports = Router.extend({
 		// Render directly to the header element
 		this.header.$elem = this.$header;
 		this.header.draw();
+	},
+
+	drawFooter: function() {
+		if (this.footer) {
+			return;
+		}
+
+		this.footer = new FooterView();
+		this.footer.$elem = this.$footer;
+		this.footer.draw();
 	},
 
 	removeHeader: function() {
@@ -28136,6 +28164,9 @@ exports.run = function(opts) {
 	// Load in the handlebars helpers
 	require('common/handlebars-helpers');
 
+	// Load jquery plugins
+	require('jquery.hotkeys');
+
 	// Load in the auth module and router
 	var auth = require('common/auth');
 	var MainRouter = require('routers/main');
@@ -28220,7 +28251,7 @@ function program5(depth0,data) {
     + "/css/app";
   stack1 = helpers['if'].call(depth0, (depth0 && depth0.production), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += ".css\" />\n\n</head>\n<body>\n\n	<div id=\"wrapper\">\n		<header></header>\n		<main></main>\n	</div>\n\n	<script src=\"//";
+  buffer += ".css\" />\n\n</head>\n<body>\n\n	<div id=\"wrapper\">\n		<header></header>\n		<main></main>\n		<footer></footer>\n	</div>\n\n	<script src=\"//";
   if (helper = helpers['static']) { stack1 = helper.call(depth0, {hash:{},data:data}); }
   else { helper = (depth0 && depth0['static']); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
   buffer += escapeExpression(stack1)
@@ -28237,10 +28268,11 @@ function program5(depth0,data) {
 this["exports"]["views/create-document/create-document.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
-  
+  var buffer = "";
 
 
-  return "<main class=\"row\">\n	<div class=\"small-12 medium-4 medium-centered columns\">\n		<h2>Create Document</h2>\n		<div class=\"error hide\"></div>\n		<form>\n			<label class=\"name\">\n				Name\n				<input type=\"text\" />\n			</label>\n			<label class=\"description\">\n				Email\n				<input type=\"description\" />\n			</label>\n			<label class=\"public\">\n				Privacy\n				<select>\n					<option value=\"true\">Public</option>\n					<option value=\"false\">Private</option>\n				</select>\n			</label>\n			<label class=\"tags\">\n				Tags\n				<input type=\"text\" />\n			</label>\n			<div class=\"button-wrapper\">\n				<button class=\"button\">Create</button>\n			</div>\n		</form>\n	</div>\n</main>";
+  buffer += "<main class=\"row\">\n	<div class=\"small-12 medium-6 medium-centered columns\">\n		<h2>Create Document</h2>\n		<div class=\"error hide\"></div>\n		<form>\n			<label class=\"name\">\n				Name\n				<input type=\"text\" />\n			</label>\n			<label class=\"description\">\n				Description\n				<input type=\"text\" />\n			</label>\n			<label class=\"adult-content\">\n				Adult Content\n				<div>\n					<input type=\"checkbox\" />\n					Will this document contain adult content?\n				</div>\n			</label>\n			<label class=\"privacy\">\n				Privacy\n				<label for=\"privacy-public\" class=\"row\">\n					<div class=\"small-2 columns icon\">\n						<i class=\"fa fa-users\"></i>\n					</div>\n					<div class=\"small-10 columns\">\n						<label class=\"public\">\n							<input type=\"radio\" id=\"privacy-public\" name=\"privacy\" checked />\n							<strong>Public</strong><br />\n							Anyone can view or comment on your document (you can still mark individual\n							revisions as private).\n						</label>\n					</div>\n				</label>\n				<label for=\"privacy-private\" class=\"row\">\n					<div class=\"small-2 columns icon\">\n						<i class=\"fa fa-lock\"></i>\n					</div>\n					<div class=\"small-10 columns\">\n						<label class=\"private\">\n							<input type=\"radio\" id=\"privacy-private\" name=\"privacy\" />\n							<strong>Private</strong><br />\n							Only you and specific users you select as collaborators can view or comment\n							on your document.\n						</label>\n					</div>\n				</label>\n			</label>\n			<label class=\"tags\">\n				Tags\n				\n			</label>\n			<div class=\"button-wrapper\">\n				<button class=\"submit button\">Create Document</button>\n			</div>\n		</form>\n	</div>\n</main>";
+  return buffer;
   });
 
 this["exports"]["views/dashboard/dashboard.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -28317,7 +28349,7 @@ function program9(depth0,data) {
   buffer += "\n</div>\n<div class=\"meta\">\n	<p class=\"updated\">\n		Last updated: "
     + escapeExpression((helper = helpers.fromNow || (depth0 && depth0.fromNow),options={hash:{},data:data},helper ? helper.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.updated), options) : helperMissing.call(depth0, "fromNow", ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.updated), options)))
     + "\n	</p>\n	<p class=\"stars\">\n		"
-    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.starred)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.starredBy)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
     + " <i class=\"fa fa-star\"></i>\n	</p>\n</div>";
   return buffer;
   });
@@ -28338,6 +28370,18 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
 
 
   return "<div class=\"no-results panel\">\n	<h3>You haven't starred any documents recently</h3>\n	<p>\n		Why not <a href=\"/#search\">take a look around</a>?\n	</p>\n</div>";
+  });
+
+this["exports"]["views/footer/footer.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression;
+
+
+  buffer += "<div class=\"copyright\">\n	Collabish &copy; "
+    + escapeExpression((helper = helpers.now || (depth0 && depth0.now),options={hash:{},data:data},helper ? helper.call(depth0, "YYYY", options) : helperMissing.call(depth0, "now", "YYYY", options)))
+    + " <a href=\"http://www.umbraengineering.com\">Umbra Engineering LLC</a>\n</div>\n<div class=\"links\">\n	<a class=\"terms\">Terms</a>\n	<a class=\"privacy\">Privacy</a>\n	<a class=\"report\">Report a Problem</a>\n</div>";
+  return buffer;
   });
 
 this["exports"]["views/header/header.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -28374,6 +28418,42 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   return buffer;
   });
 
+this["exports"]["views/modals/login/login.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<h3>Login</h3>\n<div class=\"error hide\"></div>\n<form class=\"login\">\n	<label>\n		Username/Email\n		<input type=\"text\" class=\"username\" />\n	</label>\n	<label>\n		Password <small>(if needed)</small>\n		<input type=\"password\" class=\"password\" />\n	</label>\n	<div class=\"button-wrapper\">\n		<button class=\"button\">Login</button>\n	</div>\n</form>";
+  });
+
+this["exports"]["views/modals/privacy/privacy.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<h3>Privacy Policy</h3>\n<main>\n	<h4>Information We Collect</h4>\n	<ul>\n		<li>\n			<strong>Information you give us.</strong>\n			When you sign up for an account, we will ask you for some personal information, like email\n			address and phone number.\n		</li>\n\n		<li>\n			<strong>Information generated by using our services.</strong>\n			Using collabish.me automatically generates information in a number of ways which we may collect\n			for later use. This information includes the following:\n			<ul>\n				<li>\n					Analytics Information\n					<p>\n						We use <a href=\"http://analytics.google.com\">Google Analytics</a> to collect analytics\n						data about our users and the ways in which they use our services. You can see their\n						<a href=\"https://www.google.com/intl/en/policies/privacy/\">privacy policy</a> on their\n						website.\n					</p>\n				</li>\n				<li>\n					Server Logs\n					<p>\n						Our servers constantly generate log files of their activities, some of which may contain\n						your information. Specifically, we keep logs of each individual request to both our main\n						web server and our API server, and these logs may contain information such as IP addresses,\n						request bodies (which may contain personal information), search queries, and any data stored\n						in the request headers, including cookies.\n					</p>\n				</li>\n			</ul>\n		</li>\n	</ul>\n\n\n\n	<h4>How we use the information we collect</h4>\n	<p>\n		The information we collect is used to help us to provide you with better service and an overall better\n		experience. For example, the analytics information helps us to gauge interest in specific features to\n		know where we should focus our efforts. The server logs we collect help us to debug and fix problems\n		that might arise in our application.\n	</p>\n\n\n\n	<h4>Information we share</h4>\n	<p>\n		We do <strong>not</strong> share personal information with third parties unless one of the following\n		situations applies:\n	</p>\n	<ul>\n		<li>\n			<strong>We have your consent.</strong>\n			We will share information with others if you give us permission to do so.\n		</li>\n		<li>\n			<strong>Hosting and storage.</strong>\n			We have to store your data somewhere. We do not operate our own servers; We make use of the wonderful\n			hosting services at <a href=\"http://heroku.com\">Heroku</a>, and as such, all data that goes to and from\n			our app goes through their servers. You can view their <a href=\"https://www.heroku.com/policy/privacy\">\n			privacy policy</a> on their website. We also make use of <a href=\"https://www.compose.io/\">Compose</a>,\n			a database hosting service, where our app data is stored in their MongoDB servers. You can also read\n			their <a href=\"https://docs.compose.io/policies/privacy.html\">privacy policy</a> at their website.\n		</li>\n		<li>\n			<strong>External processing.</strong>\n			As we mentioned above, we make use of Google Analytics' services. This means that information about\n			page views and our users ends up on their analytics servers.\n		</li>\n		<li>\n			<strong>Legal reasons.</strong>\n			We will share personal information if we believe it is reasonably necessary to meet an applicable law\n			or enforceable government request, or to protect the rights and safety of Collabish and our users.\n		</li>\n	</ul>\n\n\n\n	<h4>Security</h4>\n	<p>\n		We use SSL encryption for both our web server and API server, protecting your information while it is\n		in transit between you and our servers. We also provide our users with several different authentication methods, including two-step verification for logins, to provide our users with extra protection against\n		attempts to gain access to their account.\n	</p>\n</main>";
+  });
+
+this["exports"]["views/modals/report/report.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<h3>Report a Problem</h3>\n<div class=\"error hide\"></div>\n<p>\n	This form is so you can report a problem or bug with our application. Is something broken? Let us\n	know about it below.\n</p>\n<form>\n	<label>\n		Subject\n		<input type=\"text\" class=\"subject\" />\n	</label>\n	<label>\n		Description\n		<textarea class=\"description\"></textarea>\n	</label>\n	<div class=\"button-wrapper\">\n		<button class=\"button\">Send Report</button>\n	</div>\n</form>";
+  });
+
+this["exports"]["views/modals/terms/terms.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<h3>Terms of Service</h3>\n<main>\n	<p>\n		Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed commodo aliquam tincidunt. Vestibulum sit amet faucibus est, sit amet venenatis nunc. Curabitur non arcu non ex sollicitudin rhoncus. Proin auctor ligula et dolor euismod laoreet. Cras consequat nisi a urna tristique pellentesque. Aenean vitae semper est. In nec elit leo. Integer volutpat ligula eget tempus malesuada. Morbi tempor odio quis tellus finibus, quis pulvinar lectus mattis. Proin semper sapien eu massa pulvinar, vel consequat nisl fermentum.\n	</p>\n	<p>\n		Nulla mattis at velit vel ultrices. Sed aliquet molestie sollicitudin. Quisque placerat hendrerit ex quis dapibus. Integer metus velit, feugiat at nisl auctor, consectetur tempus ex. Suspendisse faucibus venenatis turpis, nec sodales metus feugiat posuere. Aenean ornare tellus ante, quis venenatis sem commodo nec. Phasellus faucibus rhoncus metus eu auctor. Suspendisse rhoncus tincidunt quam vitae blandit. Fusce vitae fermentum arcu. Quisque sollicitudin eros rhoncus porttitor aliquet. Integer sit amet ante urna.\n	</p>\n	<p>\n		Maecenas sit amet est porttitor, dignissim tellus pulvinar, tincidunt justo. Ut fermentum mi enim, in scelerisque mi dignissim ut. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur condimentum sem ex, et vestibulum purus cursus eget. Phasellus eget quam ac libero varius fermentum eget id risus. Mauris sed est elit. Quisque tempus, nunc id feugiat laoreet, mauris quam commodo quam, ac venenatis est urna et turpis.\n	</p>\n	<p>\n		Maecenas leo ipsum, maximus id vestibulum ac, viverra ac quam. In vulputate tincidunt dolor. Cras libero felis, tristique ut justo vitae, tempor cursus sem. Fusce condimentum, enim sed finibus egestas, ligula elit pharetra felis, id condimentum mauris leo vitae ante. Sed iaculis augue tellus, ac volutpat orci maximus ac. Proin magna velit, pulvinar et feugiat eu, porttitor eget velit. Aenean pretium euismod ipsum ut lacinia. Ut congue tempus nisl, nec consectetur nisl ultrices id. Etiam id metus placerat, semper mi sit amet, porttitor magna. Curabitur rutrum magna non neque porta, in porta ligula maximus. In egestas et leo vitae iaculis. Fusce mauris sem, efficitur sed ultrices a, condimentum ut ligula.\n	</p>\n	<p>\n		Integer eget ante a leo laoreet vehicula. Vestibulum ullamcorper tortor et libero tincidunt finibus. Mauris nisi erat, volutpat id egestas a, suscipit vel est. Vestibulum bibendum, risus sed malesuada congue, ligula risus imperdiet ipsum, nec iaculis nisi justo sed dui. Aenean risus neque, ultricies tempor augue sed, tincidunt interdum quam. Phasellus viverra lobortis bibendum. Quisque tristique egestas ex, nec cursus leo tristique at. Nam sollicitudin nisl luctus hendrerit aliquam. Quisque finibus semper erat id suscipit. Fusce laoreet tincidunt quam, at mollis lacus tincidunt ac. Nam lobortis enim ligula, sit amet varius ipsum gravida ac. Mauris vehicula diam augue, tincidunt sagittis ipsum mollis sed. Morbi congue odio in orci ornare, eu pellentesque mauris aliquam. Morbi vitae eleifend mi, eu condimentum lectus.\n	</p>\n	<p>\n		Aliquam sed sapien nunc. Duis egestas at nisl nec feugiat. Suspendisse cursus interdum quam sed aliquam. Nullam sodales, magna ut rutrum laoreet, magna nunc euismod dui, vel molestie lacus erat sit amet eros. Nam volutpat nunc vel mi tempus viverra. Duis maximus nibh sed est pulvinar auctor. Vivamus placerat, ipsum at porta fringilla, augue libero suscipit turpis, et consectetur tellus mauris ac felis. Integer eu vulputate augue, non posuere magna. Proin et imperdiet dui, eu pulvinar magna. Donec non pretium erat. Curabitur semper vel tortor ut tincidunt. Donec tincidunt ex eu ante varius, non commodo dui mattis.\n	</p>\n	<p>\n		Sed elementum varius lectus sed vulputate. Praesent eu porta odio, id pretium lorem. Sed semper odio facilisis, ultricies ipsum eget, tempus leo. Phasellus sit amet sagittis metus, non facilisis ipsum. Suspendisse feugiat at est eget iaculis. Morbi lacinia leo quis elit interdum, in vulputate nisl finibus. Suspendisse potenti. Suspendisse vel tellus quis massa sollicitudin rutrum.\n	</p>\n	<p>\n		Sed ac erat nulla. Donec blandit, libero vitae volutpat lobortis, sem augue venenatis sem, non vulputate est elit eget enim. Aliquam pulvinar arcu at justo fermentum, eget ornare eros tristique. Maecenas sed massa sodales, dignissim felis vel, vehicula diam. Curabitur pellentesque iaculis felis eu blandit. Nam a lacinia enim. Duis et mauris sit amet mi vulputate fermentum. Donec euismod eros quis dui dictum malesuada. In fringilla leo vitae ultrices mattis. Phasellus et suscipit enim, in posuere arcu. Suspendisse velit est, feugiat eget elit nec, bibendum viverra eros. Nam semper lectus non ipsum volutpat pellentesque. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus iaculis massa vitae finibus tempor. Aliquam in viverra tellus.\n	</p>\n	<p>\n		Aenean sit amet risus sed lectus elementum volutpat eu quis erat. Vivamus lobortis nibh in diam vehicula facilisis. Sed sit amet egestas ligula. In consectetur enim in porta molestie. Curabitur condimentum sapien et eros bibendum ultricies. Nulla pulvinar tortor nec libero pretium, non posuere ex facilisis. Ut mattis volutpat odio, sed pharetra mi. Aenean pretium sit amet neque quis tristique. Aenean efficitur nec mauris in iaculis.\n	</p>\n	<p>\n		Maecenas at dapibus nulla, a malesuada nisi. Donec risus augue, imperdiet at consectetur id, posuere et dui. Nunc sit amet blandit neque. In bibendum porta orci, vel semper justo congue id. Fusce neque nibh, sollicitudin eget odio et, porttitor scelerisque augue. Praesent vitae tincidunt augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec scelerisque leo quis laoreet feugiat. Duis ipsum leo, venenatis eu rutrum ac, faucibus in justo. Vestibulum pellentesque ex porttitor elit vestibulum venenatis. Integer est est, tempor ut fringilla a, malesuada vitae lacus.\n	</p>\n	<p>\n		Curabitur vel luctus ligula. In consequat felis sed egestas ultrices. Quisque vel turpis dictum, bibendum eros vitae, finibus lacus. Nulla id mollis urna. Ut tristique diam risus, et varius felis sodales vel. Duis dictum diam nibh, in dignissim tortor rhoncus in. Maecenas turpis nisl, interdum id tortor quis, sollicitudin aliquet elit. Aenean et libero non libero dapibus placerat. Aliquam lectus diam, commodo quis gravida quis, varius at libero. Nulla facilisi. Pellentesque viverra ac justo maximus ultricies. Etiam ut ligula a enim dignissim pretium.\n	</p>\n	<p>\n		Suspendisse in varius quam, hendrerit consectetur quam. Praesent sit amet justo nec ex congue cursus. Donec at dolor fringilla justo viverra blandit at sit amet diam. Vestibulum porta hendrerit metus non varius. Phasellus at porta ex, et tincidunt dui. Etiam non nulla consectetur eros ultrices ultricies sit amet in libero. Sed posuere dolor enim, at eleifend ante scelerisque varius.\n	</p>\n	<p>\n		Sed eu arcu vel leo egestas ultricies at vitae est. Suspendisse lobortis massa sagittis commodo tempus. Aenean commodo iaculis commodo. Maecenas lectus nunc, ornare id convallis auctor, semper ut sapien. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nunc eleifend ac nisl id egestas. Nullam ut sem a sem aliquam dapibus et nec lectus.\n	</p>\n	<p>\n		Suspendisse potenti. Morbi auctor tristique metus sed placerat. Nulla quis justo condimentum sem viverra fringilla. Pellentesque interdum aliquam justo, quis scelerisque lacus lobortis eu. Sed ligula metus, dignissim nec diam in, gravida blandit ex. Quisque scelerisque ligula sed neque mollis pulvinar. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Maecenas dapibus lobortis elementum. Donec laoreet tellus quis elementum blandit. Suspendisse nulla massa, mollis in quam vel, iaculis ullamcorper leo. Curabitur convallis, lectus sed porttitor convallis, nisi libero semper mauris, ut egestas orci lorem eu nunc. Nulla maximus lorem sed est consequat, rutrum luctus mauris hendrerit. Sed aliquet tempus velit at imperdiet. Suspendisse eget tortor rutrum, viverra leo nec, bibendum eros.\n	</p>\n	<p>\n		Vivamus hendrerit non arcu sit amet varius. Donec eget erat ex. Ut ut nibh interdum, imperdiet nunc in, eleifend ex. Mauris vitae hendrerit dolor, vel volutpat massa. Integer at lobortis eros, et dictum nibh. Cras et vehicula lacus. Phasellus sed consequat est, ut faucibus quam. Donec nec lacus commodo leo gravida tempor. Phasellus vel risus sem. Pellentesque venenatis, eros vel ultrices sollicitudin, magna velit condimentum libero, sed aliquam dui lacus a mauris. Cras vitae molestie sem, vitae finibus quam.\n	</p>\n</main>";
+  });
+
 this["exports"]["views/notfound/notfound.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
@@ -28396,6 +28476,15 @@ function program3(depth0,data) {
   if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "\n</nav>\n";
   return buffer;
+  });
+
+this["exports"]["views/tag-editor/tag-editor.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<span class=\"tags\"></span>\n<input type=\"text\" />";
   });
 
 this["exports"]["views/welcome/auth/email-confirmation/email-confirmation.error.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -28433,33 +28522,6 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
 
 
   return "<header>\n	<h1><a href=\"/#\">Collabish</a></h1>\n</header>\n\n<main>\n	<p>\n		Your two-step confirmation token has been sent. Go check for your message, and enter your\n		code below.\n	</p>\n	<form>\n		<div class=\"error hide\"></div>\n		<label>\n			Confirmation Code\n			<input type=\"text\" class=\"code\" placeholder=\"eg. ABC123\" />\n		</label>\n		<div class=\"button-wrapper\">\n			<button class=\"button\">Confirm Login</button>\n		</div>\n	</form>\n</main>";
-  });
-
-this["exports"]["views/welcome/nav/modals/login/login.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
-  this.compilerInfo = [4,'>= 1.0.0'];
-helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
-  
-
-
-  return "<h3>Login</h3>\n<div class=\"error hide\"></div>\n<form class=\"login\">\n	<label>\n		Username/Email\n		<input type=\"text\" class=\"username\" />\n	</label>\n	<label>\n		Password <small>(if needed)</small>\n		<input type=\"password\" class=\"password\" />\n	</label>\n	<div class=\"button-wrapper\">\n		<button class=\"button\">Login</button>\n	</div>\n</form>";
-  });
-
-this["exports"]["views/welcome/nav/modals/privacy/privacy.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
-  this.compilerInfo = [4,'>= 1.0.0'];
-helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
-  
-
-
-  return "<h3>Privacy Policy</h3>\n<main>\n	<h4>Information We Collect</h4>\n	<ul>\n		<li>\n			<strong>Information you give us.</strong>\n			When you sign up for an account, we will ask you for some personal information, like email\n			address and phone number.\n		</li>\n\n		<li>\n			<strong>Information generated by using our services.</strong>\n			Using collabish.me automatically generates information in a number of ways which we may collect\n			for later use. This information includes the following:\n			<ul>\n				<li>\n					Analytics Information\n					<p>\n						We use <a href=\"http://analytics.google.com\">Google Analytics</a> to collect analytics\n						data about our users and the ways in which they use our services. You can see their\n						<a href=\"https://www.google.com/intl/en/policies/privacy/\">privacy policy</a> on their\n						website.\n					</p>\n				</li>\n				<li>\n					Server Logs\n					<p>\n						Our servers constantly generate log files of their activities, some of which may contain\n						your information. Specifically, we keep logs of each individual request to both our main\n						web server and our API server, and these logs may contain information such as IP addresses,\n						request bodies (which may contain personal information), search queries, and any data stored\n						in the request headers, including cookies.\n					</p>\n				</li>\n			</ul>\n		</li>\n	</ul>\n\n\n\n	<h4>How we use the information we collect</h4>\n	<p>\n		The information we collect is used to help us to provide you with better service and an overall better\n		experience. For example, the analytics information helps us to gauge interest in specific features to\n		know where we should focus our efforts. The server logs we collect help us to debug and fix problems\n		that might arise in our application.\n	</p>\n\n\n\n	<h4>Information we share</h4>\n	<p>\n		We do <strong>not</strong> share personal information with third parties unless one of the following\n		situations applies:\n	</p>\n	<ul>\n		<li>\n			<strong>We have your consent.</strong>\n			We will share information with others if you give us permission to do so.\n		</li>\n		<li>\n			<strong>Hosting and storage.</strong>\n			We have to store your data somewhere. We do not operate our own servers; We make use of the wonderful\n			hosting services at <a href=\"http://heroku.com\">Heroku</a>, and as such, all data that goes to and from\n			our app goes through their servers. You can view their <a href=\"https://www.heroku.com/policy/privacy\">\n			privacy policy</a> on their website. We also make use of <a href=\"https://www.compose.io/\">Compose</a>,\n			a database hosting service, where our app data is stored in their MongoDB servers. You can also read\n			their <a href=\"https://docs.compose.io/policies/privacy.html\">privacy policy</a> at their website.\n		</li>\n		<li>\n			<strong>External processing.</strong>\n			As we mentioned above, we make use of Google Analytics' services. This means that information about\n			page views and our users ends up on their analytics servers.\n		</li>\n		<li>\n			<strong>Legal reasons.</strong>\n			We will share personal information if we believe it is reasonably necessary to meet an applicable law\n			or enforceable government request, or to protect the rights and safety of Collabish and our users.\n		</li>\n	</ul>\n\n\n\n	<h4>Security</h4>\n	<p>\n		We use SSL encryption for both our web server and API server, protecting your information while it is\n		in transit between you and our servers. We also provide our users with several different authentication methods, including two-step verification for logins, to provide our users with extra protection against\n		attempts to gain access to their account.\n	</p>\n</main>";
-  });
-
-this["exports"]["views/welcome/nav/modals/terms/terms.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
-  this.compilerInfo = [4,'>= 1.0.0'];
-helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
-  
-
-
-  return "<h3>Terms of Service</h3>\n<main>\n	<p>\n		Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed commodo aliquam tincidunt. Vestibulum sit amet faucibus est, sit amet venenatis nunc. Curabitur non arcu non ex sollicitudin rhoncus. Proin auctor ligula et dolor euismod laoreet. Cras consequat nisi a urna tristique pellentesque. Aenean vitae semper est. In nec elit leo. Integer volutpat ligula eget tempus malesuada. Morbi tempor odio quis tellus finibus, quis pulvinar lectus mattis. Proin semper sapien eu massa pulvinar, vel consequat nisl fermentum.\n	</p>\n	<p>\n		Nulla mattis at velit vel ultrices. Sed aliquet molestie sollicitudin. Quisque placerat hendrerit ex quis dapibus. Integer metus velit, feugiat at nisl auctor, consectetur tempus ex. Suspendisse faucibus venenatis turpis, nec sodales metus feugiat posuere. Aenean ornare tellus ante, quis venenatis sem commodo nec. Phasellus faucibus rhoncus metus eu auctor. Suspendisse rhoncus tincidunt quam vitae blandit. Fusce vitae fermentum arcu. Quisque sollicitudin eros rhoncus porttitor aliquet. Integer sit amet ante urna.\n	</p>\n	<p>\n		Maecenas sit amet est porttitor, dignissim tellus pulvinar, tincidunt justo. Ut fermentum mi enim, in scelerisque mi dignissim ut. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur condimentum sem ex, et vestibulum purus cursus eget. Phasellus eget quam ac libero varius fermentum eget id risus. Mauris sed est elit. Quisque tempus, nunc id feugiat laoreet, mauris quam commodo quam, ac venenatis est urna et turpis.\n	</p>\n	<p>\n		Maecenas leo ipsum, maximus id vestibulum ac, viverra ac quam. In vulputate tincidunt dolor. Cras libero felis, tristique ut justo vitae, tempor cursus sem. Fusce condimentum, enim sed finibus egestas, ligula elit pharetra felis, id condimentum mauris leo vitae ante. Sed iaculis augue tellus, ac volutpat orci maximus ac. Proin magna velit, pulvinar et feugiat eu, porttitor eget velit. Aenean pretium euismod ipsum ut lacinia. Ut congue tempus nisl, nec consectetur nisl ultrices id. Etiam id metus placerat, semper mi sit amet, porttitor magna. Curabitur rutrum magna non neque porta, in porta ligula maximus. In egestas et leo vitae iaculis. Fusce mauris sem, efficitur sed ultrices a, condimentum ut ligula.\n	</p>\n	<p>\n		Integer eget ante a leo laoreet vehicula. Vestibulum ullamcorper tortor et libero tincidunt finibus. Mauris nisi erat, volutpat id egestas a, suscipit vel est. Vestibulum bibendum, risus sed malesuada congue, ligula risus imperdiet ipsum, nec iaculis nisi justo sed dui. Aenean risus neque, ultricies tempor augue sed, tincidunt interdum quam. Phasellus viverra lobortis bibendum. Quisque tristique egestas ex, nec cursus leo tristique at. Nam sollicitudin nisl luctus hendrerit aliquam. Quisque finibus semper erat id suscipit. Fusce laoreet tincidunt quam, at mollis lacus tincidunt ac. Nam lobortis enim ligula, sit amet varius ipsum gravida ac. Mauris vehicula diam augue, tincidunt sagittis ipsum mollis sed. Morbi congue odio in orci ornare, eu pellentesque mauris aliquam. Morbi vitae eleifend mi, eu condimentum lectus.\n	</p>\n	<p>\n		Aliquam sed sapien nunc. Duis egestas at nisl nec feugiat. Suspendisse cursus interdum quam sed aliquam. Nullam sodales, magna ut rutrum laoreet, magna nunc euismod dui, vel molestie lacus erat sit amet eros. Nam volutpat nunc vel mi tempus viverra. Duis maximus nibh sed est pulvinar auctor. Vivamus placerat, ipsum at porta fringilla, augue libero suscipit turpis, et consectetur tellus mauris ac felis. Integer eu vulputate augue, non posuere magna. Proin et imperdiet dui, eu pulvinar magna. Donec non pretium erat. Curabitur semper vel tortor ut tincidunt. Donec tincidunt ex eu ante varius, non commodo dui mattis.\n	</p>\n	<p>\n		Sed elementum varius lectus sed vulputate. Praesent eu porta odio, id pretium lorem. Sed semper odio facilisis, ultricies ipsum eget, tempus leo. Phasellus sit amet sagittis metus, non facilisis ipsum. Suspendisse feugiat at est eget iaculis. Morbi lacinia leo quis elit interdum, in vulputate nisl finibus. Suspendisse potenti. Suspendisse vel tellus quis massa sollicitudin rutrum.\n	</p>\n	<p>\n		Sed ac erat nulla. Donec blandit, libero vitae volutpat lobortis, sem augue venenatis sem, non vulputate est elit eget enim. Aliquam pulvinar arcu at justo fermentum, eget ornare eros tristique. Maecenas sed massa sodales, dignissim felis vel, vehicula diam. Curabitur pellentesque iaculis felis eu blandit. Nam a lacinia enim. Duis et mauris sit amet mi vulputate fermentum. Donec euismod eros quis dui dictum malesuada. In fringilla leo vitae ultrices mattis. Phasellus et suscipit enim, in posuere arcu. Suspendisse velit est, feugiat eget elit nec, bibendum viverra eros. Nam semper lectus non ipsum volutpat pellentesque. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus iaculis massa vitae finibus tempor. Aliquam in viverra tellus.\n	</p>\n	<p>\n		Aenean sit amet risus sed lectus elementum volutpat eu quis erat. Vivamus lobortis nibh in diam vehicula facilisis. Sed sit amet egestas ligula. In consectetur enim in porta molestie. Curabitur condimentum sapien et eros bibendum ultricies. Nulla pulvinar tortor nec libero pretium, non posuere ex facilisis. Ut mattis volutpat odio, sed pharetra mi. Aenean pretium sit amet neque quis tristique. Aenean efficitur nec mauris in iaculis.\n	</p>\n	<p>\n		Maecenas at dapibus nulla, a malesuada nisi. Donec risus augue, imperdiet at consectetur id, posuere et dui. Nunc sit amet blandit neque. In bibendum porta orci, vel semper justo congue id. Fusce neque nibh, sollicitudin eget odio et, porttitor scelerisque augue. Praesent vitae tincidunt augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec scelerisque leo quis laoreet feugiat. Duis ipsum leo, venenatis eu rutrum ac, faucibus in justo. Vestibulum pellentesque ex porttitor elit vestibulum venenatis. Integer est est, tempor ut fringilla a, malesuada vitae lacus.\n	</p>\n	<p>\n		Curabitur vel luctus ligula. In consequat felis sed egestas ultrices. Quisque vel turpis dictum, bibendum eros vitae, finibus lacus. Nulla id mollis urna. Ut tristique diam risus, et varius felis sodales vel. Duis dictum diam nibh, in dignissim tortor rhoncus in. Maecenas turpis nisl, interdum id tortor quis, sollicitudin aliquet elit. Aenean et libero non libero dapibus placerat. Aliquam lectus diam, commodo quis gravida quis, varius at libero. Nulla facilisi. Pellentesque viverra ac justo maximus ultricies. Etiam ut ligula a enim dignissim pretium.\n	</p>\n	<p>\n		Suspendisse in varius quam, hendrerit consectetur quam. Praesent sit amet justo nec ex congue cursus. Donec at dolor fringilla justo viverra blandit at sit amet diam. Vestibulum porta hendrerit metus non varius. Phasellus at porta ex, et tincidunt dui. Etiam non nulla consectetur eros ultrices ultricies sit amet in libero. Sed posuere dolor enim, at eleifend ante scelerisque varius.\n	</p>\n	<p>\n		Sed eu arcu vel leo egestas ultricies at vitae est. Suspendisse lobortis massa sagittis commodo tempus. Aenean commodo iaculis commodo. Maecenas lectus nunc, ornare id convallis auctor, semper ut sapien. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nunc eleifend ac nisl id egestas. Nullam ut sem a sem aliquam dapibus et nec lectus.\n	</p>\n	<p>\n		Suspendisse potenti. Morbi auctor tristique metus sed placerat. Nulla quis justo condimentum sem viverra fringilla. Pellentesque interdum aliquam justo, quis scelerisque lacus lobortis eu. Sed ligula metus, dignissim nec diam in, gravida blandit ex. Quisque scelerisque ligula sed neque mollis pulvinar. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Maecenas dapibus lobortis elementum. Donec laoreet tellus quis elementum blandit. Suspendisse nulla massa, mollis in quam vel, iaculis ullamcorper leo. Curabitur convallis, lectus sed porttitor convallis, nisi libero semper mauris, ut egestas orci lorem eu nunc. Nulla maximus lorem sed est consequat, rutrum luctus mauris hendrerit. Sed aliquet tempus velit at imperdiet. Suspendisse eget tortor rutrum, viverra leo nec, bibendum eros.\n	</p>\n	<p>\n		Vivamus hendrerit non arcu sit amet varius. Donec eget erat ex. Ut ut nibh interdum, imperdiet nunc in, eleifend ex. Mauris vitae hendrerit dolor, vel volutpat massa. Integer at lobortis eros, et dictum nibh. Cras et vehicula lacus. Phasellus sed consequat est, ut faucibus quam. Donec nec lacus commodo leo gravida tempor. Phasellus vel risus sem. Pellentesque venenatis, eros vel ultrices sollicitudin, magna velit condimentum libero, sed aliquam dui lacus a mauris. Cras vitae molestie sem, vitae finibus quam.\n	</p>\n</main>";
   });
 
 this["exports"]["views/welcome/nav/nav.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -29460,6 +29522,216 @@ delete window.jQuery;
 window.jQuery = void(0);
  
  }; /* ==  End source for module /vendor/foundation/index.js  == */ return module; }());;
+;require._modules["/vendor/jquery.hotkeys/index.js"] = (function() { var __filename = "/vendor/jquery.hotkeys/index.js"; var __dirname = "/vendor/jquery.hotkeys"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /vendor/jquery.hotkeys/index.js  == */ var __module__ = function() { 
+ 
+window.jQuery = require('jquery');
+
+require('./jquery.hotkeys.js');
+
+window.jQuery = void(0);
+delete window.jQuery;
+ 
+ }; /* ==  End source for module /vendor/jquery.hotkeys/index.js  == */ return module; }());;
+;require._modules["/vendor/jquery.hotkeys/jquery.hotkeys.js"] = (function() { var __filename = "/vendor/jquery.hotkeys/jquery.hotkeys.js"; var __dirname = "/vendor/jquery.hotkeys"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /vendor/jquery.hotkeys/jquery.hotkeys.js  == */ var __module__ = function() { 
+ /*jslint browser: true*/
+/*jslint jquery: true*/
+
+/*
+ * jQuery Hotkeys Plugin
+ * Copyright 2010, John Resig
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ *
+ * Based upon the plugin by Tzury Bar Yochay:
+ * http://github.com/tzuryby/hotkeys
+ *
+ * Original idea by:
+ * Binny V A, http://www.openjs.com/scripts/events/keyboard_shortcuts/
+ */
+
+/*
+ * One small change is: now keys are passed by object { keys: '...' }
+ * Might be useful, when you want to pass some other data to your handler
+ */
+
+(function(jQuery) {
+
+  jQuery.hotkeys = {
+    version: "0.8",
+
+    specialKeys: {
+      8: "backspace",
+      9: "tab",
+      10: "return",
+      13: "return",
+      16: "shift",
+      17: "ctrl",
+      18: "alt",
+      19: "pause",
+      20: "capslock",
+      27: "esc",
+      32: "space",
+      33: "pageup",
+      34: "pagedown",
+      35: "end",
+      36: "home",
+      37: "left",
+      38: "up",
+      39: "right",
+      40: "down",
+      45: "insert",
+      46: "del",
+      59: ";",
+      61: "=",
+      96: "0",
+      97: "1",
+      98: "2",
+      99: "3",
+      100: "4",
+      101: "5",
+      102: "6",
+      103: "7",
+      104: "8",
+      105: "9",
+      106: "*",
+      107: "+",
+      109: "-",
+      110: ".",
+      111: "/",
+      112: "f1",
+      113: "f2",
+      114: "f3",
+      115: "f4",
+      116: "f5",
+      117: "f6",
+      118: "f7",
+      119: "f8",
+      120: "f9",
+      121: "f10",
+      122: "f11",
+      123: "f12",
+      144: "numlock",
+      145: "scroll",
+      173: "-",
+      186: ";",
+      187: "=",
+      188: ",",
+      189: "-",
+      190: ".",
+      191: "/",
+      192: "`",
+      219: "[",
+      220: "\\",
+      221: "]",
+      222: "'"
+    },
+
+    shiftNums: {
+      "`": "~",
+      "1": "!",
+      "2": "@",
+      "3": "#",
+      "4": "$",
+      "5": "%",
+      "6": "^",
+      "7": "&",
+      "8": "*",
+      "9": "(",
+      "0": ")",
+      "-": "_",
+      "=": "+",
+      ";": ": ",
+      "'": "\"",
+      ",": "<",
+      ".": ">",
+      "/": "?",
+      "\\": "|"
+    },
+
+    // excludes: button, checkbox, file, hidden, image, password, radio, reset, search, submit, url
+    textAcceptingInputTypes: [
+      "text", "password", "number", "email", "url", "range", "date", "month", "week", "time", "datetime",
+      "datetime-local", "search", "color", "tel"],
+
+    options: {
+      filterTextInputs: true
+    }
+  };
+
+  function keyHandler(handleObj) {
+    if (typeof handleObj.data === "string") {
+      handleObj.data = {
+        keys: handleObj.data
+      };
+    }
+
+    // Only care when a possible input has been specified
+    if (!handleObj.data || !handleObj.data.keys || typeof handleObj.data.keys !== "string") {
+      return;
+    }
+
+    var origHandler = handleObj.handler,
+      keys = handleObj.data.keys.toLowerCase().split(" ");
+
+    handleObj.handler = function(event) {
+      //      Don't fire in text-accepting inputs that we didn't directly bind to
+      if (this !== event.target && (/textarea|select/i.test(event.target.nodeName) ||
+        (jQuery.hotkeys.options.filterTextInputs &&
+          jQuery.inArray(event.target.type, jQuery.hotkeys.textAcceptingInputTypes) > -1))) {
+        return;
+      }
+
+      var special = event.type !== "keypress" && jQuery.hotkeys.specialKeys[event.which],
+        character = String.fromCharCode(event.which).toLowerCase(),
+        modif = "",
+        possible = {};
+
+      jQuery.each(["alt", "ctrl", "shift"], function(index, specialKey) {
+
+        if (event[specialKey + 'Key'] && special !== specialKey) {
+          modif += specialKey + '+';
+        }
+      });
+
+      // metaKey is triggered off ctrlKey erronously
+      if (event.metaKey && !event.ctrlKey && special !== "meta") {
+        modif += "meta+";
+      }
+
+      if (event.metaKey && special !== "meta" && modif.indexOf("alt+ctrl+shift+") > -1) {
+        modif = modif.replace("alt+ctrl+shift+", "hyper+");
+      }
+
+      if (special) {
+        possible[modif + special] = true;
+      }
+      else {
+        possible[modif + character] = true;
+        possible[modif + jQuery.hotkeys.shiftNums[character]] = true;
+
+        // "$" can be triggered as "Shift+4" or "Shift+$" or just "$"
+        if (modif === "shift+") {
+          possible[jQuery.hotkeys.shiftNums[character]] = true;
+        }
+      }
+
+      for (var i = 0, l = keys.length; i < l; i++) {
+        if (possible[keys[i]]) {
+          return origHandler.apply(this, arguments);
+        }
+      }
+    };
+  }
+
+  jQuery.each(["keypress", "keydown", "keyup"], function() {
+    jQuery.event.special[this] = {
+      add: keyHandler
+    };
+  });
+
+})(jQuery || this.jQuery || window.jQuery); 
+ }; /* ==  End source for module /vendor/jquery.hotkeys/jquery.hotkeys.js  == */ return module; }());;
 ;require._modules["/vendor/moment/index.js"] = (function() { var __filename = "/vendor/moment/index.js"; var __dirname = "/vendor/moment"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /vendor/moment/index.js  == */ var __module__ = function() { 
  //! moment.js
@@ -32603,7 +32875,8 @@ delete window.purl;
 ;require._modules["/views/create-document/create-document.js"] = (function() { var __filename = "/views/create-document/create-document.js"; var __dirname = "/views/create-document"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/create-document/create-document.js  == */ var __module__ = function() { 
  
-var View  = require('cloak/view');
+var View           = require('cloak/view');
+var TagEditorView  = require('views/tag-editor/tag-editor');
 
 var CreateDocumentView = module.exports = View.extend({
 
@@ -32611,7 +32884,7 @@ var CreateDocumentView = module.exports = View.extend({
 	template: 'views/create-document/create-document.hbs',
 
 	events: {
-		// 
+		'click button.submit':    'submit'
 	},
 
 	initialize: function() {
@@ -32621,7 +32894,38 @@ var CreateDocumentView = module.exports = View.extend({
 	draw: function() {
 		this.$elem.html(this.render());
 
+		this.$name          = this.$('.name input');
+		this.$description   = this.$('.description input');
+		this.$adultContent  = this.$('.adult-content input');
+		this.$public        = this.$('.privacy .public input');
+
+		this.tagEditor = new TagEditorView();
+		this.tagEditor.$elem.appendTo(this.$('.tags'));
+		this.tagEditor.draw();
+
 		this.bindEvents();
+	},
+
+// --------------------------------------------------------
+
+	submit: function(evt) {
+		if (evt) {
+			evt.preventDefault();
+		}
+
+		var data = this.getData();
+
+		// 
+	},
+
+	getData: function() {
+		return {
+			name: this.$name.val(),
+			description: this.$description.val(),
+			adultContent: this.$adultContent.prop('checked'),
+			public: this.$public.prop('checked'),
+			tags: this.tagEditor.tags.slice()
+		};
 	}
 
 });
@@ -32727,6 +33031,61 @@ var DashboardDocumentView = module.exports = View.extend({
 });
  
  }; /* ==  End source for module /views/dashboard/document/document.js  == */ return module; }());;
+;require._modules["/views/footer/footer.js"] = (function() { var __filename = "/views/footer/footer.js"; var __dirname = "/views/footer"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/footer/footer.js  == */ var __module__ = function() { 
+ 
+var View          = require('cloak/view');
+var TermsModal    = require('views/modals/terms/terms');
+var ReportModal   = require('views/modals/report/report');
+var PrivacyModal  = require('views/modals/privacy/privacy');
+
+var FooterView = module.exports = View.extend({
+
+	template: 'views/footer/footer.hbs',
+
+	events: {
+		'click .terms':     'terms',
+		'click .privacy':   'privacy',
+		'click .report':    'report'
+	},
+
+	initialize: function() {
+		// 
+	},
+
+	draw: function() {
+		this.$elem.html(this.render());
+
+		this.bindEvents();
+	},
+
+	terms: function(evt) {
+		if (evt) {
+			evt.preventDefault();
+		}
+
+		TermsModal.open();
+	},
+
+	privacy: function(evt) {
+		if (evt) {
+			evt.preventDefault();
+		}
+
+		PrivacyModal.open();
+	},
+
+	report: function(evt) {
+		if (evt) {
+			evt.preventDefault();
+		}
+
+		ReportModal.open();
+	}
+
+});
+ 
+ }; /* ==  End source for module /views/footer/footer.js  == */ return module; }());;
 ;require._modules["/views/header/header.js"] = (function() { var __filename = "/views/header/header.js"; var __dirname = "/views/header"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/header/header.js  == */ var __module__ = function() { 
  
@@ -32878,6 +33237,189 @@ ModalView.template = function(defaults) {
 };
  
  }; /* ==  End source for module /views/modal/modal.js  == */ return module; }());;
+;require._modules["/views/modals/login/login.js"] = (function() { var __filename = "/views/modals/login/login.js"; var __dirname = "/views/modals/login"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/modals/login/login.js  == */ var __module__ = function() { 
+ 
+var auth       = require('common/auth');
+var ModalView  = require('views/modal/modal');
+var Request    = require('cloak/model-stores/dagger').Request;
+
+// 
+// Opens a new login modal
+// 
+exports.open = ModalView.template({
+
+	classname: 'login',
+	template: 'views/modals/login/login.hbs',
+	
+	events: {
+		'click button':    'login'
+	},
+	
+	props: {
+		login: function(evt) {
+			if (evt) {
+				evt.preventDefault();
+			}
+
+			var self = this;
+			var username = this.$('.username').val();
+			var password = this.$('.password').val();
+
+			this.showError();
+
+			if (! username) {
+				this.showError('Username or email is required');
+				return;
+			}
+
+			this.disable(true);
+
+			auth.login(username, password)
+				.then(
+					function(result) {
+						self.disable(false);
+
+						if (result.complete) {
+							router.redirectTo('/dashboard');
+						} else {
+							router.redirectTo('/auth/twostep');
+						}
+						
+						self.close();
+					},
+					function(err) {
+						self.disable(false);
+						self.showError(err);
+					}
+				);
+		},
+
+		showError: function(message) {
+			var $error = this.$('.error');
+			
+			if (! message) {
+				$error.html('');
+				$error.addClass('hide');
+				return;
+			}
+			
+			$error.html(message);
+			$error.removeClass('hide');
+		},
+
+		disable: function(flag) {
+			this.$('input, button').prop('disabled', flag);
+
+			if (flag) {
+				this.$('button').spin(true, {replace: false, size: 'tiny', classname: 'transparent'});
+			} else {
+				this.$('button').spin(false);
+			}
+		}
+	}
+
+});
+ 
+ }; /* ==  End source for module /views/modals/login/login.js  == */ return module; }());;
+;require._modules["/views/modals/privacy/privacy.js"] = (function() { var __filename = "/views/modals/privacy/privacy.js"; var __dirname = "/views/modals/privacy"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/modals/privacy/privacy.js  == */ var __module__ = function() { 
+ 
+var ModalView = require('views/modal/modal');
+
+// 
+// Opens a new privacy modal
+// 
+exports.open = ModalView.template({
+	classname: 'privacy',
+	template: 'views/modals/privacy/privacy.hbs'
+});
+ 
+ }; /* ==  End source for module /views/modals/privacy/privacy.js  == */ return module; }());;
+;require._modules["/views/modals/report/report.js"] = (function() { var __filename = "/views/modals/report/report.js"; var __dirname = "/views/modals/report"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/modals/report/report.js  == */ var __module__ = function() { 
+ 
+var auth       = require('common/auth');
+var ModalView  = require('views/modal/modal');
+var Request    = require('cloak/model-stores/dagger').Request;
+
+// 
+// Opens a new report modal
+// 
+exports.open = ModalView.template({
+
+	classname: 'report',
+	template: 'views/modals/report/report.hbs',
+	
+	events: {
+		'click button':    'submit'
+	},
+	
+	props: {
+		submit: function(evt) {
+			if (evt) {
+				evt.preventDefault();
+			}
+
+			var self = this;
+			var subject = this.$('.subject').val();
+			var description = this.$('.description').val();
+
+			this.showError();
+
+			if (! subject || ! description) {
+				this.showError('Both subject and description are required');
+				return;
+			}
+
+			this.disable(true);
+
+			// 
+			// 
+			// 
+		},
+
+		showError: function(message) {
+			var $error = this.$('.error');
+			
+			if (! message) {
+				$error.html('');
+				$error.addClass('hide');
+				return;
+			}
+			
+			$error.html(message);
+			$error.removeClass('hide');
+		},
+
+		disable: function(flag) {
+			this.$('input, button').prop('disabled', flag);
+
+			if (flag) {
+				this.$('button').spin(true, {replace: false, size: 'tiny', classname: 'transparent'});
+			} else {
+				this.$('button').spin(false);
+			}
+		}
+	}
+
+});
+ 
+ }; /* ==  End source for module /views/modals/report/report.js  == */ return module; }());;
+;require._modules["/views/modals/terms/terms.js"] = (function() { var __filename = "/views/modals/terms/terms.js"; var __dirname = "/views/modals/terms"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/modals/terms/terms.js  == */ var __module__ = function() { 
+ 
+var ModalView = require('views/modal/modal');
+
+// 
+// Opens a new terms modal
+// 
+exports.open = ModalView.template({
+	classname: 'terms',
+	template: 'views/modals/terms/terms.hbs'
+});
+ 
+ }; /* ==  End source for module /views/modals/terms/terms.js  == */ return module; }());;
 ;require._modules["/views/notfound/notfound.js"] = (function() { var __filename = "/views/notfound/notfound.js"; var __dirname = "/views/notfound"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/notfound/notfound.js  == */ var __module__ = function() { 
  
@@ -32907,12 +33449,104 @@ var NotFoundView = module.exports = View.extend({
 });
  
  }; /* ==  End source for module /views/notfound/notfound.js  == */ return module; }());;
+;require._modules["/views/tag-editor/tag-editor.js"] = (function() { var __filename = "/views/tag-editor/tag-editor.js"; var __dirname = "/views/tag-editor"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/tag-editor/tag-editor.js  == */ var __module__ = function() { 
+ 
+var View  = require('cloak/view');
+
+var TagEditorView = module.exports = View.extend({
+
+	tagName: 'div',
+	className: 'tag-editor',
+	template: 'views/tag-editor/tag-editor.hbs',
+
+	events: {
+		'click @':           'focus',
+		'keydown input':     'keydown',
+	},
+
+	initialize: function() {
+		this.tags = [ ];
+	},
+
+	draw: function() {
+		this.$elem.html(this.render());
+
+		this.$tags = this.$('.tags');
+		this.$input = this.$('input');
+
+		this.bindEvents();
+	},
+
+	focus: function(evt) {
+		if (evt) {
+			evt.preventDefault();
+		}
+
+		this.$input.focus();
+	},
+
+	keydown: function(evt) {
+		switch (evt.which) {
+			// Backspace
+			case 8:
+				this.backspace(evt);
+			break;
+
+			// Tab
+			case 9:
+			// Return
+			case 10:
+			case 13:
+			// Comma
+			case 188:
+				this.complete(evt);
+			break;
+		}
+	},
+
+	complete: function(evt) {
+		if (evt) {
+			evt.preventDefault();
+		}
+
+		var tag = this.$input.val();
+		this.$input.val('');
+		this.addTag(tag);
+	},
+
+	backspace: function(evt) {
+		if (! this.$input.val()) {
+			this.tags.pop();
+			this.drawTags();
+		}
+	},
+
+	addTag: function(tag) {
+		tag = tag.replace(/^\s+/, '').replace(/\s+$/, '');
+
+		if (this.tags.indexOf(tag) < 0) {
+			this.tags.push(tag);
+		}
+
+		this.drawTags();
+	},
+
+	drawTags: function() {
+		this.$tags.html(this.tags.map(function(tag) {
+			return '<span class="label round">' + tag + '</span>';
+		}).join(''));
+	}
+
+});
+ 
+ }; /* ==  End source for module /views/tag-editor/tag-editor.js  == */ return module; }());;
 ;require._modules["/views/welcome/auth/email-confirmation/email-confirmation.js"] = (function() { var __filename = "/views/welcome/auth/email-confirmation/email-confirmation.js"; var __dirname = "/views/welcome/auth/email-confirmation"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/welcome/auth/email-confirmation/email-confirmation.js  == */ var __module__ = function() { 
  
-var View            = require('cloak/view');
-var WelcomeNavView  = require('views/welcome/nav/nav');
-var Request         = require('cloak/model-stores/dagger').Request;
+var View        = require('cloak/view');
+var LoginModal  = require('views/modals/login/login');
+var Request     = require('cloak/model-stores/dagger').Request;
 
 require('common/spin.js');
 
@@ -32968,7 +33602,7 @@ var EmailConfirmationView = module.exports = View.extend({
 			evt.preventDefault();
 		}
 		
-		this.nav.showLogin();
+		LoginModal.open();
 	}
 
 });
@@ -33070,127 +33704,14 @@ var TwoStepAuthView = module.exports = View.extend({
 });
  
  }; /* ==  End source for module /views/welcome/auth/twostep/twostep.js  == */ return module; }());;
-;require._modules["/views/welcome/nav/modals/login/login.js"] = (function() { var __filename = "/views/welcome/nav/modals/login/login.js"; var __dirname = "/views/welcome/nav/modals/login"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
- /* ==  Begin source for module /views/welcome/nav/modals/login/login.js  == */ var __module__ = function() { 
- 
-var auth       = require('common/auth');
-var ModalView  = require('views/modal/modal');
-var Request    = require('cloak/model-stores/dagger').Request;
-
-// 
-// Opens a new login modal
-// 
-exports.open = ModalView.template({
-
-	classname: 'login',
-	template: 'views/welcome/nav/modals/login/login.hbs',
-	
-	events: {
-		'click .login button':    'login'
-	},
-	
-	props: {
-		login: function(evt) {
-			if (evt) {
-				evt.preventDefault();
-			}
-
-			var self = this;
-			var username = this.$('.username').val();
-			var password = this.$('.password').val();
-
-			this.showError();
-
-			if (! username) {
-				this.showError('Username or email is required');
-				return;
-			}
-
-			this.disable(true);
-
-			auth.login(username, password)
-				.then(
-					function(result) {
-						self.disable(false);
-
-						if (result.complete) {
-							router.redirectTo('/dashboard');
-						} else {
-							router.redirectTo('/auth/twostep');
-						}
-						
-						self.close();
-					},
-					function(err) {
-						self.disable(false);
-						self.showError(err);
-					}
-				);
-		},
-
-		showError: function(message) {
-			var $error = this.$('.error');
-			
-			if (! message) {
-				$error.html('');
-				$error.addClass('hide');
-				return;
-			}
-			
-			$error.html(message);
-			$error.removeClass('hide');
-		},
-
-		disable: function(flag) {
-			this.$('input, button').prop('disabled', flag);
-
-			if (flag) {
-				this.$('button').spin(true, {replace: false, size: 'tiny', classname: 'transparent'});
-			} else {
-				this.$('button').spin(false);
-			}
-		}
-	}
-
-});
- 
- }; /* ==  End source for module /views/welcome/nav/modals/login/login.js  == */ return module; }());;
-;require._modules["/views/welcome/nav/modals/privacy/privacy.js"] = (function() { var __filename = "/views/welcome/nav/modals/privacy/privacy.js"; var __dirname = "/views/welcome/nav/modals/privacy"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
- /* ==  Begin source for module /views/welcome/nav/modals/privacy/privacy.js  == */ var __module__ = function() { 
- 
-var ModalView = require('views/modal/modal');
-
-// 
-// Opens a new privacy modal
-// 
-exports.open = ModalView.template({
-	classname: 'privacy',
-	template: 'views/welcome/nav/modals/privacy/privacy.hbs'
-});
- 
- }; /* ==  End source for module /views/welcome/nav/modals/privacy/privacy.js  == */ return module; }());;
-;require._modules["/views/welcome/nav/modals/terms/terms.js"] = (function() { var __filename = "/views/welcome/nav/modals/terms/terms.js"; var __dirname = "/views/welcome/nav/modals/terms"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
- /* ==  Begin source for module /views/welcome/nav/modals/terms/terms.js  == */ var __module__ = function() { 
- 
-var ModalView = require('views/modal/modal');
-
-// 
-// Opens a new terms modal
-// 
-exports.open = ModalView.template({
-	classname: 'terms',
-	template: 'views/welcome/nav/modals/terms/terms.hbs'
-});
- 
- }; /* ==  End source for module /views/welcome/nav/modals/terms/terms.js  == */ return module; }());;
 ;require._modules["/views/welcome/nav/nav.js"] = (function() { var __filename = "/views/welcome/nav/nav.js"; var __dirname = "/views/welcome/nav"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/welcome/nav/nav.js  == */ var __module__ = function() { 
  
 var View          = require('cloak/view');
 var ModalView     = require('views/modal/modal');
-var LoginModal    = require('views/welcome/nav/modals/login/login');
-var TermsModal    = require('views/welcome/nav/modals/terms/terms');
-var PrivacyModal  = require('views/welcome/nav/modals/privacy/privacy');
+var LoginModal    = require('views/modals/login/login');
+var TermsModal    = require('views/modals/terms/terms');
+var PrivacyModal  = require('views/modals/privacy/privacy');
 
 var WelcomeNavView = module.exports = View.extend({
 

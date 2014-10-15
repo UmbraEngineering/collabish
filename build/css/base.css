@@ -4081,12 +4081,25 @@ th.hide-for-touch {
 .touch th.show-for-touch {
   display: table-cell !important; }
 
+html, body {
+	height: 100%;
+}
+
 body {
 	font-family: "Open Sans", "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
 }
 
 *:not(input):not(textarea) {
 	user-select: none;
+}
+
+#wrapper {
+	min-height: 100%;
+	position: relative;
+}
+
+#wrapper > main {
+	padding-bottom: 150px;
 }
 
 .row {
@@ -4099,12 +4112,6 @@ input[type="week"], input[type="email"], input[type="number"],
 input[type="search"], input[type="tel"], input[type="time"],
 input[type="url"], textarea, select {
 	margin-top: 5px;
-}
-
-@media only screen and (max-width: 40em) {
-	#wrapper {
-		padding-bottom: 5rem;
-	}
 }
 
 /*!

@@ -12,20 +12,63 @@ section.create-document {
 			padding: 5px 0 20px;
 		}
 
-		section.create-document main .button-wrapper .button {
-			width: 100%;
-			background: #ff7941;
+		section.create-document main .adult-content {
+			/**/
 		}
 
-		section.create-document main .button-wrapper .button:hover {
-			background: #ff712c;
-		}
-
-			section.create-document main .button-wrapper .button .progress {
-				position: absolute;
-				top: 20px;
-				right: 19px;
+			section.create-document main .adult-content div {
+				padding: 1rem 2rem;
 			}
+
+			section.create-document main .adult-content input {
+				margin: 5px;
+			}
+
+		section.create-document main .privacy {
+			/**/
+		}
+
+			section.create-document main .privacy .row {
+				margin: 1rem;
+			}
+
+				section.create-document main .privacy .icon {
+					margin-top: 1.5rem;
+					text-align: center;
+				}
+
+					section.create-document main .privacy .icon i {
+						color: #aaa;
+						font-size: 2rem;
+					}
+
+				section.create-document main .privacy .row label {
+					padding: 10px;
+					line-height: 1.4;
+				}
+
+					section.create-document main .privacy input {
+						margin-bottom: 0;
+					}
+
+		section.create-document main .button-wrapper {
+			margin-top: 20px;
+		}
+
+			section.create-document main .button-wrapper .button {
+				width: 100%;
+				background: #ff7941;
+			}
+
+			section.create-document main .button-wrapper .button:hover {
+				background: #ff712c;
+			}
+
+				section.create-document main .button-wrapper .button .progress {
+					position: absolute;
+					top: 20px;
+					right: 19px;
+				}
 
 	section.create-document main [data-tooltip] {
 		color: #ff7941;

@@ -6,5 +6,5 @@ var ModalView = require('views/modal/modal');
 // 
 exports.open = ModalView.template({
 	classname: 'terms',
-	template: 'views/welcome/nav/modals/terms/terms.hbs'
+	template: 'views/modals/terms/terms.hbs'
 });

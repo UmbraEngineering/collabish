@@ -1,9 +1,9 @@
 ;require._modules["/views/welcome/auth/email-confirmation/email-confirmation.js"] = (function() { var __filename = "/views/welcome/auth/email-confirmation/email-confirmation.js"; var __dirname = "/views/welcome/auth/email-confirmation"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/welcome/auth/email-confirmation/email-confirmation.js  == */ var __module__ = function() { 
  
-var View            = require('cloak/view');
-var WelcomeNavView  = require('views/welcome/nav/nav');
-var Request         = require('cloak/model-stores/dagger').Request;
+var View        = require('cloak/view');
+var LoginModal  = require('views/modals/login/login');
+var Request     = require('cloak/model-stores/dagger').Request;
 
 require('common/spin.js');
 
@@ -59,7 +59,7 @@ var EmailConfirmationView = module.exports = View.extend({
 			evt.preventDefault();
 		}
 		
-		this.nav.showLogin();
+		LoginModal.open();
 	}
 
 });

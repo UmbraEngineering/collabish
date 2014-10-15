@@ -1,0 +1,39 @@
+
+.report.modal {
+	/**/
+}
+	
+	.report.modal .error {
+		color: #a22;
+		padding: 5px 0 20px;
+	}
+
+	.report.modal form {
+		/**/
+	}
+
+		.report.modal form textarea {
+			height: 100px;
+		}
+
+		.report.modal form .button-wrapper {
+			padding-top: 10px;
+			text-align: center;
+		}
+
+			.report.modal form .button {
+				width: 100%;
+				background: #ff7941;
+				margin-bottom: 0;
+				position: relative;
+			}
+
+			.report.modal form .button:hover {
+				background: #ff712c;
+			}
+
+				.report.modal form .button .progress {
+					position: absolute;
+					top: 20px;
+					right: 19px;
+				}

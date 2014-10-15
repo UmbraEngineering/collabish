@@ -6,6 +6,7 @@ var cloak         = require('cloak');
 var auth          = require('common/auth');
 var Router        = require('cloak/router');
 var HeaderView    = require('views/header/header');
+var FooterView    = require('views/footer/footer');
 var NotFoundView  = require('views/notfound/notfound');
 
 var MainRouter = module.exports = Router.extend({
@@ -17,9 +18,11 @@ var MainRouter = module.exports = Router.extend({
 	initialize: function() {
 		this.$header = $('#wrapper > header');
 		this.$content = $('#wrapper > main');
+		this.$footer = $('#wrapper > footer');
 
-		// Store the header view
+		// Store the header/footer views
 		this.header = null;
+		this.footer = null;
 
 		// Store the currently active view object here
 		this.currentView = null;
@@ -35,6 +38,9 @@ var MainRouter = module.exports = Router.extend({
 		if (auth.user) {
 			this.drawHeader();
 		}
+
+		// Draw the footer
+		this.drawFooter();
 
 		// Handle internal anchors with the router
 		$('#wrapper').on('click', 'a[href^="#"], a[href^="/#"]', this.handleAnchor);
@@ -59,6 +65,16 @@ var MainRouter = module.exports = Router.extend({
 		// Render directly to the header element
 		this.header.$elem = this.$header;
 		this.header.draw();
+	},
+
+	drawFooter: function() {
+		if (this.footer) {
+			return;
+		}
+
+		this.footer = new FooterView();
+		this.footer.$elem = this.$footer;
+		this.footer.draw();
 	},
 
 	removeHeader: function() {

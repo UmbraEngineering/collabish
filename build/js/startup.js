@@ -30,6 +30,9 @@ exports.run = function(opts) {
 	// Load in the handlebars helpers
 	require('common/handlebars-helpers');
 
+	// Load jquery plugins
+	require('jquery.hotkeys');
+
 	// Load in the auth module and router
 	var auth = require('common/auth');
 	var MainRouter = require('routers/main');

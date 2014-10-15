@@ -6,6 +6,10 @@ handlebars.registerHelper('moment', function(date, format) {
 	return moment(date).format(format);
 });
 
+handlebars.registerHelper('now', function(format) {
+	return moment().format(format);
+});
+
 handlebars.registerHelper('fromNow', function(date) {
 	return moment(date).fromNow();
 });

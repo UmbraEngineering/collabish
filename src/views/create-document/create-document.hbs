@@ -1,5 +1,5 @@
 <main class="row">
-	<div class="small-12 medium-4 medium-centered columns">
+	<div class="small-12 medium-6 medium-centered columns">
 		<h2>Create Document</h2>
 		<div class="error hide"></div>
 		<form>
@@ -8,22 +8,51 @@
 				<input type="text" />
 			</label>
 			<label class="description">
-				Email
-				<input type="description" />
+				Description
+				<input type="text" />
 			</label>
-			<label class="public">
+			<label class="adult-content">
+				Adult Content
+				<div>
+					<input type="checkbox" />
+					Will this document contain adult content?
+				</div>
+			</label>
+			<label class="privacy">
 				Privacy
-				<select>
-					<option value="true">Public</option>
-					<option value="false">Private</option>
-				</select>
+				<label for="privacy-public" class="row">
+					<div class="small-2 columns icon">
+						<i class="fa fa-users"></i>
+					</div>
+					<div class="small-10 columns">
+						<label class="public">
+							<input type="radio" id="privacy-public" name="privacy" checked />
+							<strong>Public</strong><br />
+							Anyone can view or comment on your document (you can still mark individual
+							revisions as private).
+						</label>
+					</div>
+				</label>
+				<label for="privacy-private" class="row">
+					<div class="small-2 columns icon">
+						<i class="fa fa-lock"></i>
+					</div>
+					<div class="small-10 columns">
+						<label class="private">
+							<input type="radio" id="privacy-private" name="privacy" />
+							<strong>Private</strong><br />
+							Only you and specific users you select as collaborators can view or comment
+							on your document.
+						</label>
+					</div>
+				</label>
 			</label>
 			<label class="tags">
 				Tags
-				<input type="text" />
+				{{!-- TagEditorView --}}
 			</label>
 			<div class="button-wrapper">
-				<button class="button">Create</button>
+				<button class="submit button">Create Document</button>
 			</div>
 		</form>
 	</div>
