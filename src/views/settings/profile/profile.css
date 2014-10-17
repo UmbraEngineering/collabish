@@ -1,0 +1,29 @@
+
+section.settings section.profile-settings {
+	max-width: 500px;
+}
+
+	section.settings section.profile-settings .gravatar {
+		margin-bottom: 15px;
+	}
+
+		section.settings section.profile-settings .gravatar img {
+			display: block;
+			width: 100px;
+			height: 100px;
+			margin-top: 5px;
+		}
+
+	section.settings section.profile-settings input {
+		width: calc(100% - 30px);
+	}
+
+	section.settings section.profile-settings input,
+	section.settings section.profile-settings i.fa {
+		display: inline-block;
+	}
+
+	section.settings section.profile-settings i.fa {
+		font-size: 1rem;
+		margin-left: 5px;
+	}

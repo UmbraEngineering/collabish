@@ -32,10 +32,13 @@ var WelcomeRouter = module.exports = Router.extend({
 	// The logged-out home page
 	// 
 	welcome: function() {
+		document.title = 'Collabish';
+
 		if (auth.user) {
 			this.redirectTo('/dashboard');
 			return;
 		}
+		
 		this.parent.renderView(new WelcomeView());
 	},
 
@@ -43,6 +46,8 @@ var WelcomeRouter = module.exports = Router.extend({
 	// Signup step-two page
 	// 
 	signup: function(params, href, route) {
+		document.title = 'Signup / Collabish';
+
 		if (auth.user) {
 			this.redirectTo('/dashboard');
 			return;
@@ -55,6 +60,8 @@ var WelcomeRouter = module.exports = Router.extend({
 	// Email confirmation
 	// 
 	emailConfirm: function(params) {
+		document.title = 'Email Confirmation / Collabish';
+
 		var view = new EmailConfirmationView();
 		var token = purl(location).param('token');
 
@@ -76,6 +83,8 @@ var WelcomeRouter = module.exports = Router.extend({
 	// A page for users to enter their two step auth code
 	// 
 	twostepAuth: function() {
+		document.title = 'Two Step Auth / Collabish';
+
 		if (auth.user) {
 			this.redirectTo('/dashboard');
 			return;

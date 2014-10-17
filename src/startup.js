@@ -25,8 +25,11 @@ exports.run = function(opts) {
 	// Load the template compiler
 	require('common/templates');
 
-	// Load in the handlebars helpers
+	// Load the handlebars helpers
 	require('common/handlebars-helpers');
+
+	// Load the icon helper
+	require('common/icons');
 
 	// Load jquery plugins
 	require('jquery.hotkeys');
@@ -40,6 +43,7 @@ exports.run = function(opts) {
 		window.router = new MainRouter({ autoStart: false })
 			.use(require('routers/welcome'))
 			.use(require('routers/dashboard'))
+			.use(require('routers/settings'))
 			.start();
 	})
 	.catch(function(err) {

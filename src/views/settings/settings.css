@@ -1,0 +1,48 @@
+
+section.settings {
+	padding: 2rem;
+}
+
+	section.settings h1 {
+		padding: 1rem;
+		text-align: center;
+	}
+
+	section.settings > .row {
+		/**/
+	}
+
+		section.settings nav {
+			padding: .5rem;
+			margin: 0 2rem 0 0;
+			border: 1px #ccc solid;
+			background: #f3f3f3;
+			border-radius: .5rem;
+			box-shadow: 4px 4px 4px rgba(0,0,0,0.4);
+		}
+
+			section.settings nav a:not(:last-of-type) {
+				border-bottom: 1px #ccc solid;
+			}
+
+			section.settings nav a:not(:first-of-type) {
+				border-top: 1px #fff solid;
+			}
+
+		section.settings main {
+			box-shadow: 4px 4px 4px rgba(0,0,0,0.4);
+		}
+
+			section.settings main form {
+				margin-bottom: 0;
+				padding: 1rem;
+			}
+
+
+
+@media only screen and (max-width: 40em) {
+	section.settings nav {
+		margin-right: 0;
+		margin-bottom: 2rem;
+	}
+}

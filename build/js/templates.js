@@ -56,7 +56,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   var buffer = "";
 
 
-  buffer += "<main class=\"row\">\n	<div class=\"small-12 medium-6 medium-centered columns\">\n		<h2>Create Document</h2>\n		<div class=\"error hide\"></div>\n		<form>\n			<label class=\"name\">\n				Name\n				<input type=\"text\" />\n			</label>\n			<label class=\"description\">\n				Description\n				<input type=\"text\" />\n			</label>\n			<label class=\"adult-content\">\n				Adult Content\n				<div>\n					<input type=\"checkbox\" />\n					Will this document contain adult content?\n				</div>\n			</label>\n			<label class=\"privacy\">\n				Privacy\n				<label for=\"privacy-public\" class=\"row\">\n					<div class=\"small-2 columns icon\">\n						<i class=\"fa fa-users\"></i>\n					</div>\n					<div class=\"small-10 columns\">\n						<label class=\"public\">\n							<input type=\"radio\" id=\"privacy-public\" name=\"privacy\" checked />\n							<strong>Public</strong><br />\n							Anyone can view or comment on your document (you can still mark individual\n							revisions as private).\n						</label>\n					</div>\n				</label>\n				<label for=\"privacy-private\" class=\"row\">\n					<div class=\"small-2 columns icon\">\n						<i class=\"fa fa-lock\"></i>\n					</div>\n					<div class=\"small-10 columns\">\n						<label class=\"private\">\n							<input type=\"radio\" id=\"privacy-private\" name=\"privacy\" />\n							<strong>Private</strong><br />\n							Only you and specific users you select as collaborators can view or comment\n							on your document.\n						</label>\n					</div>\n				</label>\n			</label>\n			<label class=\"tags\">\n				Tags\n				\n			</label>\n			<div class=\"button-wrapper\">\n				<button class=\"submit button\">Create Document</button>\n			</div>\n		</form>\n	</div>\n</main>";
+  buffer += "<main class=\"row\">\n	<div class=\"small-12 medium-6 medium-centered columns\">\n		<h2>Create Document</h2>\n		<div class=\"error hide\"></div>\n		<form>\n			<label class=\"name\">\n				Name\n				<input type=\"text\" />\n			</label>\n			<label class=\"description\">\n				Description\n				<input type=\"text\" />\n			</label>\n			<label class=\"adult-content\">\n				Adult Content\n				<div>\n					<input type=\"checkbox\" />\n					Will this document contain adult content?\n				</div>\n			</label>\n			<label class=\"privacy\">\n				Privacy\n				<label for=\"privacy-public\" class=\"row\">\n					<div class=\"small-2 columns icon\">\n						<i class=\"fa fa-users\"></i>\n					</div>\n					<div class=\"small-10 columns\">\n						<label class=\"public\">\n							<input type=\"radio\" id=\"privacy-public\" name=\"privacy\" checked />\n							<strong>Public</strong><br />\n							Anyone can view or comment on your document (you can still mark individual\n							revisions as private).\n						</label>\n					</div>\n				</label>\n				<label for=\"privacy-private\" class=\"row\">\n					<div class=\"small-2 columns icon\">\n						<i class=\"fa fa-lock\"></i>\n					</div>\n					<div class=\"small-10 columns\">\n						<label class=\"private\">\n							<input type=\"radio\" id=\"privacy-private\" name=\"privacy\" />\n							<strong>Private</strong><br />\n							Only you and specific users you select as collaborators can view or comment\n							on your document.\n						</label>\n					</div>\n				</label>\n			</label>\n			<label class=\"tags\">\n				Tags\n				\n			</label>\n			<div class=\"button-wrapper\">\n				<button class=\"submit action button\">Create Document</button>\n			</div>\n		</form>\n	</div>\n</main>";
   return buffer;
   });
 
@@ -70,7 +70,25 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   return buffer;
   });
 
-this["exports"]["views/dashboard/document/document.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+this["exports"]["views/dashboard/no-docs.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<div class=\"no-results panel\">\n	<h3>You haven't created any documents</h3>\n	<p>\n		Why not <a href=\"/#create\">create one</a>?\n	</p>\n</div>";
+  });
+
+this["exports"]["views/dashboard/no-recents.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<div class=\"no-results panel\">\n	<h3>You haven't starred any documents</h3>\n	<p>\n		Why not <a href=\"/#search\">take a look around</a>?\n	</p>\n</div>";
+  });
+
+this["exports"]["views/document-overview/document-overview.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   var buffer = "", stack1, helper, options, functionType="function", escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing, self=this;
@@ -139,24 +157,6 @@ function program9(depth0,data) {
   return buffer;
   });
 
-this["exports"]["views/dashboard/no-docs.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
-  this.compilerInfo = [4,'>= 1.0.0'];
-helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
-  
-
-
-  return "<div class=\"no-results panel\">\n	<h3>You haven't created any documents</h3>\n	<p>\n		Why not <a href=\"/#create\">create one</a>?\n	</p>\n</div>";
-  });
-
-this["exports"]["views/dashboard/no-recents.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
-  this.compilerInfo = [4,'>= 1.0.0'];
-helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
-  
-
-
-  return "<div class=\"no-results panel\">\n	<h3>You haven't starred any documents recently</h3>\n	<p>\n		Why not <a href=\"/#search\">take a look around</a>?\n	</p>\n</div>";
-  });
-
 this["exports"]["views/footer/footer.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
@@ -209,7 +209,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   
 
 
-  return "<h3>Login</h3>\n<div class=\"error hide\"></div>\n<form class=\"login\">\n	<label>\n		Username/Email\n		<input type=\"text\" class=\"username\" />\n	</label>\n	<label>\n		Password <small>(if needed)</small>\n		<input type=\"password\" class=\"password\" />\n	</label>\n	<div class=\"button-wrapper\">\n		<button class=\"button\">Login</button>\n	</div>\n</form>";
+  return "<h3>Login</h3>\n<div class=\"error hide\"></div>\n<form class=\"login\">\n	<label>\n		Username/Email\n		<input type=\"text\" class=\"username\" />\n	</label>\n	<label>\n		Password <small>(if needed)</small>\n		<input type=\"password\" class=\"password\" />\n	</label>\n	<div class=\"button-wrapper\">\n		<button class=\"action button\">Login</button>\n	</div>\n</form>";
   });
 
 this["exports"]["views/modals/privacy/privacy.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -227,7 +227,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   
 
 
-  return "<h3>Report a Problem</h3>\n<div class=\"error hide\"></div>\n<p>\n	This form is so you can report a problem or bug with our application. Is something broken? Let us\n	know about it below.\n</p>\n<form>\n	<label>\n		Subject\n		<input type=\"text\" class=\"subject\" />\n	</label>\n	<label>\n		Description\n		<textarea class=\"description\"></textarea>\n	</label>\n	<div class=\"button-wrapper\">\n		<button class=\"button\">Send Report</button>\n	</div>\n</form>";
+  return "<h3>Report a Problem</h3>\n<div class=\"error hide\"></div>\n<p>\n	This form is so you can report a problem or bug with our application. Is something broken? Let us\n	know about it below.\n</p>\n<form>\n	<label>\n		Subject\n		<input type=\"text\" class=\"subject\" />\n	</label>\n	<label>\n		Description\n		<textarea class=\"description\"></textarea>\n	</label>\n	<div class=\"button-wrapper\">\n		<button class=\"action button\">Send Report</button>\n	</div>\n</form>";
   });
 
 this["exports"]["views/modals/terms/terms.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -260,6 +260,150 @@ function program3(depth0,data) {
   stack1 = helpers['if'].call(depth0, (depth0 && depth0.loggedIn), {hash:{},inverse:self.program(3, program3, data),fn:self.program(1, program1, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "\n</nav>\n";
+  return buffer;
+  });
+
+this["exports"]["views/profile/notfound.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<h3>Not Found</h3>\n<p>\n	We couldn't find the profile you were looking for.\n</p>";
+  });
+
+this["exports"]["views/profile/profile.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, helper, functionType="function", escapeExpression=this.escapeExpression;
+
+
+  buffer += "<div class=\"row\">\n	<h1>Profile: ";
+  if (helper = helpers.username) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.username); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "</h1>\n</div>\n<main class=\"row\">\n	\n</main>";
+  return buffer;
+  });
+
+this["exports"]["views/profile/user.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, functionType="function";
+
+
+  buffer += "<div class=\"small-3 columns\">\n	<div class=\"panel\">\n		<img src=\""
+    + escapeExpression((helper = helpers.gravatar || (depth0 && depth0.gravatar),options={hash:{},data:data},helper ? helper.call(depth0, (depth0 && depth0.gravatarHash), "s=250", options) : helperMissing.call(depth0, "gravatar", (depth0 && depth0.gravatarHash), "s=250", options)))
+    + "\" width=\"250\" height=\"250\" alt=\"\" title=\"\" />\n		<dl class=\"profile-info\">\n			<dt>Name</dt>\n			<dd>"
+    + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.user)),stack1 == null || stack1 === false ? stack1 : stack1.profile)),stack1 == null || stack1 === false ? stack1 : stack1.name)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "</dd>\n\n			<dt>URL</dt>\n			<dd><a href=\""
+    + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.user)),stack1 == null || stack1 === false ? stack1 : stack1.profile)),stack1 == null || stack1 === false ? stack1 : stack1.url)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\">"
+    + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.user)),stack1 == null || stack1 === false ? stack1 : stack1.profile)),stack1 == null || stack1 === false ? stack1 : stack1.url)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "</a></dd>\n\n			<dt>Location</dt>\n			<dd>"
+    + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.user)),stack1 == null || stack1 === false ? stack1 : stack1.profile)),stack1 == null || stack1 === false ? stack1 : stack1.location)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "</dd>\n		</dl>\n	</div>\n</div>\n<div class=\"small-9 columns\">\n	\n</div>";
+  return buffer;
+  });
+
+this["exports"]["views/quill/quill.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, functionType="function", self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = "", stack1;
+  buffer += "\n	";
+  stack1 = helpers.each.call(depth0, (depth0 && depth0.buttons), {hash:{},inverse:self.noop,fn:self.program(2, program2, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n	";
+  return buffer;
+  }
+function program2(depth0,data) {
+  
+  var buffer = "", stack1;
+  buffer += "\n	";
+  stack1 = (typeof depth0 === functionType ? depth0.apply(depth0) : depth0);
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n	";
+  return buffer;
+  }
+
+  buffer += "<div class=\"toolbar\">\n	<select class=\"ql-font\">\n		<option value=\"sans-serif\" selected>Sans Serif</option>\n		<option value=\"serif\">Serif</option>\n		<option value=\"monospace\">Monospace</option>\n	</select>\n	<a class=\"ql-bold\" data-tooltip=\"Bold (Ctrl+B)\">\n		<i class=\"fa fa-bold\"></i>\n	</a>\n	<a class=\"ql-italic\" data-tooltip=\"Italic (Ctrl+I)\">\n		<i class=\"fa fa-italic\"></i>\n	</a>\n	<a class=\"ql-underline\" data-tooltip=\"Underline (Ctrl+U)\">\n		<i class=\"fa fa-underline\"></i>\n	</a>\n	<a class=\"ql-strike\" data-tooltip=\"Strikethrough\">\n		<i class=\"fa fa-strikethrough\"></i>\n	</a>\n	";
+  stack1 = helpers['if'].call(depth0, (depth0 && depth0.buttons), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n</div>\n<div class=\"editor\">\n	<div><br /></div>\n</div>";
+  return buffer;
+  });
+
+this["exports"]["views/settings/authentication/authentication.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, helper, self=this, functionType="function", escapeExpression=this.escapeExpression;
+
+function program1(depth0,data) {
+  
+  
+  return "selected";
+  }
+
+  buffer += "<h2>Authentication</h2>\n<form>\n	<label>\n		Authentication Method\n		<select class=\"auth-method\">\n			<option value=\"password\" ";
+  stack1 = helpers['if'].call(depth0, ((stack1 = (depth0 && depth0.authMethod)),stack1 == null || stack1 === false ? stack1 : stack1.isPassword), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += ">Password</option>\n			<option value=\"email\" ";
+  stack1 = helpers['if'].call(depth0, ((stack1 = (depth0 && depth0.authMethod)),stack1 == null || stack1 === false ? stack1 : stack1.isEmail), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += ">Email only</option>\n			<option value=\"twostep-email\" ";
+  stack1 = helpers['if'].call(depth0, ((stack1 = (depth0 && depth0.authMethod)),stack1 == null || stack1 === false ? stack1 : stack1.isTwostepEmail), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += ">Two-step (Password + Email)</option>\n			\n		</select>\n	</label>\n	<label>\n		Name<br />\n		<input type=\"text\" class=\"name\" value=\"";
+  if (helper = helpers.name) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.name); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "\" />\n		<i class=\"fa\"></i>\n	</label>\n	<label>\n		URL<br />\n		<input type=\"text\" class=\"url\" value=\"";
+  if (helper = helpers.url) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.url); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "\" />\n		<i class=\"fa\"></i>\n	</label>\n	<label>\n		Location<br />\n		<input type=\"text\" class=\"location\" value=\"";
+  if (helper = helpers.location) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.location); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "\" />\n		<i class=\"fa\"></i>\n	</label>\n	<div class=\"button-wrapper\">\n		<button class=\"action button\">Save</button>\n	</div>\n</form>";
+  return buffer;
+  });
+
+this["exports"]["views/settings/profile/profile.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, functionType="function";
+
+
+  buffer += "<h2>Public Profile</h2>\n<form>\n	<label class=\"gravatar\">\n		Avatar (provided by <a href=\"http://gravatar.com\">Gravatar</a>)\n		<img src=\""
+    + escapeExpression((helper = helpers.gravatar || (depth0 && depth0.gravatar),options={hash:{},data:data},helper ? helper.call(depth0, (depth0 && depth0.gravatarHash), "s=100", options) : helperMissing.call(depth0, "gravatar", (depth0 && depth0.gravatarHash), "s=100", options)))
+    + "\" width=\"100\" height=\"100\" alt=\"\" title=\"\" />\n	</label>\n	<label>\n		Name<br />\n		<input type=\"text\" class=\"name\" value=\"";
+  if (helper = helpers.name) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.name); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "\" />\n		<i class=\"fa\"></i>\n	</label>\n	<label>\n		URL<br />\n		<input type=\"text\" class=\"url\" value=\"";
+  if (helper = helpers.url) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.url); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "\" />\n		<i class=\"fa\"></i>\n	</label>\n	<label>\n		Location<br />\n		<input type=\"text\" class=\"location\" value=\"";
+  if (helper = helpers.location) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.location); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "\" />\n		<i class=\"fa\"></i>\n	</label>\n</form>";
+  return buffer;
+  });
+
+this["exports"]["views/settings/settings.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "";
+
+
+  buffer += "<h1>Account Settings</h1>\n<div class=\"row\">\n	<div class=\"small-12 medium-3 columns\">\n		<nav>\n			<div class=\"stack button-group\">\n				<a class=\"button secondary expand\" href=\"/#settings/profile\">Public Profile</a>\n				<a class=\"button secondary expand\" href=\"/#settings/authentication\">Authentication</a>\n				<a class=\"button secondary expand\" href=\"/#settings/notification\">Notifications</a>\n				<a class=\"button secondary expand\" href=\"/#settings/account\">Account</a>\n			</div>\n		</nav>\n	</div>\n	<div class=\"small-12 medium-9 columns\">\n		<main class=\"panel\">\n			\n		</main>\n	</div>\n</div>";
   return buffer;
   });
 
@@ -332,7 +476,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   if (helper = helpers.email) { stack1 = helper.call(depth0, {hash:{},data:data}); }
   else { helper = (depth0 && depth0.email); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
   buffer += escapeExpression(stack1)
-    + "\" />\n			</label>\n			<label class=\"auth-method\" aria-describedby=\"auth-method-tooltip\">\n				Auth Method\n				<span id=\"auth-method-tooltip\" data-tooltip=\"Determines how you log in to Collabish\">?</span>\n				<select>\n					<option value=\"password\">Password</option>\n					<option value=\"email\">Email</option>\n					<option value=\"twostep-email\">Two-Step (Password + Email)</option>\n					\n				</select>\n			</label>\n			<label class=\"password\">\n				Password (twice)\n				<input type=\"password\" />\n				<input type=\"password\" />\n			</label>\n			<label class=\"mobile\" aria-describedby=\"mobile-tooltip\">\n				Mobile Phone\n				<span id=\"mobile-tooltip\" data-tooltip=\"We will only ever text you to send you login codes\">?</span>\n				<div class=\"row collapse\">\n					<div class=\"small-1 columns\">\n						<span class=\"prefix\">+1</span>\n					</div>\n					<div class=\"small-11 columns\">\n						<input type=\"tel\" />\n					</div>\n				</div>\n			</label>\n			<div class=\"button-wrapper\">\n				<button class=\"button\">Sign Up</button>\n			</div>\n		</form>\n	</div>\n</main>\n\n<nav class=\"welcome\">\n	\n</nav>\n";
+    + "\" />\n			</label>\n			<label class=\"auth-method\" aria-describedby=\"auth-method-tooltip\">\n				Auth Method\n				<span id=\"auth-method-tooltip\" data-tooltip=\"Determines how you log in to Collabish\">?</span>\n				<select>\n					<option value=\"password\">Password</option>\n					<option value=\"email\">Email</option>\n					<option value=\"twostep-email\">Two-Step (Password + Email)</option>\n					\n				</select>\n			</label>\n			<label class=\"password\">\n				Password (twice)\n				<input type=\"password\" />\n				<input type=\"password\" />\n			</label>\n			<label class=\"mobile\" aria-describedby=\"mobile-tooltip\">\n				Mobile Phone\n				<span id=\"mobile-tooltip\" data-tooltip=\"We will only ever text you to send you login codes\">?</span>\n				<div class=\"row collapse\">\n					<div class=\"small-1 columns\">\n						<span class=\"prefix\">+1</span>\n					</div>\n					<div class=\"small-11 columns\">\n						<input type=\"tel\" />\n					</div>\n				</div>\n			</label>\n			<div class=\"button-wrapper\">\n				<button class=\"action button\">Sign Up</button>\n			</div>\n		</form>\n	</div>\n</main>\n\n<nav class=\"welcome\">\n	\n</nav>\n";
   return buffer;
   });
 
@@ -356,7 +500,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   var buffer = "";
 
 
-  buffer += "<header>\n	<h1>Collabish</h1>\n	<p>\n		A collaborative environment for writers to work, share, comment, and rework\n	</p>\n</header>\n\n<nav class=\"welcome\">\n	\n</nav>\n\n<main class=\"row\">\n	<div class=\"small-12 medium-8 columns\">\n		\n	</div>\n	<div class=\"small-12 medium-4 columns signup\">\n		<h2>Join The Community</h2>\n		<form>\n			<label class=\"username\">\n				Username <span></span>\n				<input type=\"text\" />\n			</label>\n			<label class=\"email\">\n				Email <span></span>\n				<input type=\"text\" />\n			</label>\n			<div class=\"button-wrapper\">\n				<button class=\"button\">Sign Up</button>\n			</div>\n		</form>\n	</div>\n</main>\n";
+  buffer += "<header>\n	<h1>Collabish</h1>\n	<p>\n		A collaborative environment for writers to work, share, comment, and rework\n	</p>\n</header>\n\n<nav class=\"welcome\">\n	\n</nav>\n\n<main class=\"row\">\n	<div class=\"small-12 medium-8 columns\">\n		\n	</div>\n	<div class=\"small-12 medium-4 columns signup\">\n		<h2>Join The Community</h2>\n		<form>\n			<label class=\"username\">\n				Username <span></span>\n				<input type=\"text\" />\n			</label>\n			<label class=\"email\">\n				Email <span></span>\n				<input type=\"text\" />\n			</label>\n			<div class=\"button-wrapper\">\n				<button class=\"action button\">Sign Up</button>\n			</div>\n		</form>\n	</div>\n</main>\n";
   return buffer;
   });
 

@@ -1,0 +1,65 @@
+
+section.quill {
+	margin: 1rem;
+	padding: 1rem;
+	background: #eee;
+	border: 1px #ccc solid;
+	box-shadow: 3px 3px 3px rgba(0,0,0,0.5);
+}
+
+	section.quill .toolbar {
+		padding-bottom: 1rem;
+	}
+
+		section.quill .toolbar a {
+			display: inline-block;
+			padding: .5rem;
+			margin-right: .5rem;
+			background: #eee;
+			border: 1px #ccc solid;
+			color: #444;
+			width: 2rem;
+			border-radius: .3rem;
+			transition: background .2s linear;
+		}
+
+			section.quill .toolbar a:hover {
+				background: #ddd;
+			}
+
+			section.quill .toolbar a.ql-active {
+				box-shadow:
+					2px 2px 4px rgba(0,0,0,0.1),
+					2px -2px 4px rgba(0,0,0,0.1),
+					-2px 2px 4px rgba(0,0,0,0.1),
+					-2px -2px 4px rgba(0,0,0,0.1);
+			}
+
+		section.quill .toolbar select {
+			width: 150px;
+			display: inline-block;
+			background: #eee;
+			border: 1px #ccc solid;
+			padding: .4rem;
+			border-radius: .3rem;
+			cursor: pointer;
+			margin: 0;
+			margin-right: .5rem;
+		}
+
+		section.quill .toolbar [data-tooltip]:after {
+			width: 90px;
+		}
+
+		section.quill .toolbar .ql-bold[data-tooltip]:after,
+		section.quill .toolbar .ql-italic[data-tooltip]:after {
+			width: 60px;
+		}
+
+	section.quill .editor {
+		height: 250px;
+		border: 1px #ccc solid;
+		font-size: 1.6rem;
+		background: #fff;
+		box-shadow: 3px 3px 3px rgba(0,0,0,0.3) inset;
+	}

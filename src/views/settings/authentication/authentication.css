@@ -1,0 +1,30 @@
+
+section.settings section.authentication {
+	max-width: 500px;
+}
+
+	section.settings section.authentication .gravatar {
+		margin-bottom: 15px;
+	}
+
+		section.settings section.authentication .gravatar img {
+			display: block;
+			width: 100px;
+			height: 100px;
+			margin-top: 5px;
+		}
+
+	section.settings section.authentication input,
+	section.settings section.authentication select {
+		width: calc(100% - 30px);
+	}
+
+	section.settings section.authentication input,
+	section.settings section.authentication i.fa {
+		display: inline-block;
+	}
+
+	section.settings section.authentication i.fa {
+		font-size: 1rem;
+		margin-left: 5px;
+	}

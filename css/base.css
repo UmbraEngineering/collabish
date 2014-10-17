@@ -31,3 +31,13 @@ input[type="search"], input[type="tel"], input[type="time"],
 input[type="url"], textarea, select {
 	margin-top: 5px;
 }
+
+button.action,
+.button.action {
+	background: #ff7941;
+}
+
+button.action:hover,
+.button.action:hover {
+	background: #ff712c;
+}

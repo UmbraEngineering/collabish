@@ -30,11 +30,6 @@ section.signup {
 
 		section.signup main .button-wrapper .button {
 			width: 100%;
-			background: #ff7941;
-		}
-
-		section.signup main .button-wrapper .button:hover {
-			background: #ff712c;
 		}
 
 			section.signup main .button-wrapper .button .progress {

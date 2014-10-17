@@ -1,0 +1,30 @@
+<h2>Authentication</h2>
+<form>
+	<label>
+		Authentication Method
+		<select class="auth-method">
+			<option value="password" {{#if authMethod.isPassword}}selected{{/if}}>Password</option>
+			<option value="email" {{#if authMethod.isEmail}}selected{{/if}}>Email only</option>
+			<option value="twostep-email" {{#if authMethod.isTwostepEmail}}selected{{/if}}>Two-step (Password + Email)</option>
+			{{!-- <option value="twostep-sms" {{#if authMethod.isTwostepSms}}selected{{/if}}>Two-step (Password + SMS)</option> --}}
+		</select>
+	</label>
+	<label>
+		Name<br />
+		<input type="text" class="name" value="{{ name }}" />
+		<i class="fa"></i>
+	</label>
+	<label>
+		URL<br />
+		<input type="text" class="url" value="{{ url }}" />
+		<i class="fa"></i>
+	</label>
+	<label>
+		Location<br />
+		<input type="text" class="location" value="{{ location }}" />
+		<i class="fa"></i>
+	</label>
+	<div class="button-wrapper">
+		<button class="action button">Save</button>
+	</div>
+</form>

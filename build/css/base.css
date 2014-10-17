@@ -4114,6 +4114,16 @@ input[type="url"], textarea, select {
 	margin-top: 5px;
 }
 
+button.action,
+.button.action {
+	background: #ff7941;
+}
+
+button.action:hover,
+.button.action:hover {
+	background: #ff712c;
+}
+
 /*!
  *  Font Awesome 4.2.0 by @davegandy - http://fontawesome.io - @fontawesome
  *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)

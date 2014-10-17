@@ -4,6 +4,7 @@ var auth  = require('common/auth');
 
 var HeaderView = module.exports = View.extend({
 
+	tagName: 'div',
 	template: 'views/header/header.hbs',
 
 	events: {

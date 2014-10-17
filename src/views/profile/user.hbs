@@ -1,0 +1,18 @@
+<div class="small-3 columns">
+	<div class="panel">
+		<img src="{{gravatar gravatarHash "s=250"}}" width="250" height="250" alt="" title="" />
+		<dl class="profile-info">
+			<dt>Name</dt>
+			<dd>{{ user.profile.name }}</dd>
+
+			<dt>URL</dt>
+			<dd><a href="{{ user.profile.url }}">{{ user.profile.url }}</a></dd>
+
+			<dt>Location</dt>
+			<dd>{{ user.profile.location }}</dd>
+		</dl>
+	</div>
+</div>
+<div class="small-9 columns">
+	{{!-- DocumentOverviewView --}}
+</div>

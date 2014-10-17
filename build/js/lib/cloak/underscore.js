@@ -46,7 +46,7 @@ _.mixin({
 	// _.pick, except this excepts an array of keys
 	// 
 	pickArray: function(obj, keys) {
-		return _.pick.apply([obj].concat(keys));
+		return _.pick.apply(_, [obj].concat(keys));
 	},
 	
 	// 

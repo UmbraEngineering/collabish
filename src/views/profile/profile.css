@@ -1,0 +1,16 @@
+
+section.profile {
+	padding-top: 3rem;
+}
+
+	section.profile main {
+		margin-top: 3rem;
+	}
+
+		section.profile main .panel {
+			box-shadow: 4px 4px 4px rgba(0,0,0,0.5);
+		}
+
+			section.profile main .profile-info {
+				padding-top: 2rem;
+			}

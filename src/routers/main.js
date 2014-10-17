@@ -51,19 +51,8 @@ var MainRouter = module.exports = Router.extend({
 	},
 
 	notfound: function() {
+		document.title = 'Not Found / Collabish';
 		this.renderView(new NotFoundView());
-	},
-
-	drawHeader: function() {
-		if (this.header) {
-			return;
-		}
-
-		this.header = new HeaderView();
-
-		// Render directly to the header element
-		this.header.$elem = this.$header;
-		this.header.draw();
 	},
 
 	drawFooter: function() {
@@ -74,6 +63,18 @@ var MainRouter = module.exports = Router.extend({
 		this.footer = new FooterView();
 		this.footer.$elem = this.$footer;
 		this.footer.draw();
+	},
+
+	drawHeader: function() {
+		if (this.header) {
+			return;
+		}
+
+		this.header = new HeaderView();
+
+		// Render directly to the header element
+		this.header.$elem.appendTo(this.$header);
+		this.header.draw();
 	},
 
 	removeHeader: function() {

@@ -4114,6 +4114,16 @@ input[type="url"], textarea, select {
 	margin-top: 5px;
 }
 
+button.action,
+.button.action {
+	background: #ff7941;
+}
+
+button.action:hover,
+.button.action:hover {
+	background: #ff712c;
+}
+
 /*!
  *  Font Awesome 4.2.0 by @davegandy - http://fontawesome.io - @fontawesome
  *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)
@@ -6098,11 +6108,6 @@ section.create-document {
 
 			section.create-document main .button-wrapper .button {
 				width: 100%;
-				background: #ff7941;
-			}
-
-			section.create-document main .button-wrapper .button:hover {
-				background: #ff712c;
 			}
 
 				section.create-document main .button-wrapper .button .progress {
@@ -6496,13 +6501,8 @@ section.dashboard section.document {
 
 			.login.modal form .button {
 				width: 100%;
-				background: #ff7941;
 				margin-bottom: 0;
 				position: relative;
-			}
-
-			.login.modal form .button:hover {
-				background: #ff712c;
 			}
 
 				.login.modal form .button .progress {
@@ -6585,13 +6585,8 @@ section.dashboard section.document {
 
 			.report.modal form .button {
 				width: 100%;
-				background: #ff7941;
 				margin-bottom: 0;
 				position: relative;
-			}
-
-			.report.modal form .button:hover {
-				background: #ff712c;
 			}
 
 				.report.modal form .button .progress {
@@ -6679,6 +6674,199 @@ section.notfound {
 		section.notfound nav a {
 			margin: 0 1rem;
 		}
+}
+
+
+section.profile {
+	padding-top: 3rem;
+}
+
+	section.profile main {
+		margin-top: 3rem;
+	}
+
+		section.profile main .panel {
+			box-shadow: 4px 4px 4px rgba(0,0,0,0.5);
+		}
+
+			section.profile main .profile-info {
+				padding-top: 2rem;
+			}
+
+
+section.quill {
+	margin: 1rem;
+	padding: 1rem;
+	background: #eee;
+	border: 1px #ccc solid;
+	box-shadow: 3px 3px 3px rgba(0,0,0,0.5);
+}
+
+	section.quill .toolbar {
+		padding-bottom: 1rem;
+	}
+
+		section.quill .toolbar a {
+			display: inline-block;
+			padding: .5rem;
+			margin-right: .5rem;
+			background: #eee;
+			border: 1px #ccc solid;
+			color: #444;
+			width: 2rem;
+			border-radius: .3rem;
+			transition: background .2s linear;
+		}
+
+			section.quill .toolbar a:hover {
+				background: #ddd;
+			}
+
+			section.quill .toolbar a.ql-active {
+				box-shadow:
+					2px 2px 4px rgba(0,0,0,0.1),
+					2px -2px 4px rgba(0,0,0,0.1),
+					-2px 2px 4px rgba(0,0,0,0.1),
+					-2px -2px 4px rgba(0,0,0,0.1);
+			}
+
+		section.quill .toolbar select {
+			width: 150px;
+			display: inline-block;
+			background: #eee;
+			border: 1px #ccc solid;
+			padding: .4rem;
+			border-radius: .3rem;
+			cursor: pointer;
+			margin: 0;
+			margin-right: .5rem;
+		}
+
+		section.quill .toolbar [data-tooltip]:after {
+			width: 90px;
+		}
+
+		section.quill .toolbar .ql-bold[data-tooltip]:after,
+		section.quill .toolbar .ql-italic[data-tooltip]:after {
+			width: 60px;
+		}
+
+	section.quill .editor {
+		height: 250px;
+		border: 1px #ccc solid;
+		font-size: 1.6rem;
+		background: #fff;
+		box-shadow: 3px 3px 3px rgba(0,0,0,0.3) inset;
+	}
+
+
+section.settings section.authentication {
+	max-width: 500px;
+}
+
+	section.settings section.authentication .gravatar {
+		margin-bottom: 15px;
+	}
+
+		section.settings section.authentication .gravatar img {
+			display: block;
+			width: 100px;
+			height: 100px;
+			margin-top: 5px;
+		}
+
+	section.settings section.authentication input,
+	section.settings section.authentication select {
+		width: calc(100% - 30px);
+	}
+
+	section.settings section.authentication input,
+	section.settings section.authentication i.fa {
+		display: inline-block;
+	}
+
+	section.settings section.authentication i.fa {
+		font-size: 1rem;
+		margin-left: 5px;
+	}
+
+
+section.settings section.profile-settings {
+	max-width: 500px;
+}
+
+	section.settings section.profile-settings .gravatar {
+		margin-bottom: 15px;
+	}
+
+		section.settings section.profile-settings .gravatar img {
+			display: block;
+			width: 100px;
+			height: 100px;
+			margin-top: 5px;
+		}
+
+	section.settings section.profile-settings input {
+		width: calc(100% - 30px);
+	}
+
+	section.settings section.profile-settings input,
+	section.settings section.profile-settings i.fa {
+		display: inline-block;
+	}
+
+	section.settings section.profile-settings i.fa {
+		font-size: 1rem;
+		margin-left: 5px;
+	}
+
+
+section.settings {
+	padding: 2rem;
+}
+
+	section.settings h1 {
+		padding: 1rem;
+		text-align: center;
+	}
+
+	section.settings > .row {
+		/**/
+	}
+
+		section.settings nav {
+			padding: .5rem;
+			margin: 0 2rem 0 0;
+			border: 1px #ccc solid;
+			background: #f3f3f3;
+			border-radius: .5rem;
+			box-shadow: 4px 4px 4px rgba(0,0,0,0.4);
+		}
+
+			section.settings nav a:not(:last-of-type) {
+				border-bottom: 1px #ccc solid;
+			}
+
+			section.settings nav a:not(:first-of-type) {
+				border-top: 1px #fff solid;
+			}
+
+		section.settings main {
+			box-shadow: 4px 4px 4px rgba(0,0,0,0.4);
+		}
+
+			section.settings main form {
+				margin-bottom: 0;
+				padding: 1rem;
+			}
+
+
+
+@media only screen and (max-width: 40em) {
+	section.settings nav {
+		margin-right: 0;
+		margin-bottom: 2rem;
+	}
 }
 
 
@@ -6914,11 +7102,6 @@ section.signup {
 
 		section.signup main .button-wrapper .button {
 			width: 100%;
-			background: #ff7941;
-		}
-
-		section.signup main .button-wrapper .button:hover {
-			background: #ff712c;
 		}
 
 			section.signup main .button-wrapper .button .progress {
@@ -7064,11 +7247,6 @@ section.welcome .signup {
 
 			section.welcome .signup form .button {
 				width: 100%;
-				background: #ff7941;
-			}
-
-			section.welcome .signup form .button:hover {
-				background: #ff712c;
 			}
 
 

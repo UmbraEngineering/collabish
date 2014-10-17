@@ -1,0 +1,27 @@
+<div class="toolbar">
+	<select class="ql-font">
+		<option value="sans-serif" selected>Sans Serif</option>
+		<option value="serif">Serif</option>
+		<option value="monospace">Monospace</option>
+	</select>
+	<a class="ql-bold" data-tooltip="Bold (Ctrl+B)">
+		<i class="fa fa-bold"></i>
+	</a>
+	<a class="ql-italic" data-tooltip="Italic (Ctrl+I)">
+		<i class="fa fa-italic"></i>
+	</a>
+	<a class="ql-underline" data-tooltip="Underline (Ctrl+U)">
+		<i class="fa fa-underline"></i>
+	</a>
+	<a class="ql-strike" data-tooltip="Strikethrough">
+		<i class="fa fa-strikethrough"></i>
+	</a>
+	{{#if buttons}}
+	{{#each buttons}}
+	{{{ this }}}
+	{{/each}}
+	{{/if}}
+</div>
+<div class="editor">
+	<div><br /></div>
+</div>
