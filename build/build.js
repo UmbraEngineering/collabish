@@ -43014,7 +43014,7 @@ var moment  = require('moment');
 
 var DocumentOverviewView = module.exports = View.extend({
 
-	className: 'document panel',
+	className: 'document-overview panel',
 	template: 'views/document-overview/document-overview.hbs',
 
 	events: {
