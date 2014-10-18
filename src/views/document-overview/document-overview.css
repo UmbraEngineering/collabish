@@ -53,3 +53,11 @@ section.document-overview {
 			float: right;
 			margin: 0;
 		}
+
+
+
+@media only screen and (max-width: 40em) {
+	section.document-overview h3 {
+		font-size: 1.2rem;
+	}
+}

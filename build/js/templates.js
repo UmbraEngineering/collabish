@@ -181,7 +181,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
     + escapeExpression((helper = helpers.gravatar || (depth0 && depth0.gravatar),options={hash:{},data:data},helper ? helper.call(depth0, (depth0 && depth0.gravatarHash), "s=32", options) : helperMissing.call(depth0, "gravatar", (depth0 && depth0.gravatarHash), "s=32", options)))
     + "\" width=\"32\" height=\"32\" alt=\"\" title=\"\" />\n		"
     + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.user)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + "\n	</a>\n	<div class=\"icons\">\n		<a class=\"create\" href=\"/#create\">\n			<span data-tooltip=\"Create Document\">\n				<i class=\"fa fa-plus-circle\"></i>\n			</span>\n		</a>\n		<a class=\"inbox\" href=\"/#inbox\">\n			<span data-tooltip=\"Inbox\">\n				<i class=\"fa fa-inbox\"></i>\n			</span>\n			<span class=\"notification\"></span>\n		</a>\n		<a class=\"settings\" href=\"/#settings\">\n			<span data-tooltip=\"Account Settings\">\n				<i class=\"fa fa-gears\"></i>\n			</span>\n		</a>\n		<a class=\"signout\">\n			<span data-tooltip=\"Sign Out\">\n				<i class=\"fa fa-sign-out\"></i>\n			</span>\n		</a>\n	</div>\n</div>\n";
+    + "\n	</a>\n	<div class=\"icons\">\n		<a class=\"create\" href=\"/#create\">\n			<span data-tooltip=\"Create Document\">\n				<i class=\"fa fa-plus-circle\"></i>\n			</span>\n		</a>\n		<a class=\"search\" href=\"/#search\">\n			<span data-tooltip=\"Search Documents\">\n				<i class=\"fa fa-search\"></i>\n			</span>\n		</a>\n		<a class=\"inbox\" href=\"/#inbox\">\n			<span data-tooltip=\"Inbox\">\n				<i class=\"fa fa-inbox\"></i>\n			</span>\n			<span class=\"notification\"></span>\n		</a>\n		<a class=\"settings\" href=\"/#settings\">\n			<span data-tooltip=\"Account Settings\">\n				<i class=\"fa fa-gears\"></i>\n			</span>\n		</a>\n		<a class=\"signout\">\n			<span data-tooltip=\"Sign Out\">\n				<i class=\"fa fa-sign-out\"></i>\n			</span>\n		</a>\n	</div>\n</div>\n";
   return buffer;
   });
 
@@ -292,7 +292,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   var buffer = "", stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, functionType="function";
 
 
-  buffer += "<div class=\"small-3 columns\">\n	<div class=\"panel\">\n		<img src=\""
+  buffer += "<div class=\"small-12 medium-3 columns basic\">\n	<div class=\"panel\">\n		<img src=\""
     + escapeExpression((helper = helpers.gravatar || (depth0 && depth0.gravatar),options={hash:{},data:data},helper ? helper.call(depth0, (depth0 && depth0.gravatarHash), "s=250", options) : helperMissing.call(depth0, "gravatar", (depth0 && depth0.gravatarHash), "s=250", options)))
     + "\" width=\"250\" height=\"250\" alt=\"\" title=\"\" />\n		<dl class=\"profile-info\">\n			<dt>Name</dt>\n			<dd>"
     + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.user)),stack1 == null || stack1 === false ? stack1 : stack1.profile)),stack1 == null || stack1 === false ? stack1 : stack1.name)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
@@ -302,7 +302,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
     + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.user)),stack1 == null || stack1 === false ? stack1 : stack1.profile)),stack1 == null || stack1 === false ? stack1 : stack1.url)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
     + "</a></dd>\n\n			<dt>Location</dt>\n			<dd>"
     + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.user)),stack1 == null || stack1 === false ? stack1 : stack1.profile)),stack1 == null || stack1 === false ? stack1 : stack1.location)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + "</dd>\n		</dl>\n	</div>\n</div>\n<div class=\"small-9 columns\">\n	\n</div>";
+    + "</dd>\n		</dl>\n	</div>\n</div>\n<div class=\"small-12 medium-9 columns documents\">\n	\n</div>";
   return buffer;
   });
 

@@ -1,9 +1,10 @@
 ;require._modules["/views/profile/profile.js"] = (function() { var __filename = "/views/profile/profile.js"; var __dirname = "/views/profile"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/profile/profile.js  == */ var __module__ = function() { 
  
-var _        = require('cloak/underscore');
-var View     = require('cloak/view');
-var auth     = require('common/auth');
+var _                     = require('cloak/underscore');
+var View                  = require('cloak/view');
+var auth                  = require('common/auth');
+var DocumentOverviewView  = require('views/document-overview/document-overview');
 
 var ProfileView = module.exports = View.extend({
 
@@ -17,8 +18,9 @@ var ProfileView = module.exports = View.extend({
 	},
 
 	initialize: function(username) {
-		this.user = null;
-		this.username = username;
+		this.user       = null;
+		this.username   = username;
+		this.documents  = null;
 	},
 
 	draw: function() {
@@ -27,6 +29,7 @@ var ProfileView = module.exports = View.extend({
 		}));
 
 		this.$main = this.$('main');
+
 		this.$main.spin(true, { size: 'large' });
 
 		this.bindEvents();
@@ -46,6 +49,19 @@ var ProfileView = module.exports = View.extend({
 		};
 
 		this.$main.html(this.render(data, 'userTemplate'));
+		
+		var $documents = this.$documents = this.$('.documents');
+		var documents = this.documents;
+
+		if (documents.len()) {
+			documents.forEach(function(doc) {
+				var view = new DocumentOverviewView(doc);
+				view.$elem.appendTo($documents);
+				view.draw();
+			});
+		} else {
+			$documents.html('<h2>This user has no visible documents</h2>');
+		}
 	},
 
 	showNotfound: function() {

@@ -32,6 +32,7 @@
 	}
 
 	#wrapper > header .create [data-tooltip]:after,
+	#wrapper > header .search [data-tooltip]:after,
 	#wrapper > header .settings [data-tooltip]:after {
 		width: 120px;
 	}
@@ -120,6 +121,6 @@
 		#wrapper > header .controls .icons a {
 			display: inline-block;
 			float: none;
-			margin: 0 2rem;
+			margin: 0 1.15rem;
 		}
 }

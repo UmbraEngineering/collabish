@@ -47,3 +47,19 @@ Document.find = function(data) {
 			return (new Document.Collection()).add(res.body);
 		});
 };
+
+// 
+// Do a query to find documents by a given user
+// 
+// @param {user} the user's id or user model
+// @return promise
+// 
+Document.findByOwner = function(user) {
+	if (user instanceof User) {
+		return user.fetchDocuments();
+	}
+
+	return Document.find({
+		filter: {owner: user}
+	});
+};

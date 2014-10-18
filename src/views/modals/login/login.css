@@ -28,3 +28,11 @@
 					top: 20px;
 					right: 19px;
 				}
+
+
+
+@media only screen and (max-width: 40em) {
+	.modal.wrapper .login.modal {
+		margin-top: 1rem;
+	}
+}

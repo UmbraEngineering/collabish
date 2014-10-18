@@ -1,11 +1,11 @@
 ;require._modules["/models/user.js"] = (function() { var __filename = "/models/user.js"; var __dirname = "/models"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /models/user.js  == */ var __module__ = function() { 
  
-var Model     = require('cloak/model');
-var _         = require('cloak/underscore');
-var Request   = require('cloak/model-stores/dagger').Request;
-var md5       = require('common/md5');
-var Document  = require('models/document');
+var Model       = require('cloak/model');
+var _           = require('cloak/underscore');
+var Request     = require('cloak/model-stores/dagger').Request;
+var md5         = require('common/md5');
+var Document  /*= require('models/document')*/;
 
 var User = module.exports = Model.extend({
 
@@ -67,6 +67,9 @@ var User = module.exports = Model.extend({
 	}
 
 });
+
+// Late load this to avoid circular reference problems
+Document = require('models/document');
 
 // 
 // Do a query for users

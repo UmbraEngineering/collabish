@@ -27729,6 +27729,22 @@ Document.find = function(data) {
 			return (new Document.Collection()).add(res.body);
 		});
 };
+
+// 
+// Do a query to find documents by a given user
+// 
+// @param {user} the user's id or user model
+// @return promise
+// 
+Document.findByOwner = function(user) {
+	if (user instanceof User) {
+		return user.fetchDocuments();
+	}
+
+	return Document.find({
+		filter: {owner: user}
+	});
+};
  
  }; /* ==  End source for module /models/document.js  == */ return module; }());;
 ;require._modules["/models/inbox.js"] = (function() { var __filename = "/models/inbox.js"; var __dirname = "/models"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
@@ -27801,11 +27817,11 @@ Revision.find = function(data) {
 ;require._modules["/models/user.js"] = (function() { var __filename = "/models/user.js"; var __dirname = "/models"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /models/user.js  == */ var __module__ = function() { 
  
-var Model     = require('cloak/model');
-var _         = require('cloak/underscore');
-var Request   = require('cloak/model-stores/dagger').Request;
-var md5       = require('common/md5');
-var Document  = require('models/document');
+var Model       = require('cloak/model');
+var _           = require('cloak/underscore');
+var Request     = require('cloak/model-stores/dagger').Request;
+var md5         = require('common/md5');
+var Document  /*= require('models/document')*/;
 
 var User = module.exports = Model.extend({
 
@@ -27867,6 +27883,9 @@ var User = module.exports = Model.extend({
 	}
 
 });
+
+// Late load this to avoid circular reference problems
+Document = require('models/document');
 
 // 
 // Do a query for users
@@ -27999,19 +28018,27 @@ var DashboardRouter = module.exports = Router.extend({
 			return;
 		}
 
+		var user;
 		var view = new ProfileView(params.username);
 		var renderPromise = this.parent.renderView(view);
 
 		Promise.all([ User.findByUsername(params.username), renderPromise ])
 			.then(
-				function(user) {
-					view.user = user[0];
-					view.drawUser();
-				},
+				function(_user) { user = _user[0]; },
 				function() {
 					view.showNotfound();
+					return Promise.reject();
 				}
-			);
+			)
+			.then(function() {
+				return Document.findByOwner(user);
+			})
+			.then(function(docs) {
+				view.user = user;
+				view.documents = docs;
+
+				view.drawUser();
+			});
 	},
 
 // --------------------------------------------------------
@@ -28678,7 +28705,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
     + escapeExpression((helper = helpers.gravatar || (depth0 && depth0.gravatar),options={hash:{},data:data},helper ? helper.call(depth0, (depth0 && depth0.gravatarHash), "s=32", options) : helperMissing.call(depth0, "gravatar", (depth0 && depth0.gravatarHash), "s=32", options)))
     + "\" width=\"32\" height=\"32\" alt=\"\" title=\"\" />\n		"
     + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.user)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + "\n	</a>\n	<div class=\"icons\">\n		<a class=\"create\" href=\"/#create\">\n			<span data-tooltip=\"Create Document\">\n				<i class=\"fa fa-plus-circle\"></i>\n			</span>\n		</a>\n		<a class=\"inbox\" href=\"/#inbox\">\n			<span data-tooltip=\"Inbox\">\n				<i class=\"fa fa-inbox\"></i>\n			</span>\n			<span class=\"notification\"></span>\n		</a>\n		<a class=\"settings\" href=\"/#settings\">\n			<span data-tooltip=\"Account Settings\">\n				<i class=\"fa fa-gears\"></i>\n			</span>\n		</a>\n		<a class=\"signout\">\n			<span data-tooltip=\"Sign Out\">\n				<i class=\"fa fa-sign-out\"></i>\n			</span>\n		</a>\n	</div>\n</div>\n";
+    + "\n	</a>\n	<div class=\"icons\">\n		<a class=\"create\" href=\"/#create\">\n			<span data-tooltip=\"Create Document\">\n				<i class=\"fa fa-plus-circle\"></i>\n			</span>\n		</a>\n		<a class=\"search\" href=\"/#search\">\n			<span data-tooltip=\"Search Documents\">\n				<i class=\"fa fa-search\"></i>\n			</span>\n		</a>\n		<a class=\"inbox\" href=\"/#inbox\">\n			<span data-tooltip=\"Inbox\">\n				<i class=\"fa fa-inbox\"></i>\n			</span>\n			<span class=\"notification\"></span>\n		</a>\n		<a class=\"settings\" href=\"/#settings\">\n			<span data-tooltip=\"Account Settings\">\n				<i class=\"fa fa-gears\"></i>\n			</span>\n		</a>\n		<a class=\"signout\">\n			<span data-tooltip=\"Sign Out\">\n				<i class=\"fa fa-sign-out\"></i>\n			</span>\n		</a>\n	</div>\n</div>\n";
   return buffer;
   });
 
@@ -28789,7 +28816,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   var buffer = "", stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, functionType="function";
 
 
-  buffer += "<div class=\"small-3 columns\">\n	<div class=\"panel\">\n		<img src=\""
+  buffer += "<div class=\"small-12 medium-3 columns basic\">\n	<div class=\"panel\">\n		<img src=\""
     + escapeExpression((helper = helpers.gravatar || (depth0 && depth0.gravatar),options={hash:{},data:data},helper ? helper.call(depth0, (depth0 && depth0.gravatarHash), "s=250", options) : helperMissing.call(depth0, "gravatar", (depth0 && depth0.gravatarHash), "s=250", options)))
     + "\" width=\"250\" height=\"250\" alt=\"\" title=\"\" />\n		<dl class=\"profile-info\">\n			<dt>Name</dt>\n			<dd>"
     + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.user)),stack1 == null || stack1 === false ? stack1 : stack1.profile)),stack1 == null || stack1 === false ? stack1 : stack1.name)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
@@ -28799,7 +28826,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
     + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.user)),stack1 == null || stack1 === false ? stack1 : stack1.profile)),stack1 == null || stack1 === false ? stack1 : stack1.url)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
     + "</a></dd>\n\n			<dt>Location</dt>\n			<dd>"
     + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.user)),stack1 == null || stack1 === false ? stack1 : stack1.profile)),stack1 == null || stack1 === false ? stack1 : stack1.location)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + "</dd>\n		</dl>\n	</div>\n</div>\n<div class=\"small-9 columns\">\n	\n</div>";
+    + "</dd>\n		</dl>\n	</div>\n</div>\n<div class=\"small-12 medium-9 columns documents\">\n	\n</div>";
   return buffer;
   });
 
@@ -43457,9 +43484,10 @@ var NotFoundView = module.exports = View.extend({
 ;require._modules["/views/profile/profile.js"] = (function() { var __filename = "/views/profile/profile.js"; var __dirname = "/views/profile"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/profile/profile.js  == */ var __module__ = function() { 
  
-var _        = require('cloak/underscore');
-var View     = require('cloak/view');
-var auth     = require('common/auth');
+var _                     = require('cloak/underscore');
+var View                  = require('cloak/view');
+var auth                  = require('common/auth');
+var DocumentOverviewView  = require('views/document-overview/document-overview');
 
 var ProfileView = module.exports = View.extend({
 
@@ -43473,8 +43501,9 @@ var ProfileView = module.exports = View.extend({
 	},
 
 	initialize: function(username) {
-		this.user = null;
-		this.username = username;
+		this.user       = null;
+		this.username   = username;
+		this.documents  = null;
 	},
 
 	draw: function() {
@@ -43483,6 +43512,7 @@ var ProfileView = module.exports = View.extend({
 		}));
 
 		this.$main = this.$('main');
+
 		this.$main.spin(true, { size: 'large' });
 
 		this.bindEvents();
@@ -43502,6 +43532,19 @@ var ProfileView = module.exports = View.extend({
 		};
 
 		this.$main.html(this.render(data, 'userTemplate'));
+		
+		var $documents = this.$documents = this.$('.documents');
+		var documents = this.documents;
+
+		if (documents.len()) {
+			documents.forEach(function(doc) {
+				var view = new DocumentOverviewView(doc);
+				view.$elem.appendTo($documents);
+				view.draw();
+			});
+		} else {
+			$documents.html('<h2>This user has no visible documents</h2>');
+		}
 	},
 
 	showNotfound: function() {

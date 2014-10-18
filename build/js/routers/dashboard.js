@@ -84,19 +84,27 @@ var DashboardRouter = module.exports = Router.extend({
 			return;
 		}
 
+		var user;
 		var view = new ProfileView(params.username);
 		var renderPromise = this.parent.renderView(view);
 
 		Promise.all([ User.findByUsername(params.username), renderPromise ])
 			.then(
-				function(user) {
-					view.user = user[0];
-					view.drawUser();
-				},
+				function(_user) { user = _user[0]; },
 				function() {
 					view.showNotfound();
+					return Promise.reject();
 				}
-			);
+			)
+			.then(function() {
+				return Document.findByOwner(user);
+			})
+			.then(function(docs) {
+				view.user = user;
+				view.documents = docs;
+
+				view.drawUser();
+			});
 	},
 
 // --------------------------------------------------------

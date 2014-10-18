@@ -6250,6 +6250,14 @@ section.document-overview {
 		}
 
 
+
+@media only screen and (max-width: 40em) {
+	section.document-overview h3 {
+		font-size: 1.2rem;
+	}
+}
+
+
 #wrapper > footer {
 	position: absolute;
 	bottom: 0;
@@ -6336,6 +6344,7 @@ section.document-overview {
 	}
 
 	#wrapper > header .create [data-tooltip]:after,
+	#wrapper > header .search [data-tooltip]:after,
 	#wrapper > header .settings [data-tooltip]:after {
 		width: 120px;
 	}
@@ -6424,7 +6433,7 @@ section.document-overview {
 		#wrapper > header .controls .icons a {
 			display: inline-block;
 			float: none;
-			margin: 0 2rem;
+			margin: 0 1.15rem;
 		}
 }
 
@@ -6510,6 +6519,14 @@ section.document-overview {
 					top: 20px;
 					right: 19px;
 				}
+
+
+
+@media only screen and (max-width: 40em) {
+	.modal.wrapper .login.modal {
+		margin-top: 1rem;
+	}
+}
 
 
 .modal.wrapper .privacy.modal {
@@ -6680,6 +6697,15 @@ section.notfound {
 section.profile {
 	padding-top: 3rem;
 }
+	
+	section.profile h1,
+	section.profile h2 {
+		text-align: center;
+	}
+
+	section.profile h2 {
+		margin-top: 3rem;
+	}
 
 	section.profile main {
 		margin-top: 3rem;
@@ -6692,6 +6718,25 @@ section.profile {
 			section.profile main .profile-info {
 				padding-top: 2rem;
 			}
+
+
+
+@media only screen and (max-width: 40em) {
+	section.profile {
+		padding: 1.5rem 1rem;
+	}
+
+		section.profile main {
+			margin-top: 1.5rem;
+		}
+
+			section.profile .basic {
+				margin-bottom: 2rem;
+				padding-bottom: 2rem;
+				border-bottom: 1px #ccc solid;
+			}
+
+}
 
 
 section.quill {
