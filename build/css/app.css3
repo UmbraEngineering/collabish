@@ -6702,6 +6702,12 @@ section.notfound {
 section.profile {
 	padding-top: 3rem;
 }
+
+	section.profile .spinner {
+		width: 5rem;
+		height: 5rem;
+		margin: 3rem auto;
+	}
 	
 	section.profile h1,
 	section.profile h2 {

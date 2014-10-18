@@ -28829,7 +28829,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   if (helper = helpers.username) { stack1 = helper.call(depth0, {hash:{},data:data}); }
   else { helper = (depth0 && depth0.username); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
   buffer += escapeExpression(stack1)
-    + "</h1>\n</div>\n<main class=\"row\">\n	\n</main>";
+    + "</h1>\n</div>\n<main class=\"row\">\n	<div class=\"spinner\"></div>\n</main>";
   return buffer;
   });
 
@@ -43561,7 +43561,7 @@ var ProfileView = module.exports = View.extend({
 
 		this.$main = this.$('main');
 
-		this.$main.spin(true, { size: 'large' });
+		this.$('.spinner').spin(true, { size: 'large' });
 
 		this.bindEvents();
 	},

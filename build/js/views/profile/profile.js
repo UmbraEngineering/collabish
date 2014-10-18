@@ -30,7 +30,7 @@ var ProfileView = module.exports = View.extend({
 
 		this.$main = this.$('main');
 
-		this.$main.spin(true, { size: 'large' });
+		this.$('.spinner').spin(true, { size: 'large' });
 
 		this.bindEvents();
 	},
