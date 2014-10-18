@@ -28890,7 +28890,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   var buffer = "";
 
 
-  buffer += "<h1>Search</h1>\n<div class=\"row\">\n	<div class=\"panel\">\n		<form>\n			<label class=\"query\">\n				<input type=\"text\" />\n			</label>\n			\n			<hr />\n			\n			<label class=\"tags\">\n				Tags\n				\n			</label>\n			<label class=\"tags-type\">\n				Tagging Type\n				<div>\n					<input type=\"radio\" name=\"tags-type\" value=\"any\" checked /> Any\n					<input type=\"radio\" name=\"tags-type\" value=\"all\" /> All\n				</div>\n			</label>\n\n			<hr />\n\n			<label class=\"adult-content\">\n				Adult Content\n				<div>\n					<input type=\"radio\" name=\"adult-content\" value=\"yes\" /> Yes\n					<input type=\"radio\" name=\"adult-content\" value=\"no\" checked /> No\n					<input type=\"radio\" name=\"adult-content\" value=\"either\" /> Either\n				</div>\n			</label>\n\n			<hr />\n\n			<div class=\"button-wrapper\">\n				<button class=\"action button\"><i class=\"fa fa-search\"></i> Search</button>\n			</div>\n		</form>\n	</div>\n</div>";
+  buffer += "<h1>Search</h1>\n<div class=\"row\">\n	<div class=\"panel\">\n		<form>\n			<label class=\"query\">\n				<input type=\"text\" />\n			</label>\n			\n			<hr />\n			\n			<label class=\"tags\">\n				Tags\n				\n			</label>\n			<label class=\"tags-type\">\n				Tagging Type\n				<div>\n					<input type=\"radio\" name=\"tags-type\" value=\"any\" checked /> Any\n					<input type=\"radio\" name=\"tags-type\" value=\"all\" /> All\n				</div>\n			</label>\n\n			<hr />\n\n			<label class=\"adult-content\">\n				Adult Content\n				<div>\n					<input type=\"radio\" name=\"adult-content\" value=\"yes\" /> Yes\n					<input type=\"radio\" name=\"adult-content\" value=\"no\" checked /> No\n					<input type=\"radio\" name=\"adult-content\" value=\"either\" /> Either\n				</div>\n			</label>\n\n			<hr />\n\n			<div class=\"row dates\">\n				<div class=\"small-12 medium-6 columns\">\n					<label class=\"created\">\n						Create\n						<select>\n							<option value=\"any\" selected>Any Time</option>\n							<option value=\"today\">Today</option>\n							<option value=\"week\">Past Week</option>\n							<option value=\"month\">Past Month</option>\n						</select>\n					</label>\n				</div>\n				<div class=\"small-12 medium-6 columns\">\n					<label class=\"updated\">\n						Updated\n						<select>\n							<option value=\"any\" selected>Any Time</option>\n							<option value=\"today\">Today</option>\n							<option value=\"week\">Past Week</option>\n							<option value=\"month\">Past Month</option>\n						</select>\n					</label>\n				</div>\n			</div>\n\n			<hr />\n\n			<div class=\"button-wrapper\">\n				<button class=\"expand action button\"><i class=\"fa fa-search\"></i> Search</button>\n			</div>\n		</form>\n	</div>\n</div>";
   return buffer;
   });
 
@@ -43681,7 +43681,7 @@ var SearchView = module.exports = View.extend({
 	template: 'views/search/search.hbs',
 
 	events: {
-		// 
+		'click .action.button':    'search'
 	},
 
 	initialize: function(opts) {
@@ -43691,11 +43691,14 @@ var SearchView = module.exports = View.extend({
 	draw: function() {
 		this.$elem.html(this.render());
 
-		this.$query     = this.$('.query input');
-		this.$tags      = this.$('.tags');
-		this.$tagsType  = this.$('.tags-type input');
+		this.$query         = this.$('.query input');
+		this.$tags          = this.$('.tags');
+		this.$tagsType      = this.$('.tags-type input');
+		this.$adultContent  = this.$('.adult-content');
+		this.$created       = this.$('.created select');
+		this.$updated       = this.$('.updated select');
 
-		this.tagEditor = new TagEditorView();
+		this.tagEditor = new TagEditorView({ allowExclusion: true });
 		this.tagEditor.$elem.appendTo(this.$tags);
 		this.tagEditor.draw();
 
@@ -43707,6 +43710,12 @@ var SearchView = module.exports = View.extend({
 		}
 
 		this.bindEvents();
+	},
+
+	search: function(evt) {
+		if (evt.preventDefault) {
+			evt.preventDefault();
+		}
 	}
 
 });
@@ -44041,8 +44050,10 @@ var TagEditorView = module.exports = View.extend({
 		'keydown input':     'keydown',
 	},
 
-	initialize: function() {
+	initialize: function(opts) {
 		this.tags = [ ];
+		this.exlcudes = [ ];
+		this.opts = opts || { };
 	},
 
 	draw: function() {
@@ -44101,7 +44112,26 @@ var TagEditorView = module.exports = View.extend({
 	addTag: function(tag) {
 		tag = tag.replace(/^\s+/, '').replace(/\s+$/, '');
 
-		if (tag && this.tags.indexOf(tag) < 0) {
+		if (! tag) {
+			return;
+		}
+
+		if (this.tags.indexOf(tag) < 0) {
+			// Is this an exclusion?
+			if (tag.charAt(0) === '-') {
+				// Exclusions aren't allowed
+				if (! this.opts.allowExclusion) {
+					return;
+				}
+				// Already listed as an include
+				if (this.tags.indexOf(tag.slice(1)) >= 0) {
+					return;
+				}
+			}
+			// Already listed as an exclude
+			else if (this.tags.indexOf('-' + tag) >= 0) {
+				return;
+			}
 			this.tags.push(tag);
 		}
 
@@ -44110,7 +44140,8 @@ var TagEditorView = module.exports = View.extend({
 
 	drawTags: function() {
 		this.$tags.html(this.tags.map(function(tag) {
-			return '<span class="label round">' + tag + '</span>';
+			var exclude = (tag.charAt(0) === '-') ? ' exclude' : '';
+			return '<span class="label round' + exclude + '">' + tag + '</span>';
 		}).join(''));
 	}
 

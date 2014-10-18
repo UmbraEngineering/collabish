@@ -9192,6 +9192,10 @@ section.settings main form {
   margin: 5px;
 }
 
+.tag-editor .tags span.exclude {
+  background-color: #d44;
+}
+
 .tag-editor input[type="text"] {
   border: 0;
   padding: 0;

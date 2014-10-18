@@ -14,8 +14,10 @@ var TagEditorView = module.exports = View.extend({
 		'keydown input':     'keydown',
 	},
 
-	initialize: function() {
+	initialize: function(opts) {
 		this.tags = [ ];
+		this.exlcudes = [ ];
+		this.opts = opts || { };
 	},
 
 	draw: function() {
@@ -74,7 +76,26 @@ var TagEditorView = module.exports = View.extend({
 	addTag: function(tag) {
 		tag = tag.replace(/^\s+/, '').replace(/\s+$/, '');
 
-		if (tag && this.tags.indexOf(tag) < 0) {
+		if (! tag) {
+			return;
+		}
+
+		if (this.tags.indexOf(tag) < 0) {
+			// Is this an exclusion?
+			if (tag.charAt(0) === '-') {
+				// Exclusions aren't allowed
+				if (! this.opts.allowExclusion) {
+					return;
+				}
+				// Already listed as an include
+				if (this.tags.indexOf(tag.slice(1)) >= 0) {
+					return;
+				}
+			}
+			// Already listed as an exclude
+			else if (this.tags.indexOf('-' + tag) >= 0) {
+				return;
+			}
 			this.tags.push(tag);
 		}
 
@@ -83,7 +104,8 @@ var TagEditorView = module.exports = View.extend({
 
 	drawTags: function() {
 		this.$tags.html(this.tags.map(function(tag) {
-			return '<span class="label round">' + tag + '</span>';
+			var exclude = (tag.charAt(0) === '-') ? ' exclude' : '';
+			return '<span class="label round' + exclude + '">' + tag + '</span>';
 		}).join(''));
 	}
 

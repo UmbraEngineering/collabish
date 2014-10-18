@@ -12,7 +12,7 @@ var SearchView = module.exports = View.extend({
 	template: 'views/search/search.hbs',
 
 	events: {
-		// 
+		'click .action.button':    'search'
 	},
 
 	initialize: function(opts) {
@@ -22,11 +22,14 @@ var SearchView = module.exports = View.extend({
 	draw: function() {
 		this.$elem.html(this.render());
 
-		this.$query     = this.$('.query input');
-		this.$tags      = this.$('.tags');
-		this.$tagsType  = this.$('.tags-type input');
+		this.$query         = this.$('.query input');
+		this.$tags          = this.$('.tags');
+		this.$tagsType      = this.$('.tags-type input');
+		this.$adultContent  = this.$('.adult-content');
+		this.$created       = this.$('.created select');
+		this.$updated       = this.$('.updated select');
 
-		this.tagEditor = new TagEditorView();
+		this.tagEditor = new TagEditorView({ allowExclusion: true });
 		this.tagEditor.$elem.appendTo(this.$tags);
 		this.tagEditor.draw();
 
@@ -38,6 +41,12 @@ var SearchView = module.exports = View.extend({
 		}
 
 		this.bindEvents();
+	},
+
+	search: function(evt) {
+		if (evt.preventDefault) {
+			evt.preventDefault();
+		}
 	}
 
 });
