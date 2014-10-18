@@ -74,7 +74,7 @@ var TagEditorView = module.exports = View.extend({
 	addTag: function(tag) {
 		tag = tag.replace(/^\s+/, '').replace(/\s+$/, '');
 
-		if (this.tags.indexOf(tag) < 0) {
+		if (tag && this.tags.indexOf(tag) < 0) {
 			this.tags.push(tag);
 		}
 

@@ -1,0 +1,41 @@
+<h1>Search</h1>
+<div class="row">
+	<div class="panel">
+		<form>
+			<label class="query">
+				<input type="text" />
+			</label>
+			
+			<hr />
+			
+			<label class="tags">
+				Tags
+				{{!-- TagEditorView --}}
+			</label>
+			<label class="tags-type">
+				Tagging Type
+				<div>
+					<input type="radio" name="tags-type" value="any" checked /> Any
+					<input type="radio" name="tags-type" value="all" /> All
+				</div>
+			</label>
+
+			<hr />
+
+			<label class="adult-content">
+				Adult Content
+				<div>
+					<input type="radio" name="adult-content" value="yes" /> Yes
+					<input type="radio" name="adult-content" value="no" checked /> No
+					<input type="radio" name="adult-content" value="either" /> Either
+				</div>
+			</label>
+
+			<hr />
+
+			<div class="button-wrapper">
+				<button class="action button"><i class="fa fa-search"></i> Search</button>
+			</div>
+		</form>
+	</div>
+</div>

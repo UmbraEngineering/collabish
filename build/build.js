@@ -2759,7 +2759,10 @@ exports.config = {
 	removeFromCollectionOnDelete: true,
 
 	// The default tag name for view elements
-	viewTag: 'div'
+	viewTag: 'div',
+
+	// Do not fire router functions for state changes only involving querystrings
+	ignoreQueryString: true
 };
 
 // 
@@ -4088,14 +4091,14 @@ var Router = module.exports = AppObject.extend({
 	// @alias History.pushState
 	// 
 	pushState: function(data, title, url) {
-		return History.pushState(data, title, url);
+		return History.pushState(data, title || document.title, url);
 	},
 
 	// 
 	// @alias History.replaceState
 	// 
 	replaceState: function(data, title, url) {
-		return History.replaceState(data, title, url);
+		return History.replaceState(data, title || document.title, url);
 	},
 
 	// 
@@ -4246,8 +4249,13 @@ var Router = module.exports = AppObject.extend({
 			isAnchor: this._isAnchor
 		};
 
+		var href = state.hash;
+		if (cloak.config.ignoreQueryString) {
+			href = href.split('?')[0];
+		}
+
 		// If the currently tracked url is the one we're already on, emit an event and move on
-		if (state.hash === this.topLevel._currentUrl) {
+		if (href === this.topLevel._currentUrl) {
 			if (this._currentRoute) {
 				var params = this._currentRoute.params;
 				var href = this._currentRoute.href;
@@ -27935,6 +27943,7 @@ User.current = function() {
 ;require._modules["/routers/dashboard.js"] = (function() { var __filename = "/routers/dashboard.js"; var __dirname = "/routers"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /routers/dashboard.js  == */ var __module__ = function() { 
  
+var purl                = require('purl');
 var cloak               = require('cloak');
 var Router              = require('cloak/router');
 var auth                = require('common/auth');
@@ -27942,6 +27951,7 @@ var User                = require('models/user');
 var DashboardView       = require('views/dashboard/dashboard');
 var CreateDocumentView  = require('views/create-document/create-document');
 var ProfileView         = require('views/profile/profile');
+var SearchView          = require('views/search/search');
 var QuillView           = require('views/quill/quill');
 var Request             = require('cloak/model-stores/dagger').Request;
 
@@ -27953,6 +27963,7 @@ var DashboardRouter = module.exports = Router.extend({
 		'/dashboard':       'dashboard',
 		'/create':          'createDocument',
 		'/user/:username':  'profile',
+		'/search':          'search',
 		'/quill':           'quill'
 	},
 
@@ -28039,6 +28050,18 @@ var DashboardRouter = module.exports = Router.extend({
 
 				view.drawUser();
 			});
+	},
+
+// --------------------------------------------------------
+
+	search: function() {
+		document.title = 'Search Documents / Collabish';
+
+		var view = new SearchView({
+			query: purl(location).param()
+		});
+
+		this.parent.renderView(view);
 	},
 
 // --------------------------------------------------------
@@ -28858,6 +28881,16 @@ function program2(depth0,data) {
   stack1 = helpers['if'].call(depth0, (depth0 && depth0.buttons), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "\n</div>\n<div class=\"editor\">\n	<div><br /></div>\n</div>";
+  return buffer;
+  });
+
+this["exports"]["views/search/search.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "";
+
+
+  buffer += "<h1>Search</h1>\n<div class=\"row\">\n	<div class=\"panel\">\n		<form>\n			<label class=\"query\">\n				<input type=\"text\" />\n			</label>\n			\n			<hr />\n			\n			<label class=\"tags\">\n				Tags\n				\n			</label>\n			<label class=\"tags-type\">\n				Tagging Type\n				<div>\n					<input type=\"radio\" name=\"tags-type\" value=\"any\" checked /> Any\n					<input type=\"radio\" name=\"tags-type\" value=\"all\" /> All\n				</div>\n			</label>\n\n			<hr />\n\n			<label class=\"adult-content\">\n				Adult Content\n				<div>\n					<input type=\"radio\" name=\"adult-content\" value=\"yes\" /> Yes\n					<input type=\"radio\" name=\"adult-content\" value=\"no\" checked /> No\n					<input type=\"radio\" name=\"adult-content\" value=\"either\" /> Either\n				</div>\n			</label>\n\n			<hr />\n\n			<div class=\"button-wrapper\">\n				<button class=\"action button\"><i class=\"fa fa-search\"></i> Search</button>\n			</div>\n		</form>\n	</div>\n</div>";
   return buffer;
   });
 
@@ -43634,6 +43667,51 @@ var QuillView = module.exports = View.extend({
 });
  
  }; /* ==  End source for module /views/quill/quill.js  == */ return module; }());;
+;require._modules["/views/search/search.js"] = (function() { var __filename = "/views/search/search.js"; var __dirname = "/views/search"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/search/search.js  == */ var __module__ = function() { 
+ 
+var _              = require('cloak/underscore');
+var View           = require('cloak/view');
+var auth           = require('common/auth');
+var TagEditorView  = require('views/tag-editor/tag-editor');
+
+var SearchView = module.exports = View.extend({
+
+	className: 'search',
+	template: 'views/search/search.hbs',
+
+	events: {
+		// 
+	},
+
+	initialize: function(opts) {
+		this.query = opts.query;
+	},
+
+	draw: function() {
+		this.$elem.html(this.render());
+
+		this.$query     = this.$('.query input');
+		this.$tags      = this.$('.tags');
+		this.$tagsType  = this.$('.tags-type input');
+
+		this.tagEditor = new TagEditorView();
+		this.tagEditor.$elem.appendTo(this.$tags);
+		this.tagEditor.draw();
+
+		if (this.query) {
+			if (this.query.tags) {
+				var addTag = this.tagEditor.addTag.bind(this.tagEditor);
+				this.query.tags.split(',').forEach(addTag);
+			}
+		}
+
+		this.bindEvents();
+	}
+
+});
+ 
+ }; /* ==  End source for module /views/search/search.js  == */ return module; }());;
 ;require._modules["/views/settings/account/account.js"] = (function() { var __filename = "/views/settings/account/account.js"; var __dirname = "/views/settings/account"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/settings/account/account.js  == */ var __module__ = function() { 
  
@@ -44023,7 +44101,7 @@ var TagEditorView = module.exports = View.extend({
 	addTag: function(tag) {
 		tag = tag.replace(/^\s+/, '').replace(/\s+$/, '');
 
-		if (this.tags.indexOf(tag) < 0) {
+		if (tag && this.tags.indexOf(tag) < 0) {
 			this.tags.push(tag);
 		}
 

@@ -6805,6 +6805,29 @@ section.quill {
 	}
 
 
+section.search {
+	padding-top: 3rem;
+}
+
+	section.search h1 {
+		text-align: center;
+	}
+
+	section.search .panel {
+		box-shadow: 4px 4px 4px rgba(0,0,0,0.5);
+	}
+
+		section.search .tags-type,
+		section.search .tags-type div,
+		section.search .adult-content div {
+			padding-top: 1rem;
+		}
+
+		section.search input[type="radio"] {
+			margin-left: 2rem;
+		}
+
+
 section.settings section.authentication {
 	max-width: 500px;
 }

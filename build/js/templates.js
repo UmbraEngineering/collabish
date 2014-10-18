@@ -337,6 +337,16 @@ function program2(depth0,data) {
   return buffer;
   });
 
+this["exports"]["views/search/search.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "";
+
+
+  buffer += "<h1>Search</h1>\n<div class=\"row\">\n	<div class=\"panel\">\n		<form>\n			<label class=\"query\">\n				<input type=\"text\" />\n			</label>\n			\n			<hr />\n			\n			<label class=\"tags\">\n				Tags\n				\n			</label>\n			<label class=\"tags-type\">\n				Tagging Type\n				<div>\n					<input type=\"radio\" name=\"tags-type\" value=\"any\" checked /> Any\n					<input type=\"radio\" name=\"tags-type\" value=\"all\" /> All\n				</div>\n			</label>\n\n			<hr />\n\n			<label class=\"adult-content\">\n				Adult Content\n				<div>\n					<input type=\"radio\" name=\"adult-content\" value=\"yes\" /> Yes\n					<input type=\"radio\" name=\"adult-content\" value=\"no\" checked /> No\n					<input type=\"radio\" name=\"adult-content\" value=\"either\" /> Either\n				</div>\n			</label>\n\n			<hr />\n\n			<div class=\"button-wrapper\">\n				<button class=\"action button\"><i class=\"fa fa-search\"></i> Search</button>\n			</div>\n		</form>\n	</div>\n</div>";
+  return buffer;
+  });
+
 this["exports"]["views/settings/authentication/authentication.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};

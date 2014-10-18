@@ -1,4 +1,5 @@
 
+var purl                = require('purl');
 var cloak               = require('cloak');
 var Router              = require('cloak/router');
 var auth                = require('common/auth');
@@ -6,6 +7,7 @@ var User                = require('models/user');
 var DashboardView       = require('views/dashboard/dashboard');
 var CreateDocumentView  = require('views/create-document/create-document');
 var ProfileView         = require('views/profile/profile');
+var SearchView          = require('views/search/search');
 var QuillView           = require('views/quill/quill');
 var Request             = require('cloak/model-stores/dagger').Request;
 
@@ -17,6 +19,7 @@ var DashboardRouter = module.exports = Router.extend({
 		'/dashboard':       'dashboard',
 		'/create':          'createDocument',
 		'/user/:username':  'profile',
+		'/search':          'search',
 		'/quill':           'quill'
 	},
 
@@ -103,6 +106,18 @@ var DashboardRouter = module.exports = Router.extend({
 
 				view.drawUser();
 			});
+	},
+
+// --------------------------------------------------------
+
+	search: function() {
+		document.title = 'Search Documents / Collabish';
+
+		var view = new SearchView({
+			query: purl(location).param()
+		});
+
+		this.parent.renderView(view);
 	},
 
 // --------------------------------------------------------

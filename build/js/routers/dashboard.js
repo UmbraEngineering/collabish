@@ -1,6 +1,7 @@
 ;require._modules["/routers/dashboard.js"] = (function() { var __filename = "/routers/dashboard.js"; var __dirname = "/routers"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /routers/dashboard.js  == */ var __module__ = function() { 
  
+var purl                = require('purl');
 var cloak               = require('cloak');
 var Router              = require('cloak/router');
 var auth                = require('common/auth');
@@ -8,6 +9,7 @@ var User                = require('models/user');
 var DashboardView       = require('views/dashboard/dashboard');
 var CreateDocumentView  = require('views/create-document/create-document');
 var ProfileView         = require('views/profile/profile');
+var SearchView          = require('views/search/search');
 var QuillView           = require('views/quill/quill');
 var Request             = require('cloak/model-stores/dagger').Request;
 
@@ -19,6 +21,7 @@ var DashboardRouter = module.exports = Router.extend({
 		'/dashboard':       'dashboard',
 		'/create':          'createDocument',
 		'/user/:username':  'profile',
+		'/search':          'search',
 		'/quill':           'quill'
 	},
 
@@ -105,6 +108,18 @@ var DashboardRouter = module.exports = Router.extend({
 
 				view.drawUser();
 			});
+	},
+
+// --------------------------------------------------------
+
+	search: function() {
+		document.title = 'Search Documents / Collabish';
+
+		var view = new SearchView({
+			query: purl(location).param()
+		});
+
+		this.parent.renderView(view);
 	},
 
 // --------------------------------------------------------
