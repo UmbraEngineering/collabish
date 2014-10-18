@@ -9,22 +9,18 @@
 			{{!-- <option value="twostep-sms" {{#if authMethod.isTwostepSms}}selected{{/if}}>Two-step (Password + SMS)</option> --}}
 		</select>
 	</label>
-	<label>
-		Name<br />
-		<input type="text" class="name" value="{{ name }}" />
-		<i class="fa"></i>
+	{{#unless authMethod.isEmail}}
+	<label class="current-password">
+		Current Password<br />
+		<input type="password" />
 	</label>
-	<label>
-		URL<br />
-		<input type="text" class="url" value="{{ url }}" />
-		<i class="fa"></i>
-	</label>
-	<label>
-		Location<br />
-		<input type="text" class="location" value="{{ location }}" />
-		<i class="fa"></i>
+	{{/unless}}
+	<label class="new-password">
+		New Password<br />
+		<input type="password" />
+		<input type="password" />
 	</label>
 	<div class="button-wrapper">
-		<button class="action button">Save</button>
+		<button class="action button">Update Authentication Method</button>
 	</div>
 </form>

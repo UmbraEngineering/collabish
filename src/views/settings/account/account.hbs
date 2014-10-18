@@ -1,0 +1,33 @@
+<h2>Account Settings</h2>
+<p class="radius warning panel">
+	These actions can be potentially dangerous as using them poorly can lead to loss of data or losing access
+	to your account. Please use them with caution (or not at all, that works too...)
+</p>
+<form>
+	<label>
+		Username
+		<input type="text" class="username" value="{{ username }}" />
+	</label>
+	<button class="action button update-username">Update Username</button>
+</form>
+
+<hr />
+
+<form>
+	<label>
+		Email Address
+		<input type="email" class="email" value="{{ email }}" />
+	</label>
+	<button class="action button update-email">Confirm New Email</button>
+</form>
+
+<hr />
+
+<label class="delete">
+	Delete Account
+	<p class="radius warning panel">
+		This action is <strong>not</strong> reversable or recoverable; Your data will be lost forever.
+		Please make sure you mean it, as no amount of complaining or begging will bring your data back...
+	</p>
+	<button class="alert button delete-account">Delete Account</button>
+</label>

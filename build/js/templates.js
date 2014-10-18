@@ -347,15 +347,39 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   return buffer;
   });
 
+this["exports"]["views/settings/account/account.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, helper, functionType="function", escapeExpression=this.escapeExpression;
+
+
+  buffer += "<h2>Account Settings</h2>\n<p class=\"radius warning panel\">\n	These actions can be potentially dangerous as using them poorly can lead to loss of data or losing access\n	to your account. Please use them with caution (or not at all, that works too...)\n</p>\n<form>\n	<label>\n		Username\n		<input type=\"text\" class=\"username\" value=\"";
+  if (helper = helpers.username) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.username); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "\" />\n	</label>\n	<button class=\"action button update-username\">Update Username</button>\n</form>\n\n<hr />\n\n<form>\n	<label>\n		Email Address\n		<input type=\"email\" class=\"email\" value=\"";
+  if (helper = helpers.email) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.email); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  buffer += escapeExpression(stack1)
+    + "\" />\n	</label>\n	<button class=\"action button update-email\">Confirm New Email</button>\n</form>\n\n<hr />\n\n<label class=\"delete\">\n	Delete Account\n	<p class=\"radius warning panel\">\n		This action is <strong>not</strong> reversable or recoverable; Your data will be lost forever.\n		Please make sure you mean it, as no amount of complaining or begging will bring your data back...\n	</p>\n	<button class=\"alert button delete-account\">Delete Account</button>\n</label>\n";
+  return buffer;
+  });
+
 this["exports"]["views/settings/authentication/authentication.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
-  var buffer = "", stack1, helper, self=this, functionType="function", escapeExpression=this.escapeExpression;
+  var buffer = "", stack1, self=this;
 
 function program1(depth0,data) {
   
   
   return "selected";
+  }
+
+function program3(depth0,data) {
+  
+  
+  return "\n	<label class=\"current-password\">\n		Current Password<br />\n		<input type=\"password\" />\n	</label>\n	";
   }
 
   buffer += "<h2>Authentication</h2>\n<form>\n	<label>\n		Authentication Method\n		<select class=\"auth-method\">\n			<option value=\"password\" ";
@@ -367,19 +391,10 @@ function program1(depth0,data) {
   buffer += ">Email only</option>\n			<option value=\"twostep-email\" ";
   stack1 = helpers['if'].call(depth0, ((stack1 = (depth0 && depth0.authMethod)),stack1 == null || stack1 === false ? stack1 : stack1.isTwostepEmail), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += ">Two-step (Password + Email)</option>\n			\n		</select>\n	</label>\n	<label>\n		Name<br />\n		<input type=\"text\" class=\"name\" value=\"";
-  if (helper = helpers.name) { stack1 = helper.call(depth0, {hash:{},data:data}); }
-  else { helper = (depth0 && depth0.name); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
-  buffer += escapeExpression(stack1)
-    + "\" />\n		<i class=\"fa\"></i>\n	</label>\n	<label>\n		URL<br />\n		<input type=\"text\" class=\"url\" value=\"";
-  if (helper = helpers.url) { stack1 = helper.call(depth0, {hash:{},data:data}); }
-  else { helper = (depth0 && depth0.url); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
-  buffer += escapeExpression(stack1)
-    + "\" />\n		<i class=\"fa\"></i>\n	</label>\n	<label>\n		Location<br />\n		<input type=\"text\" class=\"location\" value=\"";
-  if (helper = helpers.location) { stack1 = helper.call(depth0, {hash:{},data:data}); }
-  else { helper = (depth0 && depth0.location); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
-  buffer += escapeExpression(stack1)
-    + "\" />\n		<i class=\"fa\"></i>\n	</label>\n	<div class=\"button-wrapper\">\n		<button class=\"action button\">Save</button>\n	</div>\n</form>";
+  buffer += ">Two-step (Password + Email)</option>\n			\n		</select>\n	</label>\n	";
+  stack1 = helpers.unless.call(depth0, ((stack1 = (depth0 && depth0.authMethod)),stack1 == null || stack1 === false ? stack1 : stack1.isEmail), {hash:{},inverse:self.noop,fn:self.program(3, program3, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n	<label class=\"new-password\">\n		New Password<br />\n		<input type=\"password\" />\n		<input type=\"password\" />\n	</label>\n	<div class=\"button-wrapper\">\n		<button class=\"action button\">Update Authentication Method</button>\n	</div>\n</form>";
   return buffer;
   });
 
@@ -413,7 +428,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   var buffer = "";
 
 
-  buffer += "<h1>Account Settings</h1>\n<div class=\"row\">\n	<div class=\"small-12 medium-3 columns\">\n		<nav>\n			<div class=\"stack button-group\">\n				<a class=\"button secondary expand\" href=\"/#settings/profile\">Public Profile</a>\n				<a class=\"button secondary expand\" href=\"/#settings/authentication\">Authentication</a>\n				<a class=\"button secondary expand\" href=\"/#settings/notification\">Notifications</a>\n				<a class=\"button secondary expand\" href=\"/#settings/account\">Account</a>\n			</div>\n		</nav>\n	</div>\n	<div class=\"small-12 medium-9 columns\">\n		<main class=\"panel\">\n			\n		</main>\n	</div>\n</div>";
+  buffer += "<h1>Settings</h1>\n<div class=\"row\">\n	<div class=\"small-12 medium-3 columns\">\n		<nav>\n			<div class=\"stack button-group\">\n				<a class=\"button secondary expand\" href=\"/#settings/profile\">Public Profile</a>\n				<a class=\"button secondary expand\" href=\"/#settings/authentication\">Authentication</a>\n				<a class=\"button secondary expand\" href=\"/#settings/notification\">Notifications</a>\n				<a class=\"button secondary expand\" href=\"/#settings/account\">Account</a>\n			</div>\n		</nav>\n	</div>\n	<div class=\"small-12 medium-9 columns\">\n		<main class=\"panel\">\n			\n		</main>\n	</div>\n</div>";
   return buffer;
   });
 

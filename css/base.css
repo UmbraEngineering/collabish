@@ -41,3 +41,8 @@ button.action:hover,
 .button.action:hover {
 	background: #ff712c;
 }
+
+.panel.warning {
+	border-color: #e3bfbf;
+	background-color: #fdf;
+}

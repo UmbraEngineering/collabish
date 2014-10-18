@@ -1,0 +1,20 @@
+
+section.settings section.account {
+	max-width: 700px;
+}
+
+	section.settings section.account .warning.panel {
+		margin-top: 2rem;
+	}
+
+	section.settings section.account form {
+		max-width: 500px;
+	}
+
+	section.settings section.account input {
+		width: calc(100% - 30px);
+	}
+
+	section.settings section.account label.delete {
+		padding: 1rem;
+	}

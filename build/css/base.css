@@ -4124,6 +4124,11 @@ button.action:hover,
 	background: #ff712c;
 }
 
+.panel.warning {
+	border-color: #e3bfbf;
+	background-color: #fdf;
+}
+
 /*!
  *  Font Awesome 4.2.0 by @davegandy - http://fontawesome.io - @fontawesome
  *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)

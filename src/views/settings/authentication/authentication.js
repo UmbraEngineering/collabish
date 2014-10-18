@@ -26,9 +26,8 @@ var AuthenticationView = module.exports = View.extend({
 			}
 		}));
 
-		this.$name      = this.$('input.name');
-		this.$url       = this.$('input.url');
-		this.$location  = this.$('input.location');
+		this.$currentPassword  = this.$('.current-password');
+		this.$newPassword      = this.$('.new-password');
 
 		this.bindEvents();
 	},

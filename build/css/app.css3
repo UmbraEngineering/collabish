@@ -4124,6 +4124,11 @@ button.action:hover,
 	background: #ff712c;
 }
 
+.panel.warning {
+	border-color: #e3bfbf;
+	background-color: #fdf;
+}
+
 /*!
  *  Font Awesome 4.2.0 by @davegandy - http://fontawesome.io - @fontawesome
  *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)
@@ -6826,6 +6831,27 @@ section.search {
 		section.search input[type="radio"] {
 			margin-left: 2rem;
 		}
+
+
+section.settings section.account {
+	max-width: 700px;
+}
+
+	section.settings section.account .warning.panel {
+		margin-top: 2rem;
+	}
+
+	section.settings section.account form {
+		max-width: 500px;
+	}
+
+	section.settings section.account input {
+		width: calc(100% - 30px);
+	}
+
+	section.settings section.account label.delete {
+		padding: 1rem;
+	}
 
 
 section.settings section.authentication {
