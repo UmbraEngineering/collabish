@@ -24,6 +24,7 @@ exports.open = ModalView.template({
 			}
 
 			var self = this;
+			var $report = this.$('div.report');
 			var subject = this.$('.subject').val();
 			var description = this.$('.description').val();
 
@@ -36,9 +37,20 @@ exports.open = ModalView.template({
 
 			this.disable(true);
 
-			// 
-			// 
-			// 
+			Request.send('POST', '/report-issue', {subject: subject, description: description})
+				.then(
+					function(res) {
+						self.disable(false);
+						$report.html('<p>Thank you for helping us make Collabish better</p>');
+						setTimeout(function() {
+							self.close();
+						}, 3000);
+					},
+					function(res) {
+						self.disable(false);
+						self.showError('Something went wrong, and we could not send your report');
+					}
+				);
 		},
 
 		showError: function(message) {

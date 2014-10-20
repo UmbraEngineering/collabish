@@ -6263,6 +6263,40 @@ section.document-overview {
 }
 
 
+section.document {
+	/**/
+}
+
+	section.document .spinner {
+		width: 10rem;
+		margin: 10rem auto;
+	}
+
+	section.document header {
+		margin: 3rem 2rem 2rem;
+	}
+
+		section.document header h1 {
+			text-align: center;
+		}
+
+	section.document .meta.panel {
+		box-shadow: 4px 4px 4px rgba(0,0,0,0.5);
+	}
+
+		section.document .meta.panel ul.collaborators {
+			/**/
+		}
+
+			section.document .meta.panel ul.collaborators li {
+				display: inline;
+			}
+
+			section.document .meta.panel ul.collaborators li:not(:last-of-type):after {
+				content: ', ';
+			}
+
+
 #wrapper > footer {
 	position: absolute;
 	bottom: 0;

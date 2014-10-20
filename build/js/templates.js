@@ -157,6 +157,46 @@ function program9(depth0,data) {
   return buffer;
   });
 
+this["exports"]["views/document/document.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, helper, options, functionType="function", escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing, self=this;
+
+function program1(depth0,data) {
+  
+  
+  return "\n					<em>No collaborators</em>\n					";
+  }
+
+function program3(depth0,data) {
+  
+  var buffer = "", stack1;
+  buffer += "\n						<li><a href=\"/#user/"
+    + escapeExpression(((stack1 = (depth0 && depth0._id)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\">"
+    + escapeExpression(((stack1 = (depth0 && depth0.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "</a></li>\n						";
+  return buffer;
+  }
+
+  buffer += "<header>\n	<h1>"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.name)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "</h1>\n</header>\n<main class=\"row\">\n	<div class=\"small-12 medium-4 columns\">\n		<div class=\"meta panel\">\n			<dl>\n				<dt>Author</dt>\n				<dd>"
+    + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.owner)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "</dd>\n\n				<dt>Created</dt>\n				<dd>"
+    + escapeExpression((helper = helpers.fromNow || (depth0 && depth0.fromNow),options={hash:{},data:data},helper ? helper.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.created), options) : helperMissing.call(depth0, "fromNow", ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.created), options)))
+    + "</dd>\n\n				<dt>Updated</dt>\n				<dd>"
+    + escapeExpression((helper = helpers.fromNow || (depth0 && depth0.fromNow),options={hash:{},data:data},helper ? helper.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.updated), options) : helperMissing.call(depth0, "fromNow", ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.updated), options)))
+    + "</dd>\n\n				<dt>Collaborators</dt>\n				<dd>\n					";
+  stack1 = helpers.unless.call(depth0, ((stack1 = (depth0 && depth0.collaborators)),stack1 == null || stack1 === false ? stack1 : stack1.length), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n					<ul class=\"collaborators\">\n						";
+  stack1 = helpers.each.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.collaborators), {hash:{},inverse:self.noop,fn:self.program(3, program3, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n					</ul>\n				</dd>\n			</dl>\n			\n		</div>\n	</div>	\n</main>";
+  return buffer;
+  });
+
 this["exports"]["views/footer/footer.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
@@ -227,7 +267,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   
 
 
-  return "<h3>Report a Problem</h3>\n<div class=\"error hide\"></div>\n<p>\n	This form is so you can report a problem or bug with our application. Is something broken? Let us\n	know about it below.\n</p>\n<form>\n	<label>\n		Subject\n		<input type=\"text\" class=\"subject\" />\n	</label>\n	<label>\n		Description\n		<textarea class=\"description\"></textarea>\n	</label>\n	<div class=\"button-wrapper\">\n		<button class=\"action button\">Send Report</button>\n	</div>\n</form>";
+  return "<div class=\"report\">\n	<h3>Report a Problem</h3>\n	<div class=\"error hide\"></div>\n	<p>\n		This form is so you can report a problem or bug with our application. Is something broken? Let us\n		know about it below.\n	</p>\n	<form>\n		<label>\n			Subject\n			<input type=\"text\" class=\"subject\" />\n		</label>\n		<label>\n			Description\n			<textarea class=\"description\"></textarea>\n		</label>\n		<div class=\"button-wrapper\">\n			<button class=\"action button\">Send Report</button>\n		</div>\n	</form>\n</div>";
   });
 
 this["exports"]["views/modals/terms/terms.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {

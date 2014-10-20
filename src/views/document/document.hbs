@@ -1,0 +1,34 @@
+<header>
+	<h1>{{ document.name }}</h1>
+</header>
+<main class="row">
+	<div class="small-12 medium-4 columns">
+		<div class="meta panel">
+			<dl>
+				<dt>Author</dt>
+				<dd>{{ document.owner.username }}</dd>
+
+				<dt>Created</dt>
+				<dd>{{fromNow document.created }}</dd>
+
+				<dt>Updated</dt>
+				<dd>{{fromNow document.updated }}</dd>
+
+				<dt>Collaborators</dt>
+				<dd>
+					{{#unless collaborators.length}}
+					<em>No collaborators</em>
+					{{/unless}}
+					<ul class="collaborators">
+						{{#each document.collaborators}}
+						<li><a href="/#user/{{ this._id }}">{{ this.username }}</a></li>
+						{{/each}}
+					</ul>
+				</dd>
+			</dl>
+			{{!-- <p class="author">Author: <span>{{ document.owner.username }}</span></p>
+			<p class="created">Created: {{fromNow document.created }}</p>
+			<p class="updated">Updated: {{fromNow document.updated }}</p> --}}
+		</div>
+	</div>	
+</main>

@@ -543,16 +543,23 @@ var moment      = require('moment');
 var handlebars  = require('handlebars');
 
 handlebars.registerHelper('moment', function(date, format) {
-	return moment(date).format(format);
+	return timeTag(date, moment(date).format(format));
 });
 
 handlebars.registerHelper('now', function(format) {
-	return moment().format(format);
+	date = moment();
+	return timeTag(date.utc().format(), date.format(format));
 });
 
 handlebars.registerHelper('fromNow', function(date) {
-	return moment(date).fromNow();
+	return timeTag(date, moment(date).fromNow());
 });
+
+function timeTag(datetime, text) {
+	return new handlebars.SafeString(
+		'<time datetime="' + datetime + '" data-tooltip="' + moment(datetime).format('lll') + '">' + text + '</time>'
+	);
+}
  
  }; /* ==  End source for module /common/handlebars-helpers/moment.js  == */ return module; }());;
 ;require._modules["/common/icons/index.js"] = (function() { var __filename = "/common/icons/index.js"; var __dirname = "/common/icons"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
@@ -28073,6 +28080,62 @@ var DashboardRouter = module.exports = Router.extend({
 
 }); 
  }; /* ==  End source for module /routers/dashboard.js  == */ return module; }());;
+;require._modules["/routers/document.js"] = (function() { var __filename = "/routers/document.js"; var __dirname = "/routers"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /routers/document.js  == */ var __module__ = function() { 
+ 
+var purl          = require('purl');
+var cloak         = require('cloak');
+var Router        = require('cloak/router');
+var auth          = require('common/auth');
+var User          = require('models/user');
+var DocumentView  = require('views/document/document');
+var Request       = require('cloak/model-stores/dagger').Request;
+
+var Document = require('models/document');
+
+var DocumentRouter = module.exports = Router.extend({
+
+	routes: {
+		'/document/:id':       'overview',
+	},
+
+	initialize: function() {
+		// 
+	},
+
+// --------------------------------------------------------
+	
+	// 
+	// Document overview screen
+	// 
+	overview: function(params) {
+		document.title = 'Document / Collabish';
+
+		if (! auth.user) {
+			this.redirectTo('/');
+			return;
+		}
+
+		var view = new DocumentView();
+		var renderPromise = this.parent.renderView(view);
+
+		var documentQuery = Document.find({
+			filter: {
+				_id: params.id
+			},
+			populate: 'owner collaborators'
+		});
+
+		Promise.all([ documentQuery, renderPromise ])
+			.then(function(results) {
+				view.document = results[0].models[0];
+				document.title = view.document.get('name') + ' / Collabish';
+				view.drawDocument();
+			});
+	}
+
+}); 
+ }; /* ==  End source for module /routers/document.js  == */ return module; }());;
 ;require._modules["/routers/main.js"] = (function() { var __filename = "/routers/main.js"; var __dirname = "/routers"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /routers/main.js  == */ var __module__ = function() { 
  
@@ -28508,6 +28571,7 @@ exports.run = function(opts) {
 			.use(require('routers/welcome'))
 			.use(require('routers/dashboard'))
 			.use(require('routers/settings'))
+			.use(require('routers/document'))
 			.start();
 	})
 	.catch(function(err) {
@@ -28704,6 +28768,46 @@ function program9(depth0,data) {
   return buffer;
   });
 
+this["exports"]["views/document/document.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, helper, options, functionType="function", escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing, self=this;
+
+function program1(depth0,data) {
+  
+  
+  return "\n					<em>No collaborators</em>\n					";
+  }
+
+function program3(depth0,data) {
+  
+  var buffer = "", stack1;
+  buffer += "\n						<li><a href=\"/#user/"
+    + escapeExpression(((stack1 = (depth0 && depth0._id)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\">"
+    + escapeExpression(((stack1 = (depth0 && depth0.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "</a></li>\n						";
+  return buffer;
+  }
+
+  buffer += "<header>\n	<h1>"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.name)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "</h1>\n</header>\n<main class=\"row\">\n	<div class=\"small-12 medium-4 columns\">\n		<div class=\"meta panel\">\n			<dl>\n				<dt>Author</dt>\n				<dd>"
+    + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.owner)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "</dd>\n\n				<dt>Created</dt>\n				<dd>"
+    + escapeExpression((helper = helpers.fromNow || (depth0 && depth0.fromNow),options={hash:{},data:data},helper ? helper.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.created), options) : helperMissing.call(depth0, "fromNow", ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.created), options)))
+    + "</dd>\n\n				<dt>Updated</dt>\n				<dd>"
+    + escapeExpression((helper = helpers.fromNow || (depth0 && depth0.fromNow),options={hash:{},data:data},helper ? helper.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.updated), options) : helperMissing.call(depth0, "fromNow", ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.updated), options)))
+    + "</dd>\n\n				<dt>Collaborators</dt>\n				<dd>\n					";
+  stack1 = helpers.unless.call(depth0, ((stack1 = (depth0 && depth0.collaborators)),stack1 == null || stack1 === false ? stack1 : stack1.length), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n					<ul class=\"collaborators\">\n						";
+  stack1 = helpers.each.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.collaborators), {hash:{},inverse:self.noop,fn:self.program(3, program3, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n					</ul>\n				</dd>\n			</dl>\n			\n		</div>\n	</div>	\n</main>";
+  return buffer;
+  });
+
 this["exports"]["views/footer/footer.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
@@ -28774,7 +28878,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   
 
 
-  return "<h3>Report a Problem</h3>\n<div class=\"error hide\"></div>\n<p>\n	This form is so you can report a problem or bug with our application. Is something broken? Let us\n	know about it below.\n</p>\n<form>\n	<label>\n		Subject\n		<input type=\"text\" class=\"subject\" />\n	</label>\n	<label>\n		Description\n		<textarea class=\"description\"></textarea>\n	</label>\n	<div class=\"button-wrapper\">\n		<button class=\"action button\">Send Report</button>\n	</div>\n</form>";
+  return "<div class=\"report\">\n	<h3>Report a Problem</h3>\n	<div class=\"error hide\"></div>\n	<p>\n		This form is so you can report a problem or bug with our application. Is something broken? Let us\n		know about it below.\n	</p>\n	<form>\n		<label>\n			Subject\n			<input type=\"text\" class=\"subject\" />\n		</label>\n		<label>\n			Description\n			<textarea class=\"description\"></textarea>\n		</label>\n		<div class=\"button-wrapper\">\n			<button class=\"action button\">Send Report</button>\n		</div>\n	</form>\n</div>";
   });
 
 this["exports"]["views/modals/terms/terms.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
@@ -43110,6 +43214,40 @@ var DocumentOverviewView = module.exports = View.extend({
 });
  
  }; /* ==  End source for module /views/document-overview/document-overview.js  == */ return module; }());;
+;require._modules["/views/document/document.js"] = (function() { var __filename = "/views/document/document.js"; var __dirname = "/views/document"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/document/document.js  == */ var __module__ = function() { 
+ 
+var View    = require('cloak/view');
+var moment  = require('moment');
+
+var DocumentView = module.exports = View.extend({
+
+	className: 'document',
+	template: 'views/document/document.hbs',
+
+	events: {
+		// 
+	},
+
+	initialize: function(document) {
+		this.document = document;
+	},
+
+	draw: function() {
+		this.$elem.html('<div class="spinner"></div>');
+		this.$('.spinner').spin(true, {size: 'large'});
+		this.bindEvents();
+	},
+
+	drawDocument: function() {
+		this.$elem.html(this.render({
+			document: this.document.serialize({ deep: true })
+		}));
+	}
+
+});
+ 
+ }; /* ==  End source for module /views/document/document.js  == */ return module; }());;
 ;require._modules["/views/footer/footer.js"] = (function() { var __filename = "/views/footer/footer.js"; var __dirname = "/views/footer"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/footer/footer.js  == */ var __module__ = function() { 
  
@@ -43442,6 +43580,7 @@ exports.open = ModalView.template({
 			}
 
 			var self = this;
+			var $report = this.$('div.report');
 			var subject = this.$('.subject').val();
 			var description = this.$('.description').val();
 
@@ -43454,9 +43593,20 @@ exports.open = ModalView.template({
 
 			this.disable(true);
 
-			// 
-			// 
-			// 
+			Request.send('POST', '/report-issue', {subject: subject, description: description})
+				.then(
+					function(res) {
+						self.disable(false);
+						$report.html('<p>Thank you for helping us make Collabish better</p>');
+						setTimeout(function() {
+							self.close();
+						}, 3000);
+					},
+					function(res) {
+						self.disable(false);
+						self.showError('Something went wrong, and we could not send your report');
+					}
+				);
 		},
 
 		showError: function(message) {

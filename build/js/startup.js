@@ -46,6 +46,7 @@ exports.run = function(opts) {
 			.use(require('routers/welcome'))
 			.use(require('routers/dashboard'))
 			.use(require('routers/settings'))
+			.use(require('routers/document'))
 			.start();
 	})
 	.catch(function(err) {
