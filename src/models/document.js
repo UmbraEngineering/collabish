@@ -16,21 +16,62 @@ var Document = module.exports = Model.extend({
 		created: null,
 		updated: null,
 		collaborators: User.Collection,
-		mainRevision: Revision,
 		adultContent: false,
-		tags: null
+		tags: null,
+		current: null,
+		draft: null,
+		history: null,
+		isStarred: false
 	},
 
 	// 
-	// Fetch a list of revisions from the server
+	// Stars the document
 	// 
 	// @return promise
 	// 
-	fetchRevisions: function() {
-		return Request.send('GET', '/documents/' + this.id() + '/revisions')
-			.then(function(res) {
-				return (new Revision.Collection()).add(res.body);
-			});
+	star: function() {
+		var self = this;
+
+		this.set('isStarred', true);
+		return Request.send('POST', '/documents/' + this.id() + '/star')
+			.then(
+				function(res) {
+					// 
+				},
+				function(res) {
+					self.set('isStarred', false);
+				}
+			);
+	},
+
+	// 
+	// Unstars the document
+	// 
+	// @return promise
+	// 
+	unstar: function() {
+		var self = this;
+
+		this.set('isStarred', false);
+		return Request.send('DELETE', '/documents/' + this.id() + '/star')
+			.then(
+				function(res) {
+					// 
+				},
+				function(res) {
+					self.set('isStarred', true);
+				}
+			);
+	},
+
+	// 
+	// Save a draft to the document
+	// 
+	// @param {delta} the draft delta
+	// @return promise
+	// 
+	saveDraft: function(delta) {
+		// 
 	}
 
 });

@@ -43,7 +43,7 @@ var DashboardRouter = module.exports = Router.extend({
 		var view = new DashboardView();
 		var renderPromise = this.parent.renderView(view);
 
-		Promise.all([ auth.user.fetchDocuments({ sort: '-updated' }), renderPromise ])
+		Promise.all([ auth.user.fetchDocuments({ sort: '-updated', fields: '-current -draft' }), renderPromise ])
 			.then(function(docs) {
 				view.documents = docs[0];
 				view.drawDocuments();

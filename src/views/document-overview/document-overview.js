@@ -1,6 +1,7 @@
 
-var View    = require('cloak/view');
-var moment  = require('moment');
+var View       = require('cloak/view');
+var moment     = require('moment');
+var StarsView  = require('views/document/stars/stars');
 
 var DocumentOverviewView = module.exports = View.extend({
 
@@ -19,7 +20,20 @@ var DocumentOverviewView = module.exports = View.extend({
 		this.$elem.html(this.render({
 			document: this.document.serialize()
 		}));
+
 		this.bindEvents();
+		
+		this.bindPartials({
+			stars: StarsView
+		});
+
+		this.stars.on('star', function() {
+			// 
+		});
+
+		this.stars.on('unstar', function() {
+			// 
+		});
 	}
 
 });

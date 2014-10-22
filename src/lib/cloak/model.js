@@ -23,6 +23,11 @@ var Model = module.exports = AppObject.extend(modelStore.methods, {
 	init: function() {
 		this._super();
 
+		// Store the model instance for later lookup
+		if (cloak.config.shareModels) {
+			this.model.instances.push(this);
+		}
+
 		// If not given a name for the model, infer one from the url
 		this.name = this.name || this.url.split('/')[1].replace(/\{$/, '');
 
@@ -38,7 +43,7 @@ var Model = module.exports = AppObject.extend(modelStore.methods, {
 		// Keep track of local changes
 		this._changedLocally = [ ];
 		this.on(cloak.event('change.*'), function(value, old, attr) {
-			if (! _.find(this._changedLocally, attr)) {
+			if (! _.contains(this._changedLocally, attr)) {
 				this._changedLocally.push(attr);
 			}
 		});
@@ -538,6 +543,16 @@ var Model = module.exports = AppObject.extend(modelStore.methods, {
 	destroy: function() {
 		this.emit('destroy');
 
+		// Remove the model from the instances list to release it for GC
+		if (cloak.config.shareModels) {
+			var instances = this.model.instances;
+			for (var i = 0; i < instances.length; i++) {
+				if (instances[i] === this) {
+					instances.splice(i--, 1);
+				}
+			}
+		}
+
 		// Call the teardown method if one is given
 		if (this.teardown) {
 			this.teardown();
@@ -584,6 +599,9 @@ Model.url = function() {
 // 
 Model.onExtend = function() {
 	this.url = Model.url;
+	if (cloak.config.shareModels) {
+		this.instances = [ ];
+	}
 	this.modelName = this.prototype.name || this.url().split('/')[1].replace(/\{$/, '');
 	this.onExtend = Model.onExtend;
 	this.Collection = Collection.extend({

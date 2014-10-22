@@ -36,7 +36,5 @@
 	<p class="updated">
 		Last updated: {{fromNow document.updated }}
 	</p>
-	<p class="stars">
-		{{ document.starredBy }} <i class="fa fa-star"></i>
-	</p>
+	<section name="stars" data-partial="stars" data-partial-data="document"></section>
 </div>

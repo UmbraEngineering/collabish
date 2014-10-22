@@ -105,7 +105,12 @@ exports.check = function() {
 
 	setAuthToken(token);
 	return exports.ping()
-		.then(exports.getUser)
+		.then(
+			exports.getUser,
+			function() {
+				router.redirectTo('/');
+			}
+		)
 		.then(function() {
 			exports.emit('login');
 			exports.autoPing(autoPingInterval);

@@ -399,7 +399,12 @@ exports.check = function() {
 
 	setAuthToken(token);
 	return exports.ping()
-		.then(exports.getUser)
+		.then(
+			exports.getUser,
+			function() {
+				router.redirectTo('/');
+			}
+		)
 		.then(function() {
 			exports.emit('login');
 			exports.autoPing(autoPingInterval);
@@ -2769,7 +2774,12 @@ exports.config = {
 	viewTag: 'div',
 
 	// Do not fire router functions for state changes only involving querystrings
-	ignoreQueryString: true
+	ignoreQueryString: true,
+
+	// Should model instances be shared between multiple uses of the same model?
+	// You have to be really careful to `destroy` your models when you're done
+	// with them or you will leak them
+	shareModels: false
 };
 
 // 
@@ -3394,6 +3404,11 @@ var Model = module.exports = AppObject.extend(modelStore.methods, {
 	init: function() {
 		this._super();
 
+		// Store the model instance for later lookup
+		if (cloak.config.shareModels) {
+			this.model.instances.push(this);
+		}
+
 		// If not given a name for the model, infer one from the url
 		this.name = this.name || this.url.split('/')[1].replace(/\{$/, '');
 
@@ -3409,7 +3424,7 @@ var Model = module.exports = AppObject.extend(modelStore.methods, {
 		// Keep track of local changes
 		this._changedLocally = [ ];
 		this.on(cloak.event('change.*'), function(value, old, attr) {
-			if (! _.find(this._changedLocally, attr)) {
+			if (! _.contains(this._changedLocally, attr)) {
 				this._changedLocally.push(attr);
 			}
 		});
@@ -3909,6 +3924,16 @@ var Model = module.exports = AppObject.extend(modelStore.methods, {
 	destroy: function() {
 		this.emit('destroy');
 
+		// Remove the model from the instances list to release it for GC
+		if (cloak.config.shareModels) {
+			var instances = this.model.instances;
+			for (var i = 0; i < instances.length; i++) {
+				if (instances[i] === this) {
+					instances.splice(i--, 1);
+				}
+			}
+		}
+
 		// Call the teardown method if one is given
 		if (this.teardown) {
 			this.teardown();
@@ -3955,6 +3980,9 @@ Model.url = function() {
 // 
 Model.onExtend = function() {
 	this.url = Model.url;
+	if (cloak.config.shareModels) {
+		this.instances = [ ];
+	}
 	this.modelName = this.prototype.name || this.url().split('/')[1].replace(/\{$/, '');
 	this.onExtend = Model.onExtend;
 	this.Collection = Collection.extend({
@@ -4723,6 +4751,38 @@ var View = module.exports = AppObject.extend({
 		else {
 			this.$(event.query).off(event.event);
 		}
+	},
+
+	// 
+	// Creates and renders partials in the template
+	// 
+	bindPartials: function(views) {
+		var self = this;
+
+		this.$('[data-partial]').each(function() {
+			var $this = $(this);
+
+			var name = $this.attr('name');
+			
+			if (! name) {
+				throw new Error('Partials must be given a name attribute');
+			}
+
+			var View = views[$this.attr('data-partial')];
+
+			if (! View) {
+				throw new Error('View for partial "' + $this.attr('data-partial') + '" was not given');
+			}
+
+			var data = $this.attr('data-partial-data');
+			if (data) {
+				data = self[data];
+			}
+
+			var view = self[name] = new View(data);
+			$this.replaceWith(view.$elem);
+			view.draw();
+		});
 	},
 
 	// 
@@ -27713,21 +27773,62 @@ var Document = module.exports = Model.extend({
 		created: null,
 		updated: null,
 		collaborators: User.Collection,
-		mainRevision: Revision,
 		adultContent: false,
-		tags: null
+		tags: null,
+		current: null,
+		draft: null,
+		history: null,
+		isStarred: false
 	},
 
 	// 
-	// Fetch a list of revisions from the server
+	// Stars the document
 	// 
 	// @return promise
 	// 
-	fetchRevisions: function() {
-		return Request.send('GET', '/documents/' + this.id() + '/revisions')
-			.then(function(res) {
-				return (new Revision.Collection()).add(res.body);
-			});
+	star: function() {
+		var self = this;
+
+		this.set('isStarred', true);
+		return Request.send('POST', '/documents/' + this.id() + '/star')
+			.then(
+				function(res) {
+					// 
+				},
+				function(res) {
+					self.set('isStarred', false);
+				}
+			);
+	},
+
+	// 
+	// Unstars the document
+	// 
+	// @return promise
+	// 
+	unstar: function() {
+		var self = this;
+
+		this.set('isStarred', false);
+		return Request.send('DELETE', '/documents/' + this.id() + '/star')
+			.then(
+				function(res) {
+					// 
+				},
+				function(res) {
+					self.set('isStarred', true);
+				}
+			);
+	},
+
+	// 
+	// Save a draft to the document
+	// 
+	// @param {delta} the draft delta
+	// @return promise
+	// 
+	saveDraft: function(delta) {
+		// 
 	}
 
 });
@@ -27884,7 +27985,7 @@ var User = module.exports = Model.extend({
 	fetchRecentlyStarred: function() {
 		var query = {
 			limit: 5,
-			fields: '-starredBy',
+			fields: '-draft -current',
 			sort: '-starredBy.datetime',
 			filter: {
 				'starredBy.user': this.id()
@@ -27994,7 +28095,7 @@ var DashboardRouter = module.exports = Router.extend({
 		var view = new DashboardView();
 		var renderPromise = this.parent.renderView(view);
 
-		Promise.all([ auth.user.fetchDocuments({ sort: '-updated' }), renderPromise ])
+		Promise.all([ auth.user.fetchDocuments({ sort: '-updated', fields: '-current -draft' }), renderPromise ])
 			.then(function(docs) {
 				view.documents = docs[0];
 				view.drawDocuments();
@@ -28762,9 +28863,7 @@ function program9(depth0,data) {
   if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "\n</div>\n<div class=\"meta\">\n	<p class=\"updated\">\n		Last updated: "
     + escapeExpression((helper = helpers.fromNow || (depth0 && depth0.fromNow),options={hash:{},data:data},helper ? helper.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.updated), options) : helperMissing.call(depth0, "fromNow", ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.updated), options)))
-    + "\n	</p>\n	<p class=\"stars\">\n		"
-    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.starredBy)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + " <i class=\"fa fa-star\"></i>\n	</p>\n</div>";
+    + "\n	</p>\n	<section name=\"stars\" data-partial=\"stars\" data-partial-data=\"document\"></section>\n</div>";
   return buffer;
   });
 
@@ -28804,7 +28903,36 @@ function program3(depth0,data) {
   buffer += "\n					<ul class=\"collaborators\">\n						";
   stack1 = helpers.each.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.collaborators), {hash:{},inverse:self.noop,fn:self.program(3, program3, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += "\n					</ul>\n				</dd>\n			</dl>\n			\n		</div>\n	</div>	\n</main>";
+  buffer += "\n					</ul>\n				</dd>\n			</dl>\n		</div>\n	</div>	\n</main>";
+  return buffer;
+  });
+
+this["exports"]["views/document/read/read.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "";
+
+
+  return buffer;
+  });
+
+this["exports"]["views/document/stars/stars.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, self=this, functionType="function", escapeExpression=this.escapeExpression;
+
+function program1(depth0,data) {
+  
+  
+  return "active";
+  }
+
+  buffer += "<a class=\"";
+  stack1 = helpers['if'].call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.isStarred), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\">\n	<span>"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.starredBy)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "</span> <i class=\"fa fa-star\"></i>\n</a>";
   return buffer;
   });
 
@@ -28816,7 +28944,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
 
   buffer += "<div class=\"copyright\">\n	Collabish &copy; "
     + escapeExpression((helper = helpers.now || (depth0 && depth0.now),options={hash:{},data:data},helper ? helper.call(depth0, "YYYY", options) : helperMissing.call(depth0, "now", "YYYY", options)))
-    + " <a href=\"http://www.umbraengineering.com\">Umbra Engineering LLC</a>\n</div>\n<div class=\"links\">\n	<a class=\"terms\">Terms</a>\n	<a class=\"privacy\">Privacy</a>\n	<a class=\"report\">Report a Problem</a>\n</div>";
+    + " <a href=\"http://www.umbraengineering.com\">Umbra Engineering LLC</a>\n</div>\n<div class=\"links\">\n	<a class=\"terms\">Terms</a>\n	<a class=\"privacy\">Privacy</a>\n	<a class=\"report\">Report a Problem</a>\n	<a href=\"http://www.gofundme.com/collabish\">Help Support Collabish</a>\n</div>";
   return buffer;
   });
 
@@ -43188,8 +43316,9 @@ var DashboardView = module.exports = View.extend({
 ;require._modules["/views/document-overview/document-overview.js"] = (function() { var __filename = "/views/document-overview/document-overview.js"; var __dirname = "/views/document-overview"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/document-overview/document-overview.js  == */ var __module__ = function() { 
  
-var View    = require('cloak/view');
-var moment  = require('moment');
+var View       = require('cloak/view');
+var moment     = require('moment');
+var StarsView  = require('views/document/stars/stars');
 
 var DocumentOverviewView = module.exports = View.extend({
 
@@ -43208,7 +43337,20 @@ var DocumentOverviewView = module.exports = View.extend({
 		this.$elem.html(this.render({
 			document: this.document.serialize()
 		}));
+
 		this.bindEvents();
+		
+		this.bindPartials({
+			stars: StarsView
+		});
+
+		this.stars.on('star', function() {
+			// 
+		});
+
+		this.stars.on('unstar', function() {
+			// 
+		});
 	}
 
 });
@@ -43248,6 +43390,112 @@ var DocumentView = module.exports = View.extend({
 });
  
  }; /* ==  End source for module /views/document/document.js  == */ return module; }());;
+;require._modules["/views/document/read/read.js"] = (function() { var __filename = "/views/document/read/read.js"; var __dirname = "/views/document/read"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/document/read/read.js  == */ var __module__ = function() { 
+ 
+var View    = require('cloak/view');
+var moment  = require('moment');
+
+var ReadView = module.exports = View.extend({
+
+	className: 'read',
+	template: 'views/document/read/read.hbs',
+
+	events: {
+		// 
+	},
+
+	initialize: function() {
+		this.commit = null;
+		this.document = null;
+	},
+
+	draw: function() {
+		this.$elem.html('<div class="spinner"></div>');
+		this.$('.spinner').spin(true, {size: 'large'});
+		this.bindEvents();
+	},
+
+	drawDocument: function() {
+		this.$elem.html(this.render({
+			document: this.document.serialize({ deep: true })
+		}));
+	}
+
+});
+ 
+ }; /* ==  End source for module /views/document/read/read.js  == */ return module; }());;
+;require._modules["/views/document/stars/stars.js"] = (function() { var __filename = "/views/document/stars/stars.js"; var __dirname = "/views/document/stars"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/document/stars/stars.js  == */ var __module__ = function() { 
+ 
+var View    = require('cloak/view');
+var moment  = require('moment');
+
+var StarsView = module.exports = View.extend({
+
+	className: 'stars',
+	template: 'views/document/stars/stars.hbs',
+
+	events: {
+		'click a':    'toggleStarred'
+	},
+
+	initialize: function(document) {
+		this.document = document;
+		this.countWithout = document.get('starredBy');
+		if (document.get('isStarred')) {
+			this.countWithout--;
+		}
+	},
+
+	draw: function() {
+		this.$elem.html(this.render({
+			document: this.document.serialize()
+		}));
+
+		this.$count = this.$('a span');
+
+		this.setActive(this.document.get('isStarred'));
+
+		this.bind('updateForDocument');
+		this.document.on('change.isStarred', this.updateForDocument);
+
+		this.bindEvents();
+	},
+
+	setActive: function(flag) {
+		if (flag) {
+			this.$elem.addClass('active');
+			this.$count.html(this.countWithout + 1);
+		} else {
+			this.$elem.removeClass('active');
+			this.$count.html(this.countWithout);
+		}
+	},
+
+	toggleStarred: function(evt) {
+		if (evt) {
+			evt.preventDefault();
+		}
+
+		if (this.document.get('isStarred')) {
+			this.document.unstar();
+		} else {
+			this.document.star();
+		}
+	},
+
+	updateForDocument: function(value) {
+		this.setActive(value);
+	},
+
+	teardown: function() {
+		this.document.off('change.isStarred', this.updateForDocument);
+	}
+
+});
+ 
+ }; /* ==  End source for module /views/document/stars/stars.js  == */ return module; }());;
 ;require._modules["/views/footer/footer.js"] = (function() { var __filename = "/views/footer/footer.js"; var __dirname = "/views/footer"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/footer/footer.js  == */ var __module__ = function() { 
  

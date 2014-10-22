@@ -8,7 +8,13 @@
 	padding: 10px;
 	font-size: .8rem;
 	color: #444;
+	overflow: hidden;
 }
+
+	#wrapper > footer,
+	#wrapper > footer * {
+		line-height: 1;
+	}
 	
 	#wrapper > footer .links a {
 		color: #888;
@@ -48,5 +54,14 @@
 
 		#wrapper > footer .links {
 			float: right;
+		}
+
+		#wrapper > footer:after {
+			display: block;
+			visibility: hidden;
+			content: " ";
+			height: 0;
+			line-height: 0;
+			clear: both;
 		}
 }

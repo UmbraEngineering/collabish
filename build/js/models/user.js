@@ -53,7 +53,7 @@ var User = module.exports = Model.extend({
 	fetchRecentlyStarred: function() {
 		var query = {
 			limit: 5,
-			fields: '-starredBy',
+			fields: '-draft -current',
 			sort: '-starredBy.datetime',
 			filter: {
 				'starredBy.user': this.id()

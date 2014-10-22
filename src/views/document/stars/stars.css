@@ -1,0 +1,29 @@
+
+section.stars {
+	/**/
+}
+
+	section.stars a {
+		/**/
+	}
+
+		section.stars a span {
+			color: #666;
+		}
+
+		section.stars a i {
+			color: #666;
+			transition: color .5s ease-in-out;
+		}
+
+	section.stars.active a {
+		/**/
+	}
+
+		section.stars.active a i {
+			color: #a00;
+		}
+
+		section.stars.active a span {
+			/**/
+		}
