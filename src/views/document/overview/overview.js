@@ -6,7 +6,7 @@ var StarsView  = require('views/document/stars/stars');
 var DocumentOverviewView = module.exports = View.extend({
 
 	className: 'document-overview panel',
-	template: 'views/document-overview/document-overview.hbs',
+	template: 'views/document/overview/overview.hbs',
 
 	events: {
 		// 
@@ -25,14 +25,6 @@ var DocumentOverviewView = module.exports = View.extend({
 		
 		this.bindPartials({
 			stars: StarsView
-		});
-
-		this.stars.on('star', function() {
-			// 
-		});
-
-		this.stars.on('unstar', function() {
-			// 
 		});
 	}
 

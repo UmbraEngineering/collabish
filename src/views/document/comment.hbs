@@ -1,0 +1,10 @@
+<article rel="comment">
+	<div class="gravatar">
+		<img src="{{gravatar gravatarHash "s=48"}}" width="48" height="48" alt="" title="" />
+	</div>
+	<div class="content">
+		<a href="/#user/{{ comment.author.username }}" rel="author">{{ comment.author.username }}</a>
+		{{{ comment.content }}}
+		<span class="posted">Posted: {{fromNow comment.created}}</span>
+	</div>
+</article>

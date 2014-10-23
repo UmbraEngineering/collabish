@@ -3,7 +3,7 @@ section.document {
 	/**/
 }
 
-	section.document .spinner {
+	section.document > .spinner {
 		width: 10rem;
 		margin: 10rem auto;
 	}
@@ -16,9 +16,21 @@ section.document {
 			text-align: center;
 		}
 
-	section.document .meta.panel {
+	section.document .panel {
 		box-shadow: 4px 4px 4px rgba(0,0,0,0.5);
 	}
+
+	section.document .meta.panel {
+		position: relative;
+	}
+
+		section.document .meta.panel > div {
+			margin: 15px 0;
+		}
+
+		section.document .meta.panel h5 {
+			font-weight: bold;
+		}
 
 		section.document .meta.panel ul.collaborators {
 			/**/
@@ -31,3 +43,144 @@ section.document {
 			section.document .meta.panel ul.collaborators li:not(:last-of-type):after {
 				content: ', ';
 			}
+
+		section.document .meta.panel .stars {
+			text-align: right;
+		}
+
+		section.document .meta.panel .icons {
+			/**/
+		}
+
+			section.document .meta.panel .icons i {
+				font-size: 1.4rem;
+				color: #888;
+				margin: 5px 15px 5px 5px;
+			}
+
+		section.document .meta.panel .settings {
+			color: #666;
+			display: inline-block;
+			margin-top: 2rem;
+		}
+
+		section.document .description {
+			/**/
+		}
+
+			section.document .description a {
+				font-size: .8rem;
+			}
+
+				section.document .description a.edit {
+					margin-left: 10px;
+				}
+
+			section.document .description .spinner {
+				display: inline-block;
+				margin-left: 10px;
+				position: relative;
+				top: 2px;
+			}
+
+	section.document .history.panel {
+		/**/
+	}
+
+		section.document .history dl {
+			padding: 10px;
+			font-size: .85rem;
+		}
+
+			section.document .history dl dt {
+				margin-top: 20px;
+			}
+
+	section.document .comments {
+		margin-top: 2rem;
+		padding-top: 2rem;
+		border-top: 1px #ccc solid;
+	}
+
+		section.document .comments textarea.pseudo {
+			margin: 0 1rem;
+			width: 80%;
+			height: 100px;
+		}
+
+		section.document .comments section.quill {
+			display: none;
+		}
+
+		section.document .comments p.no-results {
+			margin: 1rem;
+			font-style: italic;
+		}
+
+		section.document .comments ol {
+			list-style: none;
+			padding: 3rem 1rem;
+			margin: 0;
+		}
+
+			section.document .comments ol article {
+				padding: 1rem;
+			}
+
+			section.document .comments ol li:not(:last-of-type) article {
+				border-bottom: 1px #ccc solid;
+			}
+
+				section.document .comments ol article .gravatar {
+					width: 48px;
+					float: left;
+				}
+
+					section.document .comments ol article .gravatar img {
+						margin-top: 10px;
+					}
+
+				section.document .comments ol article .content {
+					float: left;
+					margin-left: 1.5rem;
+				}
+
+					section.document .comments ol article:after {
+						display: block;
+						visibility: hidden;
+						content: " ";
+						height: 0;
+						line-height: 0;
+						clear: left;
+					}
+
+					section.document .comments ol article .posted {
+						font-size: .8rem;
+					}
+
+
+
+@media only screen and (max-width: 40em) {
+	section.document .meta.panel .icons {
+		text-align: center;
+		padding: 10px 25px 0;
+		border-top: 1px #ccc solid;
+		margin-bottom: 0;
+	}
+
+	section.document .comments.row {
+		padding: 1rem;
+	}
+
+		section.document .comments.row .quill {
+			margin: 0;
+		}
+}
+
+@media only screen and (min-width:40.063em) {
+	section.document .meta.panel .icons {
+		position: absolute;
+		top: 10px;
+		right: 15px;
+	}
+}

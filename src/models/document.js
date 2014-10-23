@@ -2,7 +2,7 @@
 var Model     = require('cloak/model');
 var Request   = require('cloak/model-stores/dagger').Request;
 var User      = require('models/user');
-var Revision  = require('models/revision');
+var Comment   = require('models/comment');
 
 var Document = module.exports = Model.extend({
 
@@ -17,6 +17,7 @@ var Document = module.exports = Model.extend({
 		updated: null,
 		collaborators: User.Collection,
 		adultContent: false,
+		allowComments: true,
 		tags: null,
 		current: null,
 		draft: null,
@@ -72,6 +73,31 @@ var Document = module.exports = Model.extend({
 	// 
 	saveDraft: function(delta) {
 		// 
+	},
+
+	// 
+	// Does a find query for all comments belonging to this document
+	// 
+	// @return {promise}
+	// 
+	findComments: function(query) {
+		return Request.send('GET', this.subUrl('/comments'), query)
+			.then(function(res) {
+				return (new Comment.Collection()).add(res.body);
+			});
+	},
+
+	// 
+	// Posts a new comment to this document
+	// 
+	// @param {content} the comment content
+	// @return promise
+	// 
+	postComment: function(content) {
+		return Request.send('POST', this.subUrl('/comments'), {content: content})
+			.then(function(res) {
+				return new Comment(res.body);
+			});
 	}
 
 });

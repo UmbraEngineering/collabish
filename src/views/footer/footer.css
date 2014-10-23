@@ -41,6 +41,20 @@
 		#wrapper > footer .links a {
 			margin: 0 7px;
 		}
+
+			/* ==  Push support link on to its own line in mobile  == */
+
+			#wrapper > footer .links a.support {
+				position: relative;
+				top: 7px;
+			}
+
+				/* ==  Fancy trick to insert a line-break in CSS  == */
+
+				#wrapper > footer .links a.support:before {
+					content: '\a';
+					white-space: pre;
+				}
 }
 
 @media only screen and (min-width:40.063em) {

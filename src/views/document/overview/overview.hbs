@@ -4,21 +4,21 @@
 <div class="icons">
 	{{#if document.adultContent}}
 	<span data-tooltip="This document may contain adult content">
-		<i class="fa fa-eye-slash"></i>
+		{{icon "eye-slash"}}
 	</span>
 	{{/if}}
 	{{#if document.collaborators.length}}
 	<span data-tooltip="This document is shared with {{ document.collaborators.length }} collaborators">
-		<i class="fa fa-share-alt"></i>
+		{{icon "share-alt"}}
 	</span>
 	{{/if}}
 	{{#unless document.public }}
 	<span data-tooltip="This document is private">
-		<i class="fa fa-lock"></i>
+		{{icon "lock"}}
 	</span>
 	{{else}}
 	<span data-tooltip="This document is public">
-		<i class="fa fa-users"></i>
+		{{icon "users"}}
 	</span>
 	{{/unless}}
 </div>

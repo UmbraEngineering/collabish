@@ -39,7 +39,7 @@ var DocumentRouter = module.exports = Router.extend({
 			filter: {
 				_id: params.id
 			},
-			populate: 'owner collaborators'
+			populate: 'owner,collaborators,history'
 		});
 
 		Promise.all([ documentQuery, renderPromise ])
@@ -47,6 +47,15 @@ var DocumentRouter = module.exports = Router.extend({
 				view.document = results[0].models[0];
 				document.title = view.document.get('name') + ' / Collabish';
 				view.drawDocument();
+
+				// Once the basics are rendered, start loading comments
+				return view.document.findComments({ populate: 'author', sort: '-created' });
+			})
+			.then(function(comments) {
+				view.drawComments(comments);
+			})
+			.catch(function(err) {
+				console.error(err);
 			});
 	}
 

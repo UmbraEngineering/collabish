@@ -4,5 +4,7 @@
 require('./encode');
 require('./moment');
 require('./gravatar');
+require('./icons');
+require('./arrays');
  
  }; /* ==  End source for module /common/handlebars-helpers/index.js  == */ return module; }());;

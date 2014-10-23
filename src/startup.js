@@ -28,11 +28,11 @@ exports.run = function(opts) {
 	// Load the handlebars helpers
 	require('common/handlebars-helpers');
 
-	// Load the icon helper
-	require('common/icons');
-
 	// Load jquery plugins
 	require('jquery.hotkeys');
+	require('common/spin');
+	require('common/icons');
+	require('common/disable');
 
 	// Load in the auth module and router
 	var auth = require('common/auth');

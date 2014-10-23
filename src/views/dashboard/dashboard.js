@@ -1,6 +1,6 @@
 
 var View                  = require('cloak/view');
-var DocumentOverviewView  = require('views/document-overview/document-overview');
+var DocumentOverviewView  = require('views/document/overview/overview');
 
 var DashboardView = module.exports = View.extend({
 

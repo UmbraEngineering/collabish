@@ -4,7 +4,7 @@
 var _                     = require('cloak/underscore');
 var View                  = require('cloak/view');
 var auth                  = require('common/auth');
-var DocumentOverviewView  = require('views/document-overview/document-overview');
+var DocumentOverviewView  = require('views/document/overview/overview');
 
 var ProfileView = module.exports = View.extend({
 

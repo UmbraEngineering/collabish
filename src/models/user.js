@@ -95,7 +95,11 @@ User.findByUsername = function(username) {
 
 	return Request.send('GET', '/users', filter)
 		.then(function(res) {
-			return new User(res.body[0]);
+			if (res.body.length) {
+				return new User(res.body[0]);
+			}
+
+			throw new Error('User not found');
 		});
 };
 

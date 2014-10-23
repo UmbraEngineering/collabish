@@ -292,6 +292,54 @@
 
 }(window));
 
+;require._modules["/common/announce/index.js"] = (function() { var __filename = "/common/announce/index.js"; var __dirname = "/common/announce"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /common/announce/index.js  == */ var __module__ = function() { 
+ 
+var $  = require('jquery');
+
+var $body     = $('body');
+var duration  = 10000;
+
+exports.show = function(type, message) {
+	if (arguments.length === 1) {
+		message = type; type = 'info';
+	}
+
+	var $node = $(
+		'<div class="announcement">' +
+			'<p class="alert-box radius ' + type + '">' + message + '<a class="close">&times;</a></p>' +
+		'</div>'
+	);
+
+	$node.appendTo($body);
+	$node.find('.close').click(function() {
+		timeouts.forEach(function(timeout) {
+			clearTimeout(timeout);
+		});
+		hide();
+	});
+
+	var timeouts = [ ];
+
+	timeouts.push(
+		setTimeout(function() {
+			$node.addClass('show');
+		}, 13)
+	);
+
+	timeouts.push(
+		setTimeout(hide, duration)
+	);
+
+	function hide() {
+		$node.removeClass('show');
+		setTimeout(function() {
+			$node.remove();
+		}, 500);
+	}
+};
+ 
+ }; /* ==  End source for module /common/announce/index.js  == */ return module; }());;
 ;require._modules["/common/auth/index.js"] = (function() { var __filename = "/common/auth/index.js"; var __dirname = "/common/auth"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /common/auth/index.js  == */ var __module__ = function() { 
  
@@ -501,6 +549,42 @@ function unsetAuthToken() {
 }
  
  }; /* ==  End source for module /common/auth/index.js  == */ return module; }());;
+;require._modules["/common/disable/index.js"] = (function() { var __filename = "/common/disable/index.js"; var __dirname = "/common/disable"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /common/disable/index.js  == */ var __module__ = function() { 
+ 
+var $ = require('jquery');
+
+$.fn.disable = function(flag) {
+	if (flag === void(0)) {
+		flag = true;
+	}
+
+	flag =!! flag;
+
+	this.each(function() {
+		this.disabled = flag;
+		if (this.tagName === 'A') {
+			this.style.pointerEvents = (flag ? 'none' : 'auto');
+			this.style.opacity = (flag ? 0.7 : 1);
+		}
+	});
+};
+ 
+ }; /* ==  End source for module /common/disable/index.js  == */ return module; }());;
+;require._modules["/common/handlebars-helpers/arrays.js"] = (function() { var __filename = "/common/handlebars-helpers/arrays.js"; var __dirname = "/common/handlebars-helpers"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /common/handlebars-helpers/arrays.js  == */ var __module__ = function() { 
+ 
+var handlebars = require('handlebars');
+
+handlebars.registerHelper('eachReverse', function(arr, opts) {
+	var body = '';
+	for (var i = arr.length - 1; i >= 0; i--) {
+		body += opts.fn(arr[i]);
+	}
+	return body;
+});
+ 
+ }; /* ==  End source for module /common/handlebars-helpers/arrays.js  == */ return module; }());;
 ;require._modules["/common/handlebars-helpers/encode.js"] = (function() { var __filename = "/common/handlebars-helpers/encode.js"; var __dirname = "/common/handlebars-helpers"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /common/handlebars-helpers/encode.js  == */ var __module__ = function() { 
  
@@ -533,12 +617,24 @@ handlebars.registerHelper('gravatar', function(hash, params) {
 });
  
  }; /* ==  End source for module /common/handlebars-helpers/gravatar.js  == */ return module; }());;
+;require._modules["/common/handlebars-helpers/icons.js"] = (function() { var __filename = "/common/handlebars-helpers/icons.js"; var __dirname = "/common/handlebars-helpers"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /common/handlebars-helpers/icons.js  == */ var __module__ = function() { 
+ 
+var handlebars  = require('handlebars');
+
+handlebars.registerHelper('icon', function(icon) {
+	return new handlebars.SafeString('<i class="fa fa-' + icon + '"></i>');
+});
+ 
+ }; /* ==  End source for module /common/handlebars-helpers/icons.js  == */ return module; }());;
 ;require._modules["/common/handlebars-helpers/index.js"] = (function() { var __filename = "/common/handlebars-helpers/index.js"; var __dirname = "/common/handlebars-helpers"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /common/handlebars-helpers/index.js  == */ var __module__ = function() { 
  
 require('./encode');
 require('./moment');
 require('./gravatar');
+require('./icons');
+require('./arrays');
  
  }; /* ==  End source for module /common/handlebars-helpers/index.js  == */ return module; }());;
 ;require._modules["/common/handlebars-helpers/moment.js"] = (function() { var __filename = "/common/handlebars-helpers/moment.js"; var __dirname = "/common/handlebars-helpers"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
@@ -3797,6 +3893,21 @@ var Model = module.exports = AppObject.extend(modelStore.methods, {
 
 			return value;
 		});
+	},
+
+	// 
+	// A convienence method to create string for sub-route URLs, eg.
+	// 
+	//   this.subRoute('/foo'); // == "/model/123/foo"
+	// 
+	// @param {route} the sub-route
+	// @return string
+	// 
+	subUrl: function(route) {
+		if (route.charAt(0) !== '/') {
+			route = '/' + route;
+		}
+		return this.reqUrl() + route;
 	},
 
 // --------------------------------------------------------
@@ -27753,13 +27864,35 @@ exports.random = function() {
 };
  
  }; /* ==  End source for module /lib/uuid-v4.js  == */ return module; }());;
+;require._modules["/models/comment.js"] = (function() { var __filename = "/models/comment.js"; var __dirname = "/models"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /models/comment.js  == */ var __module__ = function() { 
+ 
+var Model     = require('cloak/model');
+var User      = require('models/user');
+var Document  = require('models/document');
+
+var Comment = module.exports = Model.extend({
+
+	url: '/documents/{document}/comments{/#}',
+
+	attributes: {
+		document: Document,
+		author: User,
+		content: null,
+		created: null,
+		updated: null
+	}
+
+});
+ 
+ }; /* ==  End source for module /models/comment.js  == */ return module; }());;
 ;require._modules["/models/document.js"] = (function() { var __filename = "/models/document.js"; var __dirname = "/models"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /models/document.js  == */ var __module__ = function() { 
  
 var Model     = require('cloak/model');
 var Request   = require('cloak/model-stores/dagger').Request;
 var User      = require('models/user');
-var Revision  = require('models/revision');
+var Comment   = require('models/comment');
 
 var Document = module.exports = Model.extend({
 
@@ -27774,6 +27907,7 @@ var Document = module.exports = Model.extend({
 		updated: null,
 		collaborators: User.Collection,
 		adultContent: false,
+		allowComments: true,
 		tags: null,
 		current: null,
 		draft: null,
@@ -27829,6 +27963,31 @@ var Document = module.exports = Model.extend({
 	// 
 	saveDraft: function(delta) {
 		// 
+	},
+
+	// 
+	// Does a find query for all comments belonging to this document
+	// 
+	// @return {promise}
+	// 
+	findComments: function(query) {
+		return Request.send('GET', this.subUrl('/comments'), query)
+			.then(function(res) {
+				return (new Comment.Collection()).add(res.body);
+			});
+	},
+
+	// 
+	// Posts a new comment to this document
+	// 
+	// @param {content} the comment content
+	// @return promise
+	// 
+	postComment: function(content) {
+		return Request.send('POST', this.subUrl('/comments'), {content: content})
+			.then(function(res) {
+				return new Comment(res.body);
+			});
 	}
 
 });
@@ -27894,42 +28053,6 @@ var Inbox = module.exports = Model.extend({
 });
  
  }; /* ==  End source for module /models/inbox.js  == */ return module; }());;
-;require._modules["/models/revision.js"] = (function() { var __filename = "/models/revision.js"; var __dirname = "/models"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
- /* ==  Begin source for module /models/revision.js  == */ var __module__ = function() { 
- 
-var Model     = require('cloak/model');
-var Request   = require('cloak/model-stores/dagger').Request;
-var Document  = require('models/document');
-
-var Revision = module.exports = Model.extend({
-
-	url: '/revisions{/#}',
-
-	attributes: {
-		name: '',
-		content: '',
-		public: false,
-		created: null,
-		updated: null,
-		document: Document
-	}
-
-});
-
-// 
-// Do a query for revisions
-// 
-// @param {data} the query
-// @return promise
-// 
-Revision.find = function(data) {
-	return Request.send('GET', '/revisions', data)
-		.then(function(res) {
-			return (new Revision.Collection()).add(res.body);
-		});
-};
- 
- }; /* ==  End source for module /models/revision.js  == */ return module; }());;
 ;require._modules["/models/user.js"] = (function() { var __filename = "/models/user.js"; var __dirname = "/models"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /models/user.js  == */ var __module__ = function() { 
  
@@ -28029,7 +28152,11 @@ User.findByUsername = function(username) {
 
 	return Request.send('GET', '/users', filter)
 		.then(function(res) {
-			return new User(res.body[0]);
+			if (res.body.length) {
+				return new User(res.body[0]);
+			}
+
+			throw new Error('User not found');
 		});
 };
 
@@ -28224,7 +28351,7 @@ var DocumentRouter = module.exports = Router.extend({
 			filter: {
 				_id: params.id
 			},
-			populate: 'owner collaborators'
+			populate: 'owner,collaborators,history'
 		});
 
 		Promise.all([ documentQuery, renderPromise ])
@@ -28232,6 +28359,15 @@ var DocumentRouter = module.exports = Router.extend({
 				view.document = results[0].models[0];
 				document.title = view.document.get('name') + ' / Collabish';
 				view.drawDocument();
+
+				// Once the basics are rendered, start loading comments
+				return view.document.findComments({ populate: 'author', sort: '-created' });
+			})
+			.then(function(comments) {
+				view.drawComments(comments);
+			})
+			.catch(function(err) {
+				console.error(err);
 			});
 	}
 
@@ -28656,11 +28792,11 @@ exports.run = function(opts) {
 	// Load the handlebars helpers
 	require('common/handlebars-helpers');
 
-	// Load the icon helper
-	require('common/icons');
-
 	// Load jquery plugins
 	require('jquery.hotkeys');
+	require('common/spin');
+	require('common/icons');
+	require('common/disable');
 
 	// Load in the auth module and router
 	var auth = require('common/auth');
@@ -28765,10 +28901,14 @@ function program5(depth0,data) {
 this["exports"]["views/create-document/create-document.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
-  var buffer = "";
+  var buffer = "", helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression;
 
 
-  buffer += "<main class=\"row\">\n	<div class=\"small-12 medium-6 medium-centered columns\">\n		<h2>Create Document</h2>\n		<div class=\"error hide\"></div>\n		<form>\n			<label class=\"name\">\n				Name\n				<input type=\"text\" />\n			</label>\n			<label class=\"description\">\n				Description\n				<input type=\"text\" />\n			</label>\n			<label class=\"adult-content\">\n				Adult Content\n				<div>\n					<input type=\"checkbox\" />\n					Will this document contain adult content?\n				</div>\n			</label>\n			<label class=\"privacy\">\n				Privacy\n				<label for=\"privacy-public\" class=\"row\">\n					<div class=\"small-2 columns icon\">\n						<i class=\"fa fa-users\"></i>\n					</div>\n					<div class=\"small-10 columns\">\n						<label class=\"public\">\n							<input type=\"radio\" id=\"privacy-public\" name=\"privacy\" checked />\n							<strong>Public</strong><br />\n							Anyone can view or comment on your document (you can still mark individual\n							revisions as private).\n						</label>\n					</div>\n				</label>\n				<label for=\"privacy-private\" class=\"row\">\n					<div class=\"small-2 columns icon\">\n						<i class=\"fa fa-lock\"></i>\n					</div>\n					<div class=\"small-10 columns\">\n						<label class=\"private\">\n							<input type=\"radio\" id=\"privacy-private\" name=\"privacy\" />\n							<strong>Private</strong><br />\n							Only you and specific users you select as collaborators can view or comment\n							on your document.\n						</label>\n					</div>\n				</label>\n			</label>\n			<label class=\"tags\">\n				Tags\n				\n			</label>\n			<div class=\"button-wrapper\">\n				<button class=\"submit action button\">Create Document</button>\n			</div>\n		</form>\n	</div>\n</main>";
+  buffer += "<main class=\"row\">\n	<div class=\"small-12 medium-6 medium-centered columns\">\n		<h2>Create Document</h2>\n		<div class=\"error hide\"></div>\n		<form>\n			<label class=\"name\">\n				Name\n				<input type=\"text\" />\n			</label>\n			<label class=\"description\">\n				Description\n				<input type=\"text\" />\n			</label>\n			<label class=\"adult-content\">\n				Adult Content\n				<div>\n					<input type=\"checkbox\" />\n					Will this document contain adult content?\n				</div>\n			</label>\n			<label class=\"privacy\">\n				Privacy\n				<label for=\"privacy-public\" class=\"row\">\n					<div class=\"small-2 columns icon\">\n						"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "users", options) : helperMissing.call(depth0, "icon", "users", options)))
+    + "\n					</div>\n					<div class=\"small-10 columns\">\n						<label class=\"public\">\n							<input type=\"radio\" id=\"privacy-public\" name=\"privacy\" checked />\n							<strong>Public</strong><br />\n							Anyone can view or comment on your document (you can still mark individual\n							revisions as private).\n						</label>\n					</div>\n				</label>\n				<label for=\"privacy-private\" class=\"row\">\n					<div class=\"small-2 columns icon\">\n						"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "lock", options) : helperMissing.call(depth0, "icon", "lock", options)))
+    + "\n					</div>\n					<div class=\"small-10 columns\">\n						<label class=\"private\">\n							<input type=\"radio\" id=\"privacy-private\" name=\"privacy\" />\n							<strong>Private</strong><br />\n							Only you and specific users you select as collaborators can view or comment\n							on your document.\n						</label>\n					</div>\n				</label>\n			</label>\n			<label class=\"tags\">\n				Tags\n				\n			</label>\n			<div class=\"button-wrapper\">\n				<button class=\"submit action button\">Create Document</button>\n			</div>\n		</form>\n	</div>\n</main>";
   return buffer;
   });
 
@@ -28800,36 +28940,230 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   return "<div class=\"no-results panel\">\n	<h3>You haven't starred any documents</h3>\n	<p>\n		Why not <a href=\"/#search\">take a look around</a>?\n	</p>\n</div>";
   });
 
-this["exports"]["views/document-overview/document-overview.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+this["exports"]["views/document/comment.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
-  var buffer = "", stack1, helper, options, functionType="function", escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing, self=this;
+  var buffer = "", stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, functionType="function";
+
+
+  buffer += "<article rel=\"comment\">\n	<div class=\"gravatar\">\n		<img src=\""
+    + escapeExpression((helper = helpers.gravatar || (depth0 && depth0.gravatar),options={hash:{},data:data},helper ? helper.call(depth0, (depth0 && depth0.gravatarHash), "s=48", options) : helperMissing.call(depth0, "gravatar", (depth0 && depth0.gravatarHash), "s=48", options)))
+    + "\" width=\"48\" height=\"48\" alt=\"\" title=\"\" />\n	</div>\n	<div class=\"content\">\n		<a href=\"/#user/"
+    + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.comment)),stack1 == null || stack1 === false ? stack1 : stack1.author)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\" rel=\"author\">"
+    + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.comment)),stack1 == null || stack1 === false ? stack1 : stack1.author)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "</a>\n		";
+  stack1 = ((stack1 = ((stack1 = (depth0 && depth0.comment)),stack1 == null || stack1 === false ? stack1 : stack1.content)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1);
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n		<span class=\"posted\">Posted: "
+    + escapeExpression((helper = helpers.fromNow || (depth0 && depth0.fromNow),options={hash:{},data:data},helper ? helper.call(depth0, ((stack1 = (depth0 && depth0.comment)),stack1 == null || stack1 === false ? stack1 : stack1.created), options) : helperMissing.call(depth0, "fromNow", ((stack1 = (depth0 && depth0.comment)),stack1 == null || stack1 === false ? stack1 : stack1.created), options)))
+    + "</span>\n	</div>\n</article>\n";
+  return buffer;
+  });
+
+this["exports"]["views/document/document.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, functionType="function", self=this;
 
 function program1(depth0,data) {
   
   
-  return "\n	<span data-tooltip=\"This document may contain adult content\">\n		<i class=\"fa fa-eye-slash\"></i>\n	</span>\n	";
+  return "<a class=\"edit\">Edit</a>";
   }
 
 function program3(depth0,data) {
   
-  var buffer = "", stack1;
-  buffer += "\n	<span data-tooltip=\"This document is shared with "
-    + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.collaborators)),stack1 == null || stack1 === false ? stack1 : stack1.length)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + " collaborators\">\n		<i class=\"fa fa-share-alt\"></i>\n	</span>\n	";
+  var buffer = "", helper, options;
+  buffer += "\n				<a href=\"/#search?tags="
+    + escapeExpression((helper = helpers.encode || (depth0 && depth0.encode),options={hash:{},data:data},helper ? helper.call(depth0, depth0, options) : helperMissing.call(depth0, "encode", depth0, options)))
+    + "\">\n					<span class=\"label radius\">"
+    + escapeExpression((typeof depth0 === functionType ? depth0.apply(depth0) : depth0))
+    + "</span>\n				</a>\n				";
   return buffer;
   }
 
 function program5(depth0,data) {
   
-  
-  return "\n	<span data-tooltip=\"This document is private\">\n		<i class=\"fa fa-lock\"></i>\n	</span>\n	";
+  var buffer = "", helper, options;
+  buffer += "\n				<span data-tooltip=\"This document may contain adult content\">\n					"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "eye-slash", options) : helperMissing.call(depth0, "icon", "eye-slash", options)))
+    + "\n				</span>\n				";
+  return buffer;
   }
 
 function program7(depth0,data) {
   
+  var buffer = "", stack1, helper, options;
+  buffer += "\n				<span data-tooltip=\"This document is shared with "
+    + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.collaborators)),stack1 == null || stack1 === false ? stack1 : stack1.length)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + " collaborators\">\n					"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "share-alt", options) : helperMissing.call(depth0, "icon", "share-alt", options)))
+    + "\n				</span>\n				";
+  return buffer;
+  }
+
+function program9(depth0,data) {
   
-  return "\n	<span data-tooltip=\"This document is public\">\n		<i class=\"fa fa-users\"></i>\n	</span>\n	";
+  var buffer = "", helper, options;
+  buffer += "\n				<span data-tooltip=\"This document is private\">\n					"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "lock", options) : helperMissing.call(depth0, "icon", "lock", options)))
+    + "\n				</span>\n				";
+  return buffer;
+  }
+
+function program11(depth0,data) {
+  
+  var buffer = "", helper, options;
+  buffer += "\n				<span data-tooltip=\"This document is public\">\n					"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "users", options) : helperMissing.call(depth0, "icon", "users", options)))
+    + "\n				</span>\n				";
+  return buffer;
+  }
+
+function program13(depth0,data) {
+  
+  
+  return "\n			<em>No collaborators</em>\n			";
+  }
+
+function program15(depth0,data) {
+  
+  var buffer = "", stack1;
+  buffer += "\n				<li><a href=\"/#user/"
+    + escapeExpression(((stack1 = (depth0 && depth0.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\">"
+    + escapeExpression(((stack1 = (depth0 && depth0.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "</a></li>\n				";
+  return buffer;
+  }
+
+function program17(depth0,data) {
+  
+  var buffer = "", stack1, helper, options;
+  buffer += "\n			<a href=\"/#document/"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1._id)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "/settings\" class=\"settings\">\n				"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "gear", options) : helperMissing.call(depth0, "icon", "gear", options)))
+    + " Document Settings\n			</a>\n			";
+  return buffer;
+  }
+
+function program19(depth0,data) {
+  
+  var buffer = "", stack1;
+  buffer += "\n			<dl>\n				";
+  stack1 = helpers.each.call(depth0, (depth0 && depth0.recentCommits), {hash:{},inverse:self.noop,fn:self.program(20, program20, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n			</dl>\n			";
+  return buffer;
+  }
+function program20(depth0,data) {
+  
+  var buffer = "", stack1, helper, options;
+  buffer += "\n				<dt>"
+    + escapeExpression((helper = helpers.fromNow || (depth0 && depth0.fromNow),options={hash:{},data:data},helper ? helper.call(depth0, (depth0 && depth0.created), options) : helperMissing.call(depth0, "fromNow", (depth0 && depth0.created), options)))
+    + "</dt>\n				<dd>\n					"
+    + escapeExpression(((stack1 = (depth0 && depth0.message)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\n				</dd>\n				";
+  return buffer;
+  }
+
+function program22(depth0,data) {
+  
+  
+  return "\n			<p>This document doesn't have any commits yet.</p>\n			";
+  }
+
+function program24(depth0,data) {
+  
+  var buffer = "";
+  buffer += "\n<section rel=\"comments\" class=\"comments row\">\n	<h4>Leave a Comment</h4>\n	<textarea class=\"pseudo\"></textarea>\n	<section class=\"hide\" data-partial=\"quill\" name=\"commentBox\" data-partial-data=\"commentBoxOptions\"></section>\n	<ol>\n		\n	</ol>\n</section>\n";
+  return buffer;
+  }
+
+  buffer += "<header>\n	<h1>"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.name)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "</h1>\n</header>\n<main class=\"row\">\n	<div class=\"small-12 medium-9 columns\">\n		<div class=\"meta panel\">\n			<div class=\"author\">\n				Author: <a href=\"/#user/"
+    + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.owner)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\">"
+    + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.owner)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "</a>\n			</div>\n			<div class=\"description\">\n				<p>\n					"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.description)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\n					";
+  stack1 = helpers['if'].call(depth0, (depth0 && depth0.isOwner), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n				</p>\n			</div>\n			<div class=\"tags\">\n				";
+  stack1 = helpers.each.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.tags), {hash:{},inverse:self.noop,fn:self.program(3, program3, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n			</div>\n			<section data-partial=\"stars\" data-partial-data=\"document\" name=\"stars\"></section>\n			<div class=\"icons\">\n				";
+  stack1 = helpers['if'].call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.adultContent), {hash:{},inverse:self.noop,fn:self.program(5, program5, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n				";
+  stack1 = helpers['if'].call(depth0, ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.collaborators)),stack1 == null || stack1 === false ? stack1 : stack1.length), {hash:{},inverse:self.noop,fn:self.program(7, program7, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n				";
+  stack1 = helpers.unless.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1['public']), {hash:{},inverse:self.program(11, program11, data),fn:self.program(9, program9, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n			</div>\n		</div>\n		<div class=\"meta panel\">\n			<h5>Collaborators</h5>\n			";
+  stack1 = helpers.unless.call(depth0, ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.collaborators)),stack1 == null || stack1 === false ? stack1 : stack1.length), {hash:{},inverse:self.noop,fn:self.program(13, program13, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n			<ul class=\"collaborators\">\n				";
+  stack1 = helpers.each.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.collaborators), {hash:{},inverse:self.noop,fn:self.program(15, program15, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n			</ul>\n\n			";
+  stack1 = helpers['if'].call(depth0, (depth0 && depth0.isOwner), {hash:{},inverse:self.noop,fn:self.program(17, program17, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n		</div>\n	</div>\n	<div class=\"small-12 medium-3 columns\">\n		<div class=\"history panel\">\n			<h3>Document History</h3>\n			";
+  stack1 = helpers['if'].call(depth0, ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.history)),stack1 == null || stack1 === false ? stack1 : stack1.length), {hash:{},inverse:self.program(22, program22, data),fn:self.program(19, program19, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n		</div>\n	</div>\n</main>\n";
+  stack1 = helpers['if'].call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.allowComments), {hash:{},inverse:self.noop,fn:self.program(24, program24, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  return buffer;
+  });
+
+this["exports"]["views/document/overview/overview.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, functionType="function", self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = "", helper, options;
+  buffer += "\n	<span data-tooltip=\"This document may contain adult content\">\n		"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "eye-slash", options) : helperMissing.call(depth0, "icon", "eye-slash", options)))
+    + "\n	</span>\n	";
+  return buffer;
+  }
+
+function program3(depth0,data) {
+  
+  var buffer = "", stack1, helper, options;
+  buffer += "\n	<span data-tooltip=\"This document is shared with "
+    + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.collaborators)),stack1 == null || stack1 === false ? stack1 : stack1.length)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + " collaborators\">\n		"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "share-alt", options) : helperMissing.call(depth0, "icon", "share-alt", options)))
+    + "\n	</span>\n	";
+  return buffer;
+  }
+
+function program5(depth0,data) {
+  
+  var buffer = "", helper, options;
+  buffer += "\n	<span data-tooltip=\"This document is private\">\n		"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "lock", options) : helperMissing.call(depth0, "icon", "lock", options)))
+    + "\n	</span>\n	";
+  return buffer;
+  }
+
+function program7(depth0,data) {
+  
+  var buffer = "", helper, options;
+  buffer += "\n	<span data-tooltip=\"This document is public\">\n		"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "users", options) : helperMissing.call(depth0, "icon", "users", options)))
+    + "\n	</span>\n	";
+  return buffer;
   }
 
 function program9(depth0,data) {
@@ -28867,46 +29201,6 @@ function program9(depth0,data) {
   return buffer;
   });
 
-this["exports"]["views/document/document.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
-  this.compilerInfo = [4,'>= 1.0.0'];
-helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
-  var buffer = "", stack1, helper, options, functionType="function", escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing, self=this;
-
-function program1(depth0,data) {
-  
-  
-  return "\n					<em>No collaborators</em>\n					";
-  }
-
-function program3(depth0,data) {
-  
-  var buffer = "", stack1;
-  buffer += "\n						<li><a href=\"/#user/"
-    + escapeExpression(((stack1 = (depth0 && depth0._id)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + "\">"
-    + escapeExpression(((stack1 = (depth0 && depth0.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + "</a></li>\n						";
-  return buffer;
-  }
-
-  buffer += "<header>\n	<h1>"
-    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.name)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + "</h1>\n</header>\n<main class=\"row\">\n	<div class=\"small-12 medium-4 columns\">\n		<div class=\"meta panel\">\n			<dl>\n				<dt>Author</dt>\n				<dd>"
-    + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.owner)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + "</dd>\n\n				<dt>Created</dt>\n				<dd>"
-    + escapeExpression((helper = helpers.fromNow || (depth0 && depth0.fromNow),options={hash:{},data:data},helper ? helper.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.created), options) : helperMissing.call(depth0, "fromNow", ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.created), options)))
-    + "</dd>\n\n				<dt>Updated</dt>\n				<dd>"
-    + escapeExpression((helper = helpers.fromNow || (depth0 && depth0.fromNow),options={hash:{},data:data},helper ? helper.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.updated), options) : helperMissing.call(depth0, "fromNow", ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.updated), options)))
-    + "</dd>\n\n				<dt>Collaborators</dt>\n				<dd>\n					";
-  stack1 = helpers.unless.call(depth0, ((stack1 = (depth0 && depth0.collaborators)),stack1 == null || stack1 === false ? stack1 : stack1.length), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
-  if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += "\n					<ul class=\"collaborators\">\n						";
-  stack1 = helpers.each.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.collaborators), {hash:{},inverse:self.noop,fn:self.program(3, program3, data),data:data});
-  if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += "\n					</ul>\n				</dd>\n			</dl>\n		</div>\n	</div>	\n</main>";
-  return buffer;
-  });
-
 this["exports"]["views/document/read/read.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
@@ -28919,7 +29213,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
 this["exports"]["views/document/stars/stars.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
-  var buffer = "", stack1, self=this, functionType="function", escapeExpression=this.escapeExpression;
+  var buffer = "", stack1, helper, options, self=this, functionType="function", escapeExpression=this.escapeExpression, helperMissing=helpers.helperMissing;
 
 function program1(depth0,data) {
   
@@ -28930,9 +29224,11 @@ function program1(depth0,data) {
   buffer += "<a class=\"";
   stack1 = helpers['if'].call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.isStarred), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += "\">\n	<span>"
+  buffer += "\" data-tooltip=\"Click to star/unstar\">\n	<span>"
     + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.starredBy)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + "</span> <i class=\"fa fa-star\"></i>\n</a>";
+    + "</span> "
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "star", options) : helperMissing.call(depth0, "icon", "star", options)))
+    + "\n</a>";
   return buffer;
   });
 
@@ -28944,7 +29240,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
 
   buffer += "<div class=\"copyright\">\n	Collabish &copy; "
     + escapeExpression((helper = helpers.now || (depth0 && depth0.now),options={hash:{},data:data},helper ? helper.call(depth0, "YYYY", options) : helperMissing.call(depth0, "now", "YYYY", options)))
-    + " <a href=\"http://www.umbraengineering.com\">Umbra Engineering LLC</a>\n</div>\n<div class=\"links\">\n	<a class=\"terms\">Terms</a>\n	<a class=\"privacy\">Privacy</a>\n	<a class=\"report\">Report a Problem</a>\n	<a href=\"http://www.gofundme.com/collabish\">Help Support Collabish</a>\n</div>";
+    + " <a href=\"http://www.umbraengineering.com\">Umbra Engineering LLC</a>\n</div>\n<div class=\"links\">\n	<a class=\"terms\">Terms</a>\n	<a class=\"privacy\">Privacy</a>\n	<a class=\"report\">Report a Problem</a>\n	<a class=\"support\" href=\"http://www.gofundme.com/collabish\">Help Support Collabish</a>\n</div>";
   return buffer;
   });
 
@@ -28960,7 +29256,17 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
     + escapeExpression((helper = helpers.gravatar || (depth0 && depth0.gravatar),options={hash:{},data:data},helper ? helper.call(depth0, (depth0 && depth0.gravatarHash), "s=32", options) : helperMissing.call(depth0, "gravatar", (depth0 && depth0.gravatarHash), "s=32", options)))
     + "\" width=\"32\" height=\"32\" alt=\"\" title=\"\" />\n		"
     + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.user)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + "\n	</a>\n	<div class=\"icons\">\n		<a class=\"create\" href=\"/#create\">\n			<span data-tooltip=\"Create Document\">\n				<i class=\"fa fa-plus-circle\"></i>\n			</span>\n		</a>\n		<a class=\"search\" href=\"/#search\">\n			<span data-tooltip=\"Search Documents\">\n				<i class=\"fa fa-search\"></i>\n			</span>\n		</a>\n		<a class=\"inbox\" href=\"/#inbox\">\n			<span data-tooltip=\"Inbox\">\n				<i class=\"fa fa-inbox\"></i>\n			</span>\n			<span class=\"notification\"></span>\n		</a>\n		<a class=\"settings\" href=\"/#settings\">\n			<span data-tooltip=\"Account Settings\">\n				<i class=\"fa fa-gears\"></i>\n			</span>\n		</a>\n		<a class=\"signout\">\n			<span data-tooltip=\"Sign Out\">\n				<i class=\"fa fa-sign-out\"></i>\n			</span>\n		</a>\n	</div>\n</div>\n";
+    + "\n	</a>\n	<div class=\"icons\">\n		<a class=\"create\" href=\"/#create\">\n			<span data-tooltip=\"Create Document\">\n				"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "plus-circle", options) : helperMissing.call(depth0, "icon", "plus-circle", options)))
+    + "\n			</span>\n		</a>\n		<a class=\"search\" href=\"/#search\">\n			<span data-tooltip=\"Search Documents\">\n				"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "search", options) : helperMissing.call(depth0, "icon", "search", options)))
+    + "\n			</span>\n		</a>\n		<a class=\"inbox\" href=\"/#inbox\">\n			<span data-tooltip=\"Inbox\">\n				"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "inbox", options) : helperMissing.call(depth0, "icon", "inbox", options)))
+    + "\n			</span>\n			<span class=\"notification\"></span>\n		</a>\n		<a class=\"settings\" href=\"/#settings\">\n			<span data-tooltip=\"Account Settings\">\n				"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "gears", options) : helperMissing.call(depth0, "icon", "gears", options)))
+    + "\n			</span>\n		</a>\n		<a class=\"signout\">\n			<span data-tooltip=\"Sign Out\">\n				"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "sign-out", options) : helperMissing.call(depth0, "icon", "sign-out", options)))
+    + "\n			</span>\n		</a>\n	</div>\n</div>\n";
   return buffer;
   });
 
@@ -29088,7 +29394,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
 this["exports"]["views/quill/quill.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
-  var buffer = "", stack1, functionType="function", self=this;
+  var buffer = "", stack1, helper, options, functionType="function", self=this, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression;
 
 function program1(depth0,data) {
   
@@ -29109,20 +29415,30 @@ function program2(depth0,data) {
   return buffer;
   }
 
-  buffer += "<div class=\"toolbar\">\n	<select class=\"ql-font\">\n		<option value=\"sans-serif\" selected>Sans Serif</option>\n		<option value=\"serif\">Serif</option>\n		<option value=\"monospace\">Monospace</option>\n	</select>\n	<a class=\"ql-bold\" data-tooltip=\"Bold (Ctrl+B)\">\n		<i class=\"fa fa-bold\"></i>\n	</a>\n	<a class=\"ql-italic\" data-tooltip=\"Italic (Ctrl+I)\">\n		<i class=\"fa fa-italic\"></i>\n	</a>\n	<a class=\"ql-underline\" data-tooltip=\"Underline (Ctrl+U)\">\n		<i class=\"fa fa-underline\"></i>\n	</a>\n	<a class=\"ql-strike\" data-tooltip=\"Strikethrough\">\n		<i class=\"fa fa-strikethrough\"></i>\n	</a>\n	";
+  buffer += "<div class=\"toolbar\">\n	<select class=\"ql-font\">\n		<option value=\"sans-serif\" selected>Sans Serif</option>\n		<option value=\"serif\">Serif</option>\n		<option value=\"monospace\">Monospace</option>\n	</select>\n	<a class=\"ql-bold\" data-tooltip=\"Bold (Ctrl+B)\">\n		"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "bold", options) : helperMissing.call(depth0, "icon", "bold", options)))
+    + "\n	</a>\n	<a class=\"ql-italic\" data-tooltip=\"Italic (Ctrl+I)\">\n		"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "italic", options) : helperMissing.call(depth0, "icon", "italic", options)))
+    + "\n	</a>\n	<a class=\"ql-underline\" data-tooltip=\"Underline (Ctrl+U)\">\n		"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "underline", options) : helperMissing.call(depth0, "icon", "underline", options)))
+    + "\n	</a>\n	<a class=\"ql-strike\" data-tooltip=\"Strikethrough\">\n		"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "strikethrough", options) : helperMissing.call(depth0, "icon", "strikethrough", options)))
+    + "\n	</a>\n</div>\n<div class=\"editor\">\n	<div><br /></div>\n</div>\n<div class=\"buttons\">\n	";
   stack1 = helpers['if'].call(depth0, (depth0 && depth0.buttons), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += "\n</div>\n<div class=\"editor\">\n	<div><br /></div>\n</div>";
+  buffer += "\n</div>";
   return buffer;
   });
 
 this["exports"]["views/search/search.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
-  var buffer = "";
+  var buffer = "", helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression;
 
 
-  buffer += "<h1>Search</h1>\n<div class=\"row\">\n	<div class=\"panel\">\n		<form>\n			<label class=\"query\">\n				<input type=\"text\" />\n			</label>\n			\n			<hr />\n			\n			<label class=\"tags\">\n				Tags\n				\n			</label>\n			<label class=\"tags-type\">\n				Tagging Type\n				<div>\n					<input type=\"radio\" name=\"tags-type\" value=\"any\" checked /> Any\n					<input type=\"radio\" name=\"tags-type\" value=\"all\" /> All\n				</div>\n			</label>\n\n			<hr />\n\n			<label class=\"adult-content\">\n				Adult Content\n				<div>\n					<input type=\"radio\" name=\"adult-content\" value=\"yes\" /> Yes\n					<input type=\"radio\" name=\"adult-content\" value=\"no\" checked /> No\n					<input type=\"radio\" name=\"adult-content\" value=\"either\" /> Either\n				</div>\n			</label>\n\n			<hr />\n\n			<div class=\"row dates\">\n				<div class=\"small-12 medium-6 columns\">\n					<label class=\"created\">\n						Create\n						<select>\n							<option value=\"any\" selected>Any Time</option>\n							<option value=\"today\">Today</option>\n							<option value=\"week\">Past Week</option>\n							<option value=\"month\">Past Month</option>\n						</select>\n					</label>\n				</div>\n				<div class=\"small-12 medium-6 columns\">\n					<label class=\"updated\">\n						Updated\n						<select>\n							<option value=\"any\" selected>Any Time</option>\n							<option value=\"today\">Today</option>\n							<option value=\"week\">Past Week</option>\n							<option value=\"month\">Past Month</option>\n						</select>\n					</label>\n				</div>\n			</div>\n\n			<hr />\n\n			<div class=\"button-wrapper\">\n				<button class=\"expand action button\"><i class=\"fa fa-search\"></i> Search</button>\n			</div>\n		</form>\n	</div>\n</div>";
+  buffer += "<h1>Search</h1>\n<div class=\"row\">\n	<div class=\"panel\">\n		<form>\n			<label class=\"query\">\n				<input type=\"text\" />\n			</label>\n			\n			<hr />\n			\n			<label class=\"tags\">\n				Tags\n				\n			</label>\n			<label class=\"tags-type\">\n				Tagging Type\n				<div>\n					<input type=\"radio\" name=\"tags-type\" value=\"any\" checked /> Any\n					<input type=\"radio\" name=\"tags-type\" value=\"all\" /> All\n				</div>\n			</label>\n\n			<hr />\n\n			<label class=\"adult-content\">\n				Adult Content\n				<div>\n					<input type=\"radio\" name=\"adult-content\" value=\"yes\" /> Yes\n					<input type=\"radio\" name=\"adult-content\" value=\"no\" checked /> No\n					<input type=\"radio\" name=\"adult-content\" value=\"either\" /> Either\n				</div>\n			</label>\n\n			<hr />\n\n			<div class=\"row dates\">\n				<div class=\"small-12 medium-6 columns\">\n					<label class=\"created\">\n						Create\n						<select>\n							<option value=\"any\" selected>Any Time</option>\n							<option value=\"today\">Today</option>\n							<option value=\"week\">Past Week</option>\n							<option value=\"month\">Past Month</option>\n						</select>\n					</label>\n				</div>\n				<div class=\"small-12 medium-6 columns\">\n					<label class=\"updated\">\n						Updated\n						<select>\n							<option value=\"any\" selected>Any Time</option>\n							<option value=\"today\">Today</option>\n							<option value=\"week\">Past Week</option>\n							<option value=\"month\">Past Month</option>\n						</select>\n					</label>\n				</div>\n			</div>\n\n			<hr />\n\n			<div class=\"button-wrapper\">\n				<button class=\"expand action button\">"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "search", options) : helperMissing.call(depth0, "icon", "search", options)))
+    + " Search</button>\n			</div>\n		</form>\n	</div>\n</div>";
   return buffer;
   });
 
@@ -43250,7 +43566,7 @@ var CreateDocumentView = module.exports = View.extend({
  /* ==  Begin source for module /views/dashboard/dashboard.js  == */ var __module__ = function() { 
  
 var View                  = require('cloak/view');
-var DocumentOverviewView  = require('views/document-overview/document-overview');
+var DocumentOverviewView  = require('views/document/overview/overview');
 
 var DashboardView = module.exports = View.extend({
 
@@ -43313,8 +43629,211 @@ var DashboardView = module.exports = View.extend({
 });
  
  }; /* ==  End source for module /views/dashboard/dashboard.js  == */ return module; }());;
-;require._modules["/views/document-overview/document-overview.js"] = (function() { var __filename = "/views/document-overview/document-overview.js"; var __dirname = "/views/document-overview"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
- /* ==  Begin source for module /views/document-overview/document-overview.js  == */ var __module__ = function() { 
+;require._modules["/views/document/document.js"] = (function() { var __filename = "/views/document/document.js"; var __dirname = "/views/document"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/document/document.js  == */ var __module__ = function() { 
+ 
+var $            = require('jquery');
+var View         = require('cloak/view');
+var auth         = require('common/auth');
+var Comment      = require('models/comment');
+var StarsView    = require('views/document/stars/stars');
+var announce     = require('common/announce');
+var QuillEditor  = require('views/quill/quill');
+
+var DocumentView = module.exports = View.extend({
+
+	className: 'document',
+	template: 'views/document/document.hbs',
+	commentTemplate: 'views/document/comment.hbs',
+
+	events: {
+		'click .description .edit':           'editDescription',
+		'click .description .save':           'saveDescription',
+		'click .description .cancel':         'cancelDescription',
+		'focus .comments textarea.pseudo':    'showCommentEditor',
+		'click .comments .post.button':       'postComment',
+		'click .comments .cancel.button':     'cancelComment'
+	},
+
+	initialize: function(document) {
+		this.document = document;
+		this.commentCount = 0;
+
+		this.commentBoxOptions = {
+			buttons: [
+				{text: 'Post Comment', classname: 'small action button post'},
+				{text: 'Cancel', classname: 'small secondary button cancel'}
+			]
+		};
+	},
+
+	draw: function() {
+		this.$elem.html('<div class="spinner"></div>');
+		this.$('.spinner').spin(true, {size: 'large'});
+	},
+
+	drawDocument: function() {
+		this.$elem.html(this.render({
+			isOwner: (this.document.get('owner').id() === auth.user.id()),
+			document: this.document.serialize({ deep: true }),
+			recentCommits: this.document.get('history').slice().reverse().slice(0, 10)
+		}));
+	
+		this.bindPartials({
+			stars: StarsView,
+			quill: QuillEditor
+		});
+
+		this.$description  = this.$('.description');
+		this.$comments     = this.$('section.comments');
+		this.$commentList  = this.$('section.comments ol');
+
+		this.bindEvents();
+	},
+
+// --------------------------------------------------------
+
+	editDescription: function(evt) {
+		if (evt) {
+			evt.preventDefault();
+		}
+
+		this.$description.html(
+			'<textarea>' + this.document.get('description') + '</textarea>' +
+			'<a class="cancel">Cancel</a> | <a class="save">Save</a>' +
+			'<div class="spinner"></div>'
+		);
+	},
+
+	saveDescription: function(evt) {
+		if (evt) {
+			evt.preventDefault();
+		}
+
+		var self = this;
+		var desc = this.document.get('description');
+
+		this.disableDescription(true);
+		this.document
+			.set('description', this.$description.find('textarea').val())
+			.patch('description')
+			.then(function() {
+				self.cancelDescription();
+			})
+			.catch(function(res) {
+				self.document.set('description', desc);
+				announce.show('alert', res.body.message);
+			});
+	},
+
+	cancelDescription: function(evt) {
+		if (evt) {
+			evt.preventDefault();
+		}
+
+		this.$description.html(
+			'<p>' + this.document.get('description') + ' <a class="edit">Edit</a></p>'
+		);
+	},
+
+	disableDescription: function(flag) {
+		this.$description.find('textarea, a').disable(flag);
+		this.$description.find('.spinner').spin(flag, {size: 'tiny'});
+	},
+
+// --------------------------------------------------------
+
+	drawNewComment: function(topOrBottom, comment, gravatarHash) {
+		var func = (topOrBottom === 'top') ? 'prepend' : 'append';
+
+		if (comment instanceof Comment) {
+			comment = comment.serialize({ deep: true });
+		}
+
+		var $li = $('<li></li>');
+		var data = {
+			comment: comment,
+			gravatarHash: gravatarHash
+		};
+
+		$li.hide();
+		$li[func + 'To'](this.$commentList);
+		$li.html(this.render(data, 'commentTemplate'));
+		$li.animate({ opacity: 'show', height: 'show' }, 600, function() {
+			// 
+		});
+	},
+
+	drawComments: function(comments) {
+		// If given a single comment, put it inside a collection to normalize
+		if (comments instanceof Comment) {
+			comments = (new Comment.Collection()).add(comments);
+		}
+
+		if (! (comments && comments.len())) {
+			if (this.commentCount) {
+				this.$comments.append('<p class="no-results">There are no more comments</p>');
+			} else {
+				this.$comments.append('<p class="no-results">There are no comments</p>');
+			}
+			return;
+		}
+
+		var self = this;
+		comments.forEach(function(comment) {
+			self.drawNewComment('bottom', comment, comment.get('author').gravatarHash());
+		});
+	},
+
+	showCommentEditor: function() {
+		this.$comments.find('textarea.pseudo').css('display', 'none');
+		this.$comments.find('section.quill').css('display', 'block');
+		this.commentBox.quill.focus();
+	},
+
+	hideCommentEditor: function() {
+		this.$comments.find('textarea.pseudo').css('display', 'block');
+		this.$comments.find('section.quill').css('display', 'none');
+	},
+
+	postComment: function(evt) {
+		if (evt) {
+			evt.preventDefault();
+		}
+
+		var self = this;
+		var content = this.commentBox.quill.getHTML();
+
+		this.document.postComment(content)
+			.then(
+				function(comment) {
+					self.cancelComment();
+
+					comment = comment.serialize();
+					comment.author = auth.user.serialize();
+
+					self.drawNewComment('top', comment, auth.user.gravatarHash());
+				},
+				function(res) {
+					announce.show('alert', (res && res.body && res.body.message) || res);
+				}
+			);
+	},
+
+	cancelComment: function(evt) {
+		if (evt) {
+			evt.preventDefault();
+		}
+
+		this.commentBox.quill.setHTML('<div></div>');
+		this.hideCommentEditor();
+	}
+
+});
+ 
+ }; /* ==  End source for module /views/document/document.js  == */ return module; }());;
+;require._modules["/views/document/overview/overview.js"] = (function() { var __filename = "/views/document/overview/overview.js"; var __dirname = "/views/document/overview"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/document/overview/overview.js  == */ var __module__ = function() { 
  
 var View       = require('cloak/view');
 var moment     = require('moment');
@@ -43323,7 +43842,7 @@ var StarsView  = require('views/document/stars/stars');
 var DocumentOverviewView = module.exports = View.extend({
 
 	className: 'document-overview panel',
-	template: 'views/document-overview/document-overview.hbs',
+	template: 'views/document/overview/overview.hbs',
 
 	events: {
 		// 
@@ -43343,53 +43862,11 @@ var DocumentOverviewView = module.exports = View.extend({
 		this.bindPartials({
 			stars: StarsView
 		});
-
-		this.stars.on('star', function() {
-			// 
-		});
-
-		this.stars.on('unstar', function() {
-			// 
-		});
 	}
 
 });
  
- }; /* ==  End source for module /views/document-overview/document-overview.js  == */ return module; }());;
-;require._modules["/views/document/document.js"] = (function() { var __filename = "/views/document/document.js"; var __dirname = "/views/document"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
- /* ==  Begin source for module /views/document/document.js  == */ var __module__ = function() { 
- 
-var View    = require('cloak/view');
-var moment  = require('moment');
-
-var DocumentView = module.exports = View.extend({
-
-	className: 'document',
-	template: 'views/document/document.hbs',
-
-	events: {
-		// 
-	},
-
-	initialize: function(document) {
-		this.document = document;
-	},
-
-	draw: function() {
-		this.$elem.html('<div class="spinner"></div>');
-		this.$('.spinner').spin(true, {size: 'large'});
-		this.bindEvents();
-	},
-
-	drawDocument: function() {
-		this.$elem.html(this.render({
-			document: this.document.serialize({ deep: true })
-		}));
-	}
-
-});
- 
- }; /* ==  End source for module /views/document/document.js  == */ return module; }());;
+ }; /* ==  End source for module /views/document/overview/overview.js  == */ return module; }());;
 ;require._modules["/views/document/read/read.js"] = (function() { var __filename = "/views/document/read/read.js"; var __dirname = "/views/document/read"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/document/read/read.js  == */ var __module__ = function() { 
  
@@ -43933,7 +44410,7 @@ var NotFoundView = module.exports = View.extend({
 var _                     = require('cloak/underscore');
 var View                  = require('cloak/view');
 var auth                  = require('common/auth');
-var DocumentOverviewView  = require('views/document-overview/document-overview');
+var DocumentOverviewView  = require('views/document/overview/overview');
 
 var ProfileView = module.exports = View.extend({
 

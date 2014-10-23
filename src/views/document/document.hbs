@@ -2,30 +2,90 @@
 	<h1>{{ document.name }}</h1>
 </header>
 <main class="row">
-	<div class="small-12 medium-4 columns">
+	<div class="small-12 medium-9 columns">
 		<div class="meta panel">
-			<dl>
-				<dt>Author</dt>
-				<dd>{{ document.owner.username }}</dd>
-
-				<dt>Created</dt>
-				<dd>{{fromNow document.created }}</dd>
-
-				<dt>Updated</dt>
-				<dd>{{fromNow document.updated }}</dd>
-
-				<dt>Collaborators</dt>
-				<dd>
-					{{#unless collaborators.length}}
-					<em>No collaborators</em>
-					{{/unless}}
-					<ul class="collaborators">
-						{{#each document.collaborators}}
-						<li><a href="/#user/{{ this._id }}">{{ this.username }}</a></li>
-						{{/each}}
-					</ul>
-				</dd>
-			</dl>
+			<div class="author">
+				Author: <a href="/#user/{{ document.owner.username }}">{{ document.owner.username }}</a>
+			</div>
+			<div class="description">
+				<p>
+					{{ document.description }}
+					{{#if isOwner}}<a class="edit">Edit</a>{{/if}}
+				</p>
+			</div>
+			<div class="tags">
+				{{#each document.tags}}
+				<a href="/#search?tags={{encode this}}">
+					<span class="label radius">{{ this }}</span>
+				</a>
+				{{/each}}
+			</div>
+			<section data-partial="stars" data-partial-data="document" name="stars"></section>
+			<div class="icons">
+				{{#if document.adultContent}}
+				<span data-tooltip="This document may contain adult content">
+					{{icon "eye-slash"}}
+				</span>
+				{{/if}}
+				{{#if document.collaborators.length}}
+				<span data-tooltip="This document is shared with {{ document.collaborators.length }} collaborators">
+					{{icon "share-alt"}}
+				</span>
+				{{/if}}
+				{{#unless document.public }}
+				<span data-tooltip="This document is private">
+					{{icon "lock"}}
+				</span>
+				{{else}}
+				<span data-tooltip="This document is public">
+					{{icon "users"}}
+				</span>
+				{{/unless}}
+			</div>
 		</div>
-	</div>	
+		<div class="meta panel">
+			<h5>Collaborators</h5>
+			{{#unless document.collaborators.length}}
+			<em>No collaborators</em>
+			{{/unless}}
+			<ul class="collaborators">
+				{{#each document.collaborators}}
+				<li><a href="/#user/{{ this.username }}">{{ this.username }}</a></li>
+				{{/each}}
+			</ul>
+
+			{{#if isOwner}}
+			<a href="/#document/{{ document._id }}/settings" class="settings">
+				{{icon "gear"}} Document Settings
+			</a>
+			{{/if}}
+		</div>
+	</div>
+	<div class="small-12 medium-3 columns">
+		<div class="history panel">
+			<h3>Document History</h3>
+			{{#if document.history.length}}
+			<dl>
+				{{#each recentCommits}}
+				<dt>{{fromNow this.created}}</dt>
+				<dd>
+					{{ this.message }}
+				</dd>
+				{{/each}}
+			</dl>
+			{{else}}
+			<p>This document doesn't have any commits yet.</p>
+			{{/if}}
+		</div>
+	</div>
 </main>
+{{#if document.allowComments}}
+<section rel="comments" class="comments row">
+	<h4>Leave a Comment</h4>
+	<textarea class="pseudo"></textarea>
+	<section class="hide" data-partial="quill" name="commentBox" data-partial-data="commentBoxOptions"></section>
+	<ol>
+		{{!-- Comments --}}
+	</ol>
+</section>
+{{/if}}
