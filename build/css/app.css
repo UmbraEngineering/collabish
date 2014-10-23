@@ -8702,8 +8702,8 @@ section.document .comments ol article {
   padding: 1rem;
 }
 
-section.document .comments ol li:not(:last-of-type) article {
-  border-bottom: 1px #ccc solid;
+section.document .comments ol li:nth-of-type(even) article {
+  background: #f0f0f0;
 }
 
 section.document .comments ol article .gravatar {
