@@ -32,6 +32,7 @@ exports.run = function(opts) {
 
 	// Load jquery plugins
 	require('jquery.hotkeys');
+	require('jquery.atwho');
 	require('common/spin');
 	require('common/icons');
 	require('common/disable');

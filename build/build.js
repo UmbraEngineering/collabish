@@ -3857,7 +3857,7 @@ var Model = module.exports = AppObject.extend(modelStore.methods, {
 	// 
 	// @return string
 	// 
-	urlAttr: /\{([^}]+)\}/,
+	urlAttr: /\{([^}]+)\}/g,
 	reqUrl: function() {
 		var self = this;
 		// Replace any attribute placeholders in the URL
@@ -28367,7 +28367,7 @@ var DocumentRouter = module.exports = Router.extend({
 				view.drawComments(comments);
 			})
 			.catch(function(err) {
-				console.error(err);
+				console.error(err.stack || err);
 			});
 	}
 
@@ -28794,6 +28794,7 @@ exports.run = function(opts) {
 
 	// Load jquery plugins
 	require('jquery.hotkeys');
+	require('jquery.atwho');
 	require('common/spin');
 	require('common/icons');
 	require('common/disable');
@@ -28940,24 +28941,39 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   return "<div class=\"no-results panel\">\n	<h3>You haven't starred any documents</h3>\n	<p>\n		Why not <a href=\"/#search\">take a look around</a>?\n	</p>\n</div>";
   });
 
-this["exports"]["views/document/comment.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+this["exports"]["views/document/comment/comment.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
-  var buffer = "", stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, functionType="function";
+  var buffer = "", stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, functionType="function", self=this;
 
+function program1(depth0,data) {
+  
+  var buffer = "", helper, options;
+  buffer += "\n			<a class=\"edit\" data-tooltip=\"Edit\">"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "edit", options) : helperMissing.call(depth0, "icon", "edit", options)))
+    + "</a>\n			<a class=\"delete\" data-tooltip=\"Delete\">"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "trash-o", options) : helperMissing.call(depth0, "icon", "trash-o", options)))
+    + "</a>\n			";
+  return buffer;
+  }
 
-  buffer += "<article rel=\"comment\">\n	<div class=\"gravatar\">\n		<img src=\""
+  buffer += "<div class=\"gravatar\">\n	<img src=\""
     + escapeExpression((helper = helpers.gravatar || (depth0 && depth0.gravatar),options={hash:{},data:data},helper ? helper.call(depth0, (depth0 && depth0.gravatarHash), "s=48", options) : helperMissing.call(depth0, "gravatar", (depth0 && depth0.gravatarHash), "s=48", options)))
-    + "\" width=\"48\" height=\"48\" alt=\"\" title=\"\" />\n	</div>\n	<div class=\"content\">\n		<a href=\"/#user/"
+    + "\" width=\"48\" height=\"48\" alt=\"\" title=\"\" />\n</div>\n<div class=\"content\">\n	<a href=\"/#user/"
     + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.comment)),stack1 == null || stack1 === false ? stack1 : stack1.author)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
     + "\" rel=\"author\">"
     + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.comment)),stack1 == null || stack1 === false ? stack1 : stack1.author)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + "</a>\n		";
+    + "</a>\n	<main>";
   stack1 = ((stack1 = ((stack1 = (depth0 && depth0.comment)),stack1 == null || stack1 === false ? stack1 : stack1.content)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1);
   if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += "\n		<span class=\"posted\">Posted: "
+  buffer += "</main>\n	<footer>\n		<span class=\"posted\">Posted: "
     + escapeExpression((helper = helpers.fromNow || (depth0 && depth0.fromNow),options={hash:{},data:data},helper ? helper.call(depth0, ((stack1 = (depth0 && depth0.comment)),stack1 == null || stack1 === false ? stack1 : stack1.created), options) : helperMissing.call(depth0, "fromNow", ((stack1 = (depth0 && depth0.comment)),stack1 == null || stack1 === false ? stack1 : stack1.created), options)))
-    + "</span>\n	</div>\n</article>\n";
+    + "</span>\n		<div class=\"actions\">\n			";
+  stack1 = helpers['if'].call(depth0, (depth0 && depth0.isAuthor), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n			<a class=\"reply\" data-tooltip=\"Reply\">"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "reply", options) : helperMissing.call(depth0, "icon", "reply", options)))
+    + "</a>\n		</div>\n	</footer>\n</div>";
   return buffer;
   });
 
@@ -29084,7 +29100,7 @@ function program24(depth0,data) {
 
   buffer += "<header>\n	<h1>"
     + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.name)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + "</h1>\n</header>\n<main class=\"row\">\n	<div class=\"small-12 medium-9 columns\">\n		<div class=\"meta panel\">\n			<div class=\"author\">\n				Author: <a href=\"/#user/"
+    + " (<a href=\"\">read</a>)</h1>\n</header>\n<main class=\"row\">\n	<div class=\"small-12 medium-9 columns\">\n		<div class=\"meta panel\">\n			<div class=\"author\">\n				Author: <a href=\"/#user/"
     + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.owner)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
     + "\">"
     + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.owner)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
@@ -29285,6 +29301,28 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   else { helper = (depth0 && depth0.content); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
   if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "\n</div>";
+  return buffer;
+  });
+
+this["exports"]["views/modals/confirm/confirm.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, helper, functionType="function", escapeExpression=this.escapeExpression;
+
+
+  buffer += "<label>\n	<p>";
+  if (helper = helpers.prompt) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.prompt); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "</p>\n	<button class=\"yes small "
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.yes)),stack1 == null || stack1 === false ? stack1 : stack1.classname)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\">"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.yes)),stack1 == null || stack1 === false ? stack1 : stack1.text)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "</button>\n	<button class=\"no small "
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.no)),stack1 == null || stack1 === false ? stack1 : stack1.classname)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\">"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.no)),stack1 == null || stack1 === false ? stack1 : stack1.text)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "</button>\n</label>";
   return buffer;
   });
 
@@ -30571,6 +30609,1243 @@ delete window.jQuery;
 window.jQuery = void(0);
  
  }; /* ==  End source for module /vendor/foundation/index.js  == */ return module; }());;
+;require._modules["/vendor/jquery.atwho/index.js"] = (function() { var __filename = "/vendor/jquery.atwho/index.js"; var __dirname = "/vendor/jquery.atwho"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /vendor/jquery.atwho/index.js  == */ var __module__ = function() { 
+ 
+window.jQuery = require('jquery');
+
+require('./jquery.caret');
+require('./jquery.atwho');
+
+window.jQuery = void(0);
+delete window.jQuery;
+ 
+ }; /* ==  End source for module /vendor/jquery.atwho/index.js  == */ return module; }());;
+;require._modules["/vendor/jquery.atwho/jquery.atwho.js"] = (function() { var __filename = "/vendor/jquery.atwho/jquery.atwho.js"; var __dirname = "/vendor/jquery.atwho"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /vendor/jquery.atwho/jquery.atwho.js  == */ var __module__ = function() { 
+ /*! jquery.atwho - v0.5.1 - 2014-10-16
+* Copyright (c) 2014 chord.luo <chord.luo@gmail.com>; 
+* homepage: http://ichord.github.com/At.js 
+* Licensed MIT
+*/
+
+(function() {
+  (function(factory) {
+    if (typeof define === 'function' && define.amd) {
+      return define(['jquery'], factory);
+    } else {
+      return factory(window.jQuery);
+    }
+  })(function($) {
+
+var Api, App, Controller, DEFAULT_CALLBACKS, KEY_CODE, Model, View,
+  __slice = [].slice;
+
+App = (function() {
+  function App(inputor) {
+    this.current_flag = null;
+    this.controllers = {};
+    this.alias_maps = {};
+    this.$inputor = $(inputor);
+    this.setIframe();
+    this.listen();
+  }
+
+  App.prototype.createContainer = function(doc) {
+    if ((this.$el = $("#atwho-container", doc)).length === 0) {
+      return $(doc.body).append(this.$el = $("<div id='atwho-container'></div>"));
+    }
+  };
+
+  App.prototype.setIframe = function(iframe, standalone) {
+    var _ref;
+    if (standalone == null) {
+      standalone = false;
+    }
+    if (iframe) {
+      this.window = iframe.contentWindow;
+      this.document = iframe.contentDocument || this.window.document;
+      this.iframe = iframe;
+    } else {
+      this.document = document;
+      this.window = window;
+      this.iframe = null;
+    }
+    if (this.iframeStandalone = standalone) {
+      if ((_ref = this.$el) != null) {
+        _ref.remove();
+      }
+      return this.createContainer(this.document);
+    } else {
+      return this.createContainer(document);
+    }
+  };
+
+  App.prototype.controller = function(at) {
+    var c, current, current_flag, _ref;
+    if (this.alias_maps[at]) {
+      current = this.controllers[this.alias_maps[at]];
+    } else {
+      _ref = this.controllers;
+      for (current_flag in _ref) {
+        c = _ref[current_flag];
+        if (current_flag === at) {
+          current = c;
+          break;
+        }
+      }
+    }
+    if (current) {
+      return current;
+    } else {
+      return this.controllers[this.current_flag];
+    }
+  };
+
+  App.prototype.set_context_for = function(at) {
+    this.current_flag = at;
+    return this;
+  };
+
+  App.prototype.reg = function(flag, setting) {
+    var controller, _base;
+    controller = (_base = this.controllers)[flag] || (_base[flag] = new Controller(this, flag));
+    if (setting.alias) {
+      this.alias_maps[setting.alias] = flag;
+    }
+    controller.init(setting);
+    return this;
+  };
+
+  App.prototype.listen = function() {
+    return this.$inputor.on('keyup.atwhoInner', (function(_this) {
+      return function(e) {
+        return _this.on_keyup(e);
+      };
+    })(this)).on('keydown.atwhoInner', (function(_this) {
+      return function(e) {
+        return _this.on_keydown(e);
+      };
+    })(this)).on('scroll.atwhoInner', (function(_this) {
+      return function(e) {
+        var _ref;
+        return (_ref = _this.controller()) != null ? _ref.view.hide(e) : void 0;
+      };
+    })(this)).on('blur.atwhoInner', (function(_this) {
+      return function(e) {
+        var c;
+        if (c = _this.controller()) {
+          return c.view.hide(e, c.get_opt("display_timeout"));
+        }
+      };
+    })(this)).on('click.atwhoInner', (function(_this) {
+      return function(e) {
+        var _ref;
+        return (_ref = _this.controller()) != null ? _ref.view.hide(e) : void 0;
+      };
+    })(this));
+  };
+
+  App.prototype.shutdown = function() {
+    var c, _, _ref;
+    _ref = this.controllers;
+    for (_ in _ref) {
+      c = _ref[_];
+      c.destroy();
+      delete this.controllers[_];
+    }
+    this.$inputor.off('.atwhoInner');
+    return this.$el.remove();
+  };
+
+  App.prototype.dispatch = function() {
+    return $.map(this.controllers, (function(_this) {
+      return function(c) {
+        var delay;
+        if (delay = c.get_opt('delay')) {
+          clearTimeout(_this.delayedCallback);
+          return _this.delayedCallback = setTimeout(function() {
+            if (c.look_up()) {
+              return _this.set_context_for(c.at);
+            }
+          }, delay);
+        } else {
+          if (c.look_up()) {
+            return _this.set_context_for(c.at);
+          }
+        }
+      };
+    })(this));
+  };
+
+  App.prototype.on_keyup = function(e) {
+    var _ref;
+    switch (e.keyCode) {
+      case KEY_CODE.ESC:
+        e.preventDefault();
+        if ((_ref = this.controller()) != null) {
+          _ref.view.hide();
+        }
+        break;
+      case KEY_CODE.DOWN:
+      case KEY_CODE.UP:
+      case KEY_CODE.CTRL:
+        $.noop();
+        break;
+      case KEY_CODE.P:
+      case KEY_CODE.N:
+        if (!e.ctrlKey) {
+          this.dispatch();
+        }
+        break;
+      default:
+        this.dispatch();
+    }
+  };
+
+  App.prototype.on_keydown = function(e) {
+    var view, _ref;
+    view = (_ref = this.controller()) != null ? _ref.view : void 0;
+    if (!(view && view.visible())) {
+      return;
+    }
+    switch (e.keyCode) {
+      case KEY_CODE.ESC:
+        e.preventDefault();
+        view.hide(e);
+        break;
+      case KEY_CODE.UP:
+        e.preventDefault();
+        view.prev();
+        break;
+      case KEY_CODE.DOWN:
+        e.preventDefault();
+        view.next();
+        break;
+      case KEY_CODE.P:
+        if (!e.ctrlKey) {
+          return;
+        }
+        e.preventDefault();
+        view.prev();
+        break;
+      case KEY_CODE.N:
+        if (!e.ctrlKey) {
+          return;
+        }
+        e.preventDefault();
+        view.next();
+        break;
+      case KEY_CODE.TAB:
+      case KEY_CODE.ENTER:
+        if (!view.visible()) {
+          return;
+        }
+        e.preventDefault();
+        view.choose(e);
+        break;
+      default:
+        $.noop();
+    }
+  };
+
+  return App;
+
+})();
+
+Controller = (function() {
+  Controller.prototype.uid = function() {
+    return (Math.random().toString(16) + "000000000").substr(2, 8) + (new Date().getTime());
+  };
+
+  function Controller(app, at) {
+    this.app = app;
+    this.at = at;
+    this.$inputor = this.app.$inputor;
+    this.id = this.$inputor[0].id || this.uid();
+    this.setting = null;
+    this.query = null;
+    this.pos = 0;
+    this.cur_rect = null;
+    this.range = null;
+    if ((this.$el = $("#atwho-ground-" + this.id, this.app.$el)).length === 0) {
+      this.app.$el.append(this.$el = $("<div id='atwho-ground-" + this.id + "'></div>"));
+    }
+    this.model = new Model(this);
+    this.view = new View(this);
+  }
+
+  Controller.prototype.init = function(setting) {
+    this.setting = $.extend({}, this.setting || $.fn.atwho["default"], setting);
+    this.view.init();
+    return this.model.reload(this.setting.data);
+  };
+
+  Controller.prototype.destroy = function() {
+    this.trigger('beforeDestroy');
+    this.model.destroy();
+    this.view.destroy();
+    return this.$el.remove();
+  };
+
+  Controller.prototype.call_default = function() {
+    var args, error, func_name;
+    func_name = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+    try {
+      return DEFAULT_CALLBACKS[func_name].apply(this, args);
+    } catch (_error) {
+      error = _error;
+      return $.error("" + error + " Or maybe At.js doesn't have function " + func_name);
+    }
+  };
+
+  Controller.prototype.trigger = function(name, data) {
+    var alias, event_name;
+    if (data == null) {
+      data = [];
+    }
+    data.push(this);
+    alias = this.get_opt('alias');
+    event_name = alias ? "" + name + "-" + alias + ".atwho" : "" + name + ".atwho";
+    return this.$inputor.trigger(event_name, data);
+  };
+
+  Controller.prototype.callbacks = function(func_name) {
+    return this.get_opt("callbacks")[func_name] || DEFAULT_CALLBACKS[func_name];
+  };
+
+  Controller.prototype.get_opt = function(at, default_value) {
+    var e;
+    try {
+      return this.setting[at];
+    } catch (_error) {
+      e = _error;
+      return null;
+    }
+  };
+
+  Controller.prototype.content = function() {
+    if (this.$inputor.is('textarea, input')) {
+      return this.$inputor.val();
+    } else {
+      return this.$inputor.text();
+    }
+  };
+
+  Controller.prototype.catch_query = function() {
+    var caret_pos, content, end, query, start, subtext;
+    content = this.content();
+    caret_pos = this.$inputor.caret('pos', {
+      iframe: this.app.iframe
+    });
+    subtext = content.slice(0, caret_pos);
+    query = this.callbacks("matcher").call(this, this.at, subtext, this.get_opt('start_with_space'));
+    if (typeof query === "string" && query.length <= this.get_opt('max_len', 20)) {
+      start = caret_pos - query.length;
+      end = start + query.length;
+      this.pos = start;
+      query = {
+        'text': query,
+        'head_pos': start,
+        'end_pos': end
+      };
+      this.trigger("matched", [this.at, query.text]);
+    } else {
+      query = null;
+      this.view.hide();
+    }
+    return this.query = query;
+  };
+
+  Controller.prototype.rect = function() {
+    var c, iframe_offset, scale_bottom;
+    if (!(c = this.$inputor.caret('offset', this.pos - 1, {
+      iframe: this.app.iframe
+    }))) {
+      return;
+    }
+    if (this.app.iframe && !this.app.iframeStandalone) {
+      iframe_offset = $(this.app.iframe).offset();
+      c.left += iframe_offset.left;
+      c.top += iframe_offset.top;
+    }
+    if (this.$inputor.is('[contentEditable]')) {
+      c = this.cur_rect || (this.cur_rect = c);
+    }
+    scale_bottom = this.app.document.selection ? 0 : 2;
+    return {
+      left: c.left,
+      top: c.top,
+      bottom: c.top + c.height + scale_bottom
+    };
+  };
+
+  Controller.prototype.reset_rect = function() {
+    if (this.$inputor.is('[contentEditable]')) {
+      return this.cur_rect = null;
+    }
+  };
+
+  Controller.prototype.mark_range = function() {
+    var sel;
+    if (!this.$inputor.is('[contentEditable]')) {
+      return;
+    }
+    if (this.app.window.getSelection && (sel = this.app.window.getSelection()).rangeCount > 0) {
+      return this.range = sel.getRangeAt(0);
+    } else if (this.app.document.selection) {
+      return this.ie8_range = this.app.document.selection.createRange();
+    }
+  };
+
+  Controller.prototype.insert_content_for = function($li) {
+    var data, data_value, tpl;
+    data_value = $li.data('value');
+    tpl = this.get_opt('insert_tpl');
+    if (this.$inputor.is('textarea, input') || !tpl) {
+      return data_value;
+    }
+    data = $.extend({}, $li.data('item-data'), {
+      'atwho-data-value': data_value,
+      'atwho-at': this.at
+    });
+    return this.callbacks("tpl_eval").call(this, tpl, data);
+  };
+
+  Controller.prototype.insert = function(content, $li) {
+    var $inputor, content_node, pos, range, sel, source, start_str, text, wrapped_content;
+    $inputor = this.$inputor;
+    wrapped_content = this.callbacks('inserting_wrapper').call(this, $inputor, content, this.get_opt("suffix"));
+    if ($inputor.is('textarea, input')) {
+      source = $inputor.val();
+      start_str = source.slice(0, Math.max(this.query.head_pos - this.at.length, 0));
+      text = "" + start_str + wrapped_content + (source.slice(this.query['end_pos'] || 0));
+      $inputor.val(text);
+      $inputor.caret('pos', start_str.length + wrapped_content.length, {
+        iframe: this.app.iframe
+      });
+    } else if (range = this.range) {
+      pos = range.startOffset - (this.query.end_pos - this.query.head_pos) - this.at.length;
+      range.setStart(range.endContainer, Math.max(pos, 0));
+      range.setEnd(range.endContainer, range.endOffset);
+      range.deleteContents();
+      content_node = $(wrapped_content, this.app.document)[0];
+      range.insertNode(content_node);
+      range.setEndAfter(content_node);
+      range.collapse(false);
+      sel = this.app.window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    } else if (range = this.ie8_range) {
+      range.moveStart('character', this.query.end_pos - this.query.head_pos - this.at.length);
+      range.pasteHTML(wrapped_content);
+      range.collapse(false);
+      range.select();
+    }
+    if (!$inputor.is(':focus')) {
+      $inputor.focus();
+    }
+    return $inputor.change();
+  };
+
+  Controller.prototype.render_view = function(data) {
+    var search_key;
+    search_key = this.get_opt("search_key");
+    data = this.callbacks("sorter").call(this, this.query.text, data.slice(0, 1001), search_key);
+    return this.view.render(data.slice(0, this.get_opt('limit')));
+  };
+
+  Controller.prototype.look_up = function() {
+    var query, _callback;
+    if (!(query = this.catch_query())) {
+      return;
+    }
+    _callback = function(data) {
+      if (data && data.length > 0) {
+        return this.render_view(data);
+      } else {
+        return this.view.hide();
+      }
+    };
+    this.model.query(query.text, $.proxy(_callback, this));
+    return query;
+  };
+
+  return Controller;
+
+})();
+
+Model = (function() {
+  function Model(context) {
+    this.context = context;
+    this.at = this.context.at;
+    this.storage = this.context.$inputor;
+  }
+
+  Model.prototype.destroy = function() {
+    return this.storage.data(this.at, null);
+  };
+
+  Model.prototype.saved = function() {
+    return this.fetch() > 0;
+  };
+
+  Model.prototype.query = function(query, callback) {
+    var data, search_key, _remote_filter;
+    data = this.fetch();
+    search_key = this.context.get_opt("search_key");
+    data = this.context.callbacks('filter').call(this.context, query, data, search_key) || [];
+    _remote_filter = this.context.callbacks('remote_filter');
+    if (data.length > 0 || (!_remote_filter && data.length === 0)) {
+      return callback(data);
+    } else {
+      return _remote_filter.call(this.context, query, callback);
+    }
+  };
+
+  Model.prototype.fetch = function() {
+    return this.storage.data(this.at) || [];
+  };
+
+  Model.prototype.save = function(data) {
+    return this.storage.data(this.at, this.context.callbacks("before_save").call(this.context, data || []));
+  };
+
+  Model.prototype.load = function(data) {
+    if (!(this.saved() || !data)) {
+      return this._load(data);
+    }
+  };
+
+  Model.prototype.reload = function(data) {
+    return this._load(data);
+  };
+
+  Model.prototype._load = function(data) {
+    if (typeof data === "string") {
+      return $.ajax(data, {
+        dataType: "json"
+      }).done((function(_this) {
+        return function(data) {
+          return _this.save(data);
+        };
+      })(this));
+    } else {
+      return this.save(data);
+    }
+  };
+
+  return Model;
+
+})();
+
+View = (function() {
+  function View(context) {
+    this.context = context;
+    this.$el = $("<div class='atwho-view'><ul class='atwho-view-ul'></ul></div>");
+    this.timeout_id = null;
+    this.context.$el.append(this.$el);
+    this.bind_event();
+  }
+
+  View.prototype.init = function() {
+    var id;
+    id = this.context.get_opt("alias") || this.context.at.charCodeAt(0);
+    return this.$el.attr({
+      'id': "at-view-" + id
+    });
+  };
+
+  View.prototype.destroy = function() {
+    return this.$el.remove();
+  };
+
+  View.prototype.bind_event = function() {
+    var $menu;
+    $menu = this.$el.find('ul');
+    return $menu.on('mouseenter.atwho-view', 'li', function(e) {
+      $menu.find('.cur').removeClass('cur');
+      return $(e.currentTarget).addClass('cur');
+    }).on('click', (function(_this) {
+      return function(e) {
+        _this.choose(e);
+        return e.preventDefault();
+      };
+    })(this));
+  };
+
+  View.prototype.visible = function() {
+    return this.$el.is(":visible");
+  };
+
+  View.prototype.choose = function(e) {
+    var $li, content;
+    if (($li = this.$el.find(".cur")).length) {
+      content = this.context.insert_content_for($li);
+      this.context.insert(this.context.callbacks("before_insert").call(this.context, content, $li), $li);
+      this.context.trigger("inserted", [$li, e]);
+      this.hide(e);
+    }
+    if (this.context.get_opt("hide_without_suffix")) {
+      return this.stop_showing = true;
+    }
+  };
+
+  View.prototype.reposition = function(rect) {
+    var offset, overflowOffset, _ref, _window;
+    _window = this.context.app.iframeStandalone ? this.context.app.window : window;
+    if (rect.bottom + this.$el.height() - $(_window).scrollTop() > $(_window).height()) {
+      rect.bottom = rect.top - this.$el.height();
+    }
+    if (rect.left > (overflowOffset = $(_window).width() - this.$el.width() - 5)) {
+      rect.left = overflowOffset;
+    }
+    offset = {
+      left: rect.left,
+      top: rect.bottom
+    };
+    if ((_ref = this.context.callbacks("before_reposition")) != null) {
+      _ref.call(this.context, offset);
+    }
+    this.$el.offset(offset);
+    return this.context.trigger("reposition", [offset]);
+  };
+
+  View.prototype.next = function() {
+    var cur, next;
+    cur = this.$el.find('.cur').removeClass('cur');
+    next = cur.next();
+    if (!next.length) {
+      next = this.$el.find('li:first');
+    }
+    return next.addClass('cur');
+  };
+
+  View.prototype.prev = function() {
+    var cur, prev;
+    cur = this.$el.find('.cur').removeClass('cur');
+    prev = cur.prev();
+    if (!prev.length) {
+      prev = this.$el.find('li:last');
+    }
+    return prev.addClass('cur');
+  };
+
+  View.prototype.show = function() {
+    var rect;
+    if (this.stop_showing) {
+      this.stop_showing = false;
+      return;
+    }
+    this.context.mark_range();
+    if (!this.visible()) {
+      this.$el.show();
+      this.context.trigger('shown');
+    }
+    if (rect = this.context.rect()) {
+      return this.reposition(rect);
+    }
+  };
+
+  View.prototype.hide = function(e, time) {
+    var callback;
+    if (!this.visible()) {
+      return;
+    }
+    if (isNaN(time)) {
+      this.context.reset_rect();
+      this.$el.hide();
+      return this.context.trigger('hidden', [e]);
+    } else {
+      callback = (function(_this) {
+        return function() {
+          return _this.hide();
+        };
+      })(this);
+      clearTimeout(this.timeout_id);
+      return this.timeout_id = setTimeout(callback, time);
+    }
+  };
+
+  View.prototype.render = function(list) {
+    var $li, $ul, item, li, tpl, _i, _len;
+    if (!($.isArray(list) && list.length > 0)) {
+      this.hide();
+      return;
+    }
+    this.$el.find('ul').empty();
+    $ul = this.$el.find('ul');
+    tpl = this.context.get_opt('tpl');
+    for (_i = 0, _len = list.length; _i < _len; _i++) {
+      item = list[_i];
+      item = $.extend({}, item, {
+        'atwho-at': this.context.at
+      });
+      li = this.context.callbacks("tpl_eval").call(this.context, tpl, item);
+      $li = $(this.context.callbacks("highlighter").call(this.context, li, this.context.query.text));
+      $li.data("item-data", item);
+      $ul.append($li);
+    }
+    this.show();
+    if (this.context.get_opt('highlight_first')) {
+      return $ul.find("li:first").addClass("cur");
+    }
+  };
+
+  return View;
+
+})();
+
+KEY_CODE = {
+  DOWN: 40,
+  UP: 38,
+  ESC: 27,
+  TAB: 9,
+  ENTER: 13,
+  CTRL: 17,
+  P: 80,
+  N: 78
+};
+
+DEFAULT_CALLBACKS = {
+  before_save: function(data) {
+    var item, _i, _len, _results;
+    if (!$.isArray(data)) {
+      return data;
+    }
+    _results = [];
+    for (_i = 0, _len = data.length; _i < _len; _i++) {
+      item = data[_i];
+      if ($.isPlainObject(item)) {
+        _results.push(item);
+      } else {
+        _results.push({
+          name: item
+        });
+      }
+    }
+    return _results;
+  },
+  matcher: function(flag, subtext, should_start_with_space) {
+    var match, regexp, _a, _y;
+    flag = flag.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+    if (should_start_with_space) {
+      flag = '(?:^|\\s)' + flag;
+    }
+    _a = decodeURI("%C3%80");
+    _y = decodeURI("%C3%BF");
+    regexp = new RegExp("" + flag + "([A-Za-z" + _a + "-" + _y + "0-9_\+\-]*)$|" + flag + "([^\\x00-\\xff]*)$", 'gi');
+    match = regexp.exec(subtext);
+    if (match) {
+      return match[2] || match[1];
+    } else {
+      return null;
+    }
+  },
+  filter: function(query, data, search_key) {
+    var item, _i, _len, _results;
+    _results = [];
+    for (_i = 0, _len = data.length; _i < _len; _i++) {
+      item = data[_i];
+      if (~new String(item[search_key]).toLowerCase().indexOf(query.toLowerCase())) {
+        _results.push(item);
+      }
+    }
+    return _results;
+  },
+  remote_filter: null,
+  sorter: function(query, items, search_key) {
+    var item, _i, _len, _results;
+    if (!query) {
+      return items;
+    }
+    _results = [];
+    for (_i = 0, _len = items.length; _i < _len; _i++) {
+      item = items[_i];
+      item.atwho_order = new String(item[search_key]).toLowerCase().indexOf(query.toLowerCase());
+      if (item.atwho_order > -1) {
+        _results.push(item);
+      }
+    }
+    return _results.sort(function(a, b) {
+      return a.atwho_order - b.atwho_order;
+    });
+  },
+  tpl_eval: function(tpl, map) {
+    var error;
+    try {
+      return tpl.replace(/\$\{([^\}]*)\}/g, function(tag, key, pos) {
+        return map[key];
+      });
+    } catch (_error) {
+      error = _error;
+      return "";
+    }
+  },
+  highlighter: function(li, query) {
+    var regexp;
+    if (!query) {
+      return li;
+    }
+    regexp = new RegExp(">\\s*(\\w*?)(" + query.replace("+", "\\+") + ")(\\w*)\\s*<", 'ig');
+    return li.replace(regexp, function(str, $1, $2, $3) {
+      return '> ' + $1 + '<strong>' + $2 + '</strong>' + $3 + ' <';
+    });
+  },
+  before_insert: function(value, $li) {
+    return value;
+  },
+  inserting_wrapper: function($inputor, content, suffix) {
+    var new_suffix, wrapped_content;
+    new_suffix = suffix === "" ? suffix : suffix || " ";
+    if ($inputor.is('textarea, input')) {
+      return '' + content + new_suffix;
+    } else if ($inputor.attr('contentEditable') === 'true') {
+      new_suffix = suffix === "" ? suffix : suffix || "&nbsp;";
+      if (/firefox/i.test(navigator.userAgent)) {
+        wrapped_content = "<span>" + content + new_suffix + "</span>";
+      } else {
+        suffix = "<span contenteditable='false'>" + new_suffix + "<span>";
+        wrapped_content = "<span contenteditable='false'>" + content + suffix + "</span>";
+      }
+      if (this.app.document.selection) {
+        wrapped_content = "<span contenteditable='true'>" + content + "</span>";
+      }
+      return wrapped_content;
+    }
+  }
+};
+
+Api = {
+  load: function(at, data) {
+    var c;
+    if (c = this.controller(at)) {
+      return c.model.load(data);
+    }
+  },
+  setIframe: function(iframe, standalone) {
+    this.setIframe(iframe, standalone);
+    return null;
+  },
+  run: function() {
+    return this.dispatch();
+  },
+  destroy: function() {
+    this.shutdown();
+    return this.$inputor.data('atwho', null);
+  }
+};
+
+$.fn.atwho = function(method) {
+  var result, _args;
+  _args = arguments;
+  result = null;
+  this.filter('textarea, input, [contenteditable=""], [contenteditable=true]').each(function() {
+    var $this, app;
+    if (!(app = ($this = $(this)).data("atwho"))) {
+      $this.data('atwho', (app = new App(this)));
+    }
+    if (typeof method === 'object' || !method) {
+      return app.reg(method.at, method);
+    } else if (Api[method] && app) {
+      return result = Api[method].apply(app, Array.prototype.slice.call(_args, 1));
+    } else {
+      return $.error("Method " + method + " does not exist on jQuery.caret");
+    }
+  });
+  return result || this;
+};
+
+$.fn.atwho["default"] = {
+  at: void 0,
+  alias: void 0,
+  data: null,
+  tpl: "<li data-value='${atwho-at}${name}'>${name}</li>",
+  insert_tpl: "<span id='${id}'>${atwho-data-value}</span>",
+  callbacks: DEFAULT_CALLBACKS,
+  search_key: "name",
+  suffix: void 0,
+  hide_without_suffix: false,
+  start_with_space: true,
+  highlight_first: true,
+  limit: 5,
+  max_len: 20,
+  display_timeout: 300,
+  delay: null
+};
+
+  });
+}).call(this); 
+ }; /* ==  End source for module /vendor/jquery.atwho/jquery.atwho.js  == */ return module; }());;
+;require._modules["/vendor/jquery.atwho/jquery.caret.js"] = (function() { var __filename = "/vendor/jquery.atwho/jquery.caret.js"; var __dirname = "/vendor/jquery.atwho"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /vendor/jquery.atwho/jquery.caret.js  == */ var __module__ = function() { 
+ /*
+  Implement Github like autocomplete mentions
+  http://ichord.github.com/At.js
+
+  Copyright (c) 2013 chord.luo@gmail.com
+  Licensed under the MIT license.
+*/
+
+
+/*
+本插件操作 textarea 或者 input 内的插入符
+只实现了获得插入符在文本框中的位置，我设置
+插入符的位置.
+*/
+
+
+(function() {
+  (function(factory) {
+    if (typeof define === 'function' && define.amd) {
+      return define(['jquery'], factory);
+    } else {
+      return factory(window.jQuery);
+    }
+  })(function($) {
+    "use strict";
+    var EditableCaret, InputCaret, Mirror, Utils, discoveryIframeOf, methods, oDocument, oFrame, oWindow, pluginName, setContextBy;
+    pluginName = 'caret';
+    EditableCaret = (function() {
+      function EditableCaret($inputor) {
+        this.$inputor = $inputor;
+        this.domInputor = this.$inputor[0];
+      }
+
+      EditableCaret.prototype.setPos = function(pos) {
+        return this.domInputor;
+      };
+
+      EditableCaret.prototype.getIEPosition = function() {
+        return this.getPosition();
+      };
+
+      EditableCaret.prototype.getPosition = function() {
+        var inputor_offset, offset;
+        offset = this.getOffset();
+        inputor_offset = this.$inputor.offset();
+        offset.left -= inputor_offset.left;
+        offset.top -= inputor_offset.top;
+        return offset;
+      };
+
+      EditableCaret.prototype.getOldIEPos = function() {
+        var preCaretTextRange, textRange;
+        textRange = oDocument.selection.createRange();
+        preCaretTextRange = oDocument.body.createTextRange();
+        preCaretTextRange.moveToElementText(this.domInputor);
+        preCaretTextRange.setEndPoint("EndToEnd", textRange);
+        return preCaretTextRange.text.length;
+      };
+
+      EditableCaret.prototype.getPos = function() {
+        var clonedRange, pos, range;
+        if (range = this.range()) {
+          clonedRange = range.cloneRange();
+          clonedRange.selectNodeContents(this.domInputor);
+          clonedRange.setEnd(range.endContainer, range.endOffset);
+          pos = clonedRange.toString().length;
+          clonedRange.detach();
+          return pos;
+        } else if (oDocument.selection) {
+          return this.getOldIEPos();
+        }
+      };
+
+      EditableCaret.prototype.getOldIEOffset = function() {
+        var range, rect;
+        range = oDocument.selection.createRange().duplicate();
+        range.moveStart("character", -1);
+        rect = range.getBoundingClientRect();
+        return {
+          height: rect.bottom - rect.top,
+          left: rect.left,
+          top: rect.top
+        };
+      };
+
+      EditableCaret.prototype.getOffset = function(pos) {
+        var clonedRange, offset, range, rect;
+        if (oWindow.getSelection && (range = this.range())) {
+          if (range.endOffset - 1 < 0) {
+            return null;
+          }
+          clonedRange = range.cloneRange();
+          clonedRange.setStart(range.endContainer, range.endOffset - 1);
+          clonedRange.setEnd(range.endContainer, range.endOffset);
+          rect = clonedRange.getBoundingClientRect();
+          offset = {
+            height: rect.height,
+            left: rect.left + rect.width,
+            top: rect.top
+          };
+          clonedRange.detach();
+        } else if (oDocument.selection) {
+          offset = this.getOldIEOffset();
+        }
+        if (offset) {
+          offset.top += $(oWindow).scrollTop();
+          offset.left += $(oWindow).scrollLeft();
+        }
+        return offset;
+      };
+
+      EditableCaret.prototype.range = function() {
+        var sel;
+        if (!oWindow.getSelection) {
+          return;
+        }
+        sel = oWindow.getSelection();
+        if (sel.rangeCount > 0) {
+          return sel.getRangeAt(0);
+        } else {
+          return null;
+        }
+      };
+
+      return EditableCaret;
+
+    })();
+    InputCaret = (function() {
+      function InputCaret($inputor) {
+        this.$inputor = $inputor;
+        this.domInputor = this.$inputor[0];
+      }
+
+      InputCaret.prototype.getIEPos = function() {
+        var endRange, inputor, len, normalizedValue, pos, range, textInputRange;
+        inputor = this.domInputor;
+        range = oDocument.selection.createRange();
+        pos = 0;
+        if (range && range.parentElement() === inputor) {
+          normalizedValue = inputor.value.replace(/\r\n/g, "\n");
+          len = normalizedValue.length;
+          textInputRange = inputor.createTextRange();
+          textInputRange.moveToBookmark(range.getBookmark());
+          endRange = inputor.createTextRange();
+          endRange.collapse(false);
+          if (textInputRange.compareEndPoints("StartToEnd", endRange) > -1) {
+            pos = len;
+          } else {
+            pos = -textInputRange.moveStart("character", -len);
+          }
+        }
+        return pos;
+      };
+
+      InputCaret.prototype.getPos = function() {
+        if (oDocument.selection) {
+          return this.getIEPos();
+        } else {
+          return this.domInputor.selectionStart;
+        }
+      };
+
+      InputCaret.prototype.setPos = function(pos) {
+        var inputor, range;
+        inputor = this.domInputor;
+        if (oDocument.selection) {
+          range = inputor.createTextRange();
+          range.move("character", pos);
+          range.select();
+        } else if (inputor.setSelectionRange) {
+          inputor.setSelectionRange(pos, pos);
+        }
+        return inputor;
+      };
+
+      InputCaret.prototype.getIEOffset = function(pos) {
+        var h, textRange, x, y;
+        textRange = this.domInputor.createTextRange();
+        pos || (pos = this.getPos());
+        textRange.move('character', pos);
+        x = textRange.boundingLeft;
+        y = textRange.boundingTop;
+        h = textRange.boundingHeight;
+        return {
+          left: x,
+          top: y,
+          height: h
+        };
+      };
+
+      InputCaret.prototype.getOffset = function(pos) {
+        var $inputor, offset, position;
+        $inputor = this.$inputor;
+        if (oDocument.selection) {
+          offset = this.getIEOffset(pos);
+          offset.top += $(oWindow).scrollTop() + $inputor.scrollTop();
+          offset.left += $(oWindow).scrollLeft() + $inputor.scrollLeft();
+          return offset;
+        } else {
+          offset = $inputor.offset();
+          position = this.getPosition(pos);
+          return offset = {
+            left: offset.left + position.left - $inputor.scrollLeft(),
+            top: offset.top + position.top - $inputor.scrollTop(),
+            height: position.height
+          };
+        }
+      };
+
+      InputCaret.prototype.getPosition = function(pos) {
+        var $inputor, at_rect, end_range, format, html, mirror, start_range;
+        $inputor = this.$inputor;
+        format = function(value) {
+          return $('<div></div>').text(value).html().replace(/\r\n|\r|\n/g, "<br/>").replace(/\s/g, "&nbsp;");
+        };
+        if (pos === void 0) {
+          pos = this.getPos();
+        }
+        start_range = $inputor.val().slice(0, pos);
+        end_range = $inputor.val().slice(pos);
+        html = "<span style='position: relative; display: inline;'>" + format(start_range) + "</span>";
+        html += "<span id='caret' style='position: relative; display: inline;'>|</span>";
+        html += "<span style='position: relative; display: inline;'>" + format(end_range) + "</span>";
+        mirror = new Mirror($inputor);
+        return at_rect = mirror.create(html).rect();
+      };
+
+      InputCaret.prototype.getIEPosition = function(pos) {
+        var h, inputorOffset, offset, x, y;
+        offset = this.getIEOffset(pos);
+        inputorOffset = this.$inputor.offset();
+        x = offset.left - inputorOffset.left;
+        y = offset.top - inputorOffset.top;
+        h = offset.height;
+        return {
+          left: x,
+          top: y,
+          height: h
+        };
+      };
+
+      return InputCaret;
+
+    })();
+    Mirror = (function() {
+      Mirror.prototype.css_attr = ["borderBottomWidth", "borderLeftWidth", "borderRightWidth", "borderTopStyle", "borderRightStyle", "borderBottomStyle", "borderLeftStyle", "borderTopWidth", "boxSizing", "fontFamily", "fontSize", "fontWeight", "height", "letterSpacing", "lineHeight", "marginBottom", "marginLeft", "marginRight", "marginTop", "outlineWidth", "overflow", "overflowX", "overflowY", "paddingBottom", "paddingLeft", "paddingRight", "paddingTop", "textAlign", "textOverflow", "textTransform", "whiteSpace", "wordBreak", "wordWrap"];
+
+      function Mirror($inputor) {
+        this.$inputor = $inputor;
+      }
+
+      Mirror.prototype.mirrorCss = function() {
+        var css,
+          _this = this;
+        css = {
+          position: 'absolute',
+          left: -9999,
+          top: 0,
+          zIndex: -20000
+        };
+        if (this.$inputor.prop('tagName') === 'TEXTAREA') {
+          this.css_attr.push('width');
+        }
+        $.each(this.css_attr, function(i, p) {
+          return css[p] = _this.$inputor.css(p);
+        });
+        return css;
+      };
+
+      Mirror.prototype.create = function(html) {
+        this.$mirror = $('<div></div>');
+        this.$mirror.css(this.mirrorCss());
+        this.$mirror.html(html);
+        this.$inputor.after(this.$mirror);
+        return this;
+      };
+
+      Mirror.prototype.rect = function() {
+        var $flag, pos, rect;
+        $flag = this.$mirror.find("#caret");
+        pos = $flag.position();
+        rect = {
+          left: pos.left,
+          top: pos.top,
+          height: $flag.height()
+        };
+        this.$mirror.remove();
+        return rect;
+      };
+
+      return Mirror;
+
+    })();
+    Utils = {
+      contentEditable: function($inputor) {
+        return !!($inputor[0].contentEditable && $inputor[0].contentEditable === 'true');
+      }
+    };
+    methods = {
+      pos: function(pos) {
+        if (pos || pos === 0) {
+          return this.setPos(pos);
+        } else {
+          return this.getPos();
+        }
+      },
+      position: function(pos) {
+        if (oDocument.selection) {
+          return this.getIEPosition(pos);
+        } else {
+          return this.getPosition(pos);
+        }
+      },
+      offset: function(pos) {
+        var offset;
+        offset = this.getOffset(pos);
+        return offset;
+      }
+    };
+    oDocument = null;
+    oWindow = null;
+    oFrame = null;
+    setContextBy = function(settings) {
+      var iframe;
+      if (iframe = settings != null ? settings.iframe : void 0) {
+        oFrame = iframe;
+        oWindow = iframe.contentWindow;
+        return oDocument = iframe.contentDocument || oWindow.document;
+      } else {
+        oFrame = void 0;
+        oWindow = window;
+        return oDocument = document;
+      }
+    };
+    discoveryIframeOf = function($dom) {
+      var error;
+      oDocument = $dom[0].ownerDocument;
+      oWindow = oDocument.defaultView || oDocument.parentWindow;
+      try {
+        return oFrame = oWindow.frameElement;
+      } catch (_error) {
+        error = _error;
+      }
+    };
+    $.fn.caret = function(method, value, settings) {
+      var caret;
+      if (methods[method]) {
+        if ($.isPlainObject(value)) {
+          setContextBy(value);
+          value = void 0;
+        } else {
+          setContextBy(settings);
+        }
+        caret = Utils.contentEditable(this) ? new EditableCaret(this) : new InputCaret(this);
+        return methods[method].apply(caret, [value]);
+      } else {
+        return $.error("Method " + method + " does not exist on jQuery.caret");
+      }
+    };
+    $.fn.caret.EditableCaret = EditableCaret;
+    $.fn.caret.InputCaret = InputCaret;
+    $.fn.caret.Utils = Utils;
+    return $.fn.caret.apis = methods;
+  });
+
+}).call(this); 
+ }; /* ==  End source for module /vendor/jquery.atwho/jquery.caret.js  == */ return module; }());;
 ;require._modules["/vendor/jquery.hotkeys/index.js"] = (function() { var __filename = "/vendor/jquery.hotkeys/index.js"; var __dirname = "/vendor/jquery.hotkeys"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /vendor/jquery.hotkeys/index.js  == */ var __module__ = function() { 
  
@@ -33923,7 +35198,7 @@ delete window.purl;
  }; /* ==  End source for module /vendor/purl/purl.js  == */ return module; }());;
 ;require._modules["/vendor/quill/index.js"] = (function() { var __filename = "/vendor/quill/index.js"; var __dirname = "/vendor/quill"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /vendor/quill/index.js  == */ var __module__ = function() { 
- /*! Quill Editor v0.17.6
+ /*! Quill Editor v0.18.1
  *  https://quilljs.com/
  *  Copyright (c) 2014, Jason Chen
  *  Copyright (c) 2013, salesforce.com
@@ -37060,1615 +38335,1100 @@ module.exports=_dereq_('M4+//f');
 }();
 
 },{}],4:[function(_dereq_,module,exports){
-(function() {
-  var Delta, InsertOp, Op, RetainOp, jsdiff, _;
+module.exports = _dereq_('./lib/type');
 
-  _ = _dereq_('lodash');
+},{"./lib/type":8}],5:[function(_dereq_,module,exports){
+var diff = _dereq_('fast-diff');
+var is = _dereq_('./is');
+var op = _dereq_('./op');
 
-  jsdiff = _dereq_('diff');
 
-  Op = _dereq_('./op');
+var NULL_CHARACTER = String.fromCharCode(0);  // Placeholder char for embed in diff()
 
-  InsertOp = _dereq_('./insert');
 
-  RetainOp = _dereq_('./retain');
+var Delta = function (ops) {
+  // Assume we are given a well formed ops
+  if (is.array(ops)) {
+    this.ops = ops;
+  } else if (is.object(ops) && is.array(ops.ops)) {
+    this.ops = ops.ops;
+  } else {
+    this.ops = [];
+  }
+};
 
-  Delta = (function() {
-    var _insertInsertCase, _retainRetainCase;
 
-    Delta.getIdentity = function(length) {
-      return new Delta(length, length, [new RetainOp(0, length)]);
-    };
+Delta.prototype.insert = function (text, attributes) {
+  var newOp = {};
+  if (is.string(text)) {
+    if (text.length === 0) return this;
+    newOp.insert = text;
+  } else if (is.number(text)) {
+    newOp.insert = text;
+  }
+  if (is.object(attributes) && Object.keys(attributes).length > 0) newOp.attributes = attributes;
+  return this.push(newOp);
+};
 
-    Delta.getInitial = function(contents) {
-      return new Delta(0, contents.length, [new InsertOp(contents)]);
-    };
+Delta.prototype['delete'] = function (length) {
+  if (length <= 0) return this;
+  return this.push({ 'delete': length });
+};
 
-    Delta.isDelta = function(delta) {
-      var op, _i, _len, _ref;
-      if ((delta != null) && typeof delta === "object" && typeof delta.startLength === "number" && typeof delta.endLength === "number" && typeof delta.ops === "object") {
-        _ref = delta.ops;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          op = _ref[_i];
-          if (!(Op.isRetain(op) || Op.isInsert(op))) {
-            return false;
-          }
-        }
-        return true;
-      }
-      return false;
-    };
+Delta.prototype.retain = function (length, attributes) {
+  if (length <= 0) return this;
+  var newOp = { retain: length };
+  if (is.object(attributes) && Object.keys(attributes).length > 0) newOp.attributes = attributes;
+  return this.push(newOp);
+};
 
-    Delta.makeDelta = function(obj) {
-      return new Delta(obj.startLength, obj.endLength, _.map(obj.ops, function(op) {
-        if (Op.isInsert(op)) {
-          return new InsertOp(op.value, op.attributes);
-        } else if (Op.isRetain(op)) {
-          return new RetainOp(op.start, op.end, op.attributes);
-        } else {
-          return null;
-        }
-      }));
-    };
-
-    Delta.makeDeleteDelta = function(startLength, index, length) {
-      var ops;
-      ops = [];
-      if (0 < index) {
-        ops.push(new RetainOp(0, index));
-      }
-      if (index + length < startLength) {
-        ops.push(new RetainOp(index + length, startLength));
-      }
-      return new Delta(startLength, ops);
-    };
-
-    Delta.makeInsertDelta = function(startLength, index, value, attributes) {
-      var ops;
-      ops = [new InsertOp(value, attributes)];
-      if (0 < index) {
-        ops.unshift(new RetainOp(0, index));
-      }
-      if (index < startLength) {
-        ops.push(new RetainOp(index, startLength));
-      }
-      return new Delta(startLength, ops);
-    };
-
-    Delta.makeRetainDelta = function(startLength, index, length, attributes) {
-      var ops;
-      ops = [new RetainOp(index, index + length, attributes)];
-      if (0 < index) {
-        ops.unshift(new RetainOp(0, index));
-      }
-      if (index + length < startLength) {
-        ops.push(new RetainOp(index + length, startLength));
-      }
-      return new Delta(startLength, ops);
-    };
-
-    function Delta(startLength, endLength, ops) {
-      var length;
-      this.startLength = startLength;
-      this.endLength = endLength;
-      this.ops = ops;
-      if (this.ops == null) {
-        this.ops = this.endLength;
-        this.endLength = null;
-      }
-      this.ops = _.map(this.ops, function(op) {
-        if (Op.isRetain(op)) {
-          return op;
-        } else if (Op.isInsert(op)) {
-          return op;
-        } else {
-          throw new Error("Creating delta with invalid op. Expecting an insert or retain.");
-        }
-      });
-      this.compact();
-      length = _.reduce(this.ops, function(count, op) {
-        return count + op.getLength();
-      }, 0);
-      if ((this.endLength != null) && length !== this.endLength) {
-        throw new Error("Expecting end length of " + length);
-      } else {
-        this.endLength = length;
+Delta.prototype.push = function (newOp) {
+  var index = this.ops.length;
+  var lastOp = this.ops[index - 1];
+  newOp = op.clone(newOp);
+  if (is.object(lastOp)) {
+    if (is.number(newOp['delete']) && is.number(lastOp['delete'])) {
+      this.ops[index - 1] = { 'delete': lastOp['delete'] + newOp['delete'] };
+      return this;
+    }
+    // Since it does not matter if we insert before or after deleting at the same index,
+    // always prefer to insert first
+    if (is.number(lastOp['delete']) && (is.string(newOp.insert) || is.number(newOp.insert))) {
+      index -= 1;
+      lastOp = this.ops[index - 1];
+      if (!is.object(lastOp)) {
+        this.ops.unshift(newOp);
+        return this;
       }
     }
+    if (is.equal(newOp.attributes, lastOp.attributes)) {
+      if (is.string(newOp.insert) && is.string(lastOp.insert)) {
+        this.ops[index - 1] = { insert: lastOp.insert + newOp.insert };
+        if (is.object(newOp.attributes)) this.ops[index - 1].attributes = newOp.attributes
+        return this;
+      } else if (is.number(newOp.retain) && is.number(lastOp.retain)) {
+        this.ops[index - 1] = { retain: lastOp.retain + newOp.retain };
+        if (is.object(newOp.attributes)) this.ops[index - 1].attributes = newOp.attributes
+        return this;
+      }
+    }
+  }
+  this.ops.splice(index, 0, newOp);
+  return this;
+};
 
-    Delta.prototype.apply = function(insertFn, deleteFn, applyAttrFn, context) {
-      var index, offset, retains;
-      if (insertFn == null) {
-        insertFn = (function() {});
-      }
-      if (deleteFn == null) {
-        deleteFn = (function() {});
-      }
-      if (applyAttrFn == null) {
-        applyAttrFn = (function() {});
-      }
-      if (context == null) {
-        context = null;
-      }
-      if (this.isIdentity()) {
-        return;
-      }
-      index = 0;
-      offset = 0;
-      retains = [];
-      _.each(this.ops, (function(_this) {
-        return function(op) {
-          if (Op.isInsert(op)) {
-            insertFn.call(context, index + offset, op.value, op.attributes);
-            return offset += op.getLength();
-          } else if (Op.isRetain(op)) {
-            if (op.start > index) {
-              deleteFn.call(context, index + offset, op.start - index);
-              offset -= op.start - index;
-            }
-            retains.push(new RetainOp(op.start + offset, op.end + offset, op.attributes));
-            return index = op.end;
-          }
-        };
-      })(this));
-      if (this.endLength < this.startLength + offset) {
-        deleteFn.call(context, this.endLength, this.startLength + offset - this.endLength);
-      }
-      return _.each(retains, (function(_this) {
-        return function(op) {
-          _.each(op.attributes, function(value, format) {
-            if (value === null) {
-              return applyAttrFn.call(context, op.start, op.end - op.start, format, value);
-            }
-          });
-          return _.each(op.attributes, function(value, format) {
-            if (value != null) {
-              return applyAttrFn.call(context, op.start, op.end - op.start, format, value);
-            }
-          });
-        };
-      })(this));
-    };
+Delta.prototype.chop = function () {
+  var lastOp = this.ops[this.ops.length - 1];
+  if (lastOp && lastOp.retain && !lastOp.attributes) {
+    this.ops.pop();
+  }
+  return this;
+};
 
-    Delta.prototype.applyToText = function(text) {
-      var appliedText, delta, op, result, _i, _len, _ref;
-      delta = this;
-      if (text.length !== delta.startLength) {
-        throw new Error("Start length of delta: " + delta.startLength + " is not equal to the text: " + text.length);
-      }
-      appliedText = [];
-      _ref = delta.ops;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        op = _ref[_i];
-        if (Op.isInsert(op)) {
-          appliedText.push(op.value);
+Delta.prototype.length = function () {
+  return this.ops.reduce(function (length, elem) {
+    return length + op.length(elem);
+  }, 0);
+};
+
+Delta.prototype.slice = function (start, end) {
+  start = start || 0;
+  if (!is.number(end)) end = Infinity;
+  var delta = new Delta();
+  var iter = op.iterator(this.ops);
+  var index = 0;
+  while (index < end && iter.hasNext()) {
+    var nextOp;
+    if (index < start) {
+      nextOp = iter.next(start - index);
+    } else {
+      nextOp = iter.next(end - start);
+      delta.push(nextOp);
+    }
+    index += op.length(nextOp);
+  }
+  return delta;
+};
+
+
+Delta.prototype.compose = function (other) {
+  var thisIter = op.iterator(this.ops);
+  var otherIter = op.iterator(other.ops);
+  this.ops = [];
+  while (thisIter.hasNext() || otherIter.hasNext()) {
+    if (otherIter.peekType() === 'insert') {
+      this.push(otherIter.next());
+    } else if (thisIter.peekType() === 'delete') {
+      this.push(thisIter.next());
+    } else {
+      var length = Math.min(thisIter.peekLength(), otherIter.peekLength());
+      var thisOp = thisIter.next(length);
+      var otherOp = otherIter.next(length);
+      if (is.number(otherOp.retain)) {
+        var newOp = {};
+        if (is.number(thisOp.retain)) {
+          newOp.retain = length;
         } else {
-          appliedText.push(text.substring(op.start, op.end));
+          newOp.insert = thisOp.insert;
         }
+        // Preserve null when composing with a retain, otherwise remove it for inserts
+        var attributes = op.attributes.compose(thisOp.attributes, otherOp.attributes, is.number(thisOp.retain));
+        if (attributes) newOp.attributes = attributes;
+        this.push(newOp);
+      // Other op should be delete, we could be an insert or retain
+      // Insert + delete cancels out
+      } else if (is.number(otherOp['delete']) && is.number(thisOp.retain)) {
+        this.push(otherOp);
       }
-      result = appliedText.join("");
-      if (delta.endLength !== result.length) {
-        throw new Error("End length of delta: " + delta.endLength + " is not equal to result text: " + result.length);
-      }
-      return result;
-    };
+    }
+  }
+  return this.chop();
+};
 
-    Delta.prototype.canCompose = function(delta) {
-      return Delta.isDelta(delta) && this.endLength === delta.startLength;
-    };
-
-    Delta.prototype.compact = function() {
-      var compacted;
-      compacted = [];
-      _.each(this.ops, function(op) {
-        var last;
-        if (op.getLength() === 0) {
-          return;
-        }
-        if (compacted.length === 0) {
-          return compacted.push(op);
-        } else {
-          last = _.last(compacted);
-          if (Op.isInsert(last) && Op.isInsert(op) && last.attributesMatch(op)) {
-            return compacted[compacted.length - 1] = new InsertOp(last.value + op.value, op.attributes);
-          } else if (Op.isRetain(last) && Op.isRetain(op) && last.end === op.start && last.attributesMatch(op)) {
-            return compacted[compacted.length - 1] = new RetainOp(last.start, op.end, op.attributes);
-          } else {
-            return compacted.push(op);
-          }
-        }
-      });
-      return this.ops = compacted;
-    };
-
-    Delta.prototype.compose = function(deltaB) {
-      var composed, deltaA, opInB, opsInRange, _i, _len, _ref;
-      if (!this.canCompose(deltaB)) {
-        throw new Error('Cannot compose delta');
-      }
-      deltaA = this;
-      composed = [];
-      _ref = deltaB.ops;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        opInB = _ref[_i];
-        if (Op.isInsert(opInB)) {
-          composed.push(opInB);
-        } else if (Op.isRetain(opInB)) {
-          opsInRange = deltaA.getOpsAt(opInB.start, opInB.getLength());
-          opsInRange = _.map(opsInRange, function(opInA) {
-            if (Op.isInsert(opInA)) {
-              return new InsertOp(opInA.value, opInA.composeAttributes(opInB.attributes));
-            } else {
-              return new RetainOp(opInA.start, opInA.end, opInA.composeAttributes(opInB.attributes));
-            }
-          });
-          composed = composed.concat(opsInRange);
-        } else {
-          throw new Error('Invalid op in deltaB when composing');
-        }
-      }
-      return new Delta(deltaA.startLength, deltaB.endLength, composed);
-    };
-
-    Delta.prototype.decompose = function(deltaA) {
-      var decomposeAttributes, deltaB, deltaC, insertDelta, offset, ops;
-      deltaC = this;
-      if (!Delta.isDelta(deltaA)) {
-        throw new Error("Decompose called when deltaA is not a Delta, type: " + typeof deltaA);
-      }
-      if (deltaA.startLength !== this.startLength) {
-        throw new Error("startLength " + deltaA.startLength + " / startLength " + this.startLength + " mismatch");
-      }
-      if (!_.all(deltaA.ops, (function(op) {
-        return Op.isInsert(op);
-      }))) {
-        throw new Error("DeltaA has retain in decompose");
-      }
-      if (!_.all(deltaC.ops, (function(op) {
-        return Op.isInsert(op);
-      }))) {
-        throw new Error("DeltaC has retain in decompose");
-      }
-      decomposeAttributes = function(attrA, attrC) {
-        var decomposedAttributes, key, value;
-        decomposedAttributes = {};
-        for (key in attrC) {
-          value = attrC[key];
-          if (attrA[key] === void 0 || attrA[key] !== value) {
-            if (attrA[key] !== null && typeof attrA[key] === 'object' && value !== null && typeof value === 'object') {
-              decomposedAttributes[key] = decomposeAttributes(attrA[key], value);
-            } else {
-              decomposedAttributes[key] = value;
-            }
-          }
-        }
-        for (key in attrA) {
-          value = attrA[key];
-          if (attrC[key] === void 0) {
-            decomposedAttributes[key] = null;
-          }
-        }
-        return decomposedAttributes;
-      };
-      insertDelta = deltaA.diff(deltaC);
-      ops = [];
-      offset = 0;
-      _.each(insertDelta.ops, function(op) {
-        var offsetC, opsInC;
-        opsInC = deltaC.getOpsAt(offset, op.getLength());
-        offsetC = 0;
-        _.each(opsInC, function(opInC) {
-          var d, offsetA, opsInA;
-          if (Op.isInsert(op)) {
-            d = new InsertOp(op.value.substring(offsetC, offsetC + opInC.getLength()), opInC.attributes);
-            ops.push(d);
-          } else if (Op.isRetain(op)) {
-            opsInA = deltaA.getOpsAt(op.start + offsetC, opInC.getLength());
-            offsetA = 0;
-            _.each(opsInA, function(opInA) {
-              var attributes, e, start;
-              attributes = decomposeAttributes(opInA.attributes, opInC.attributes);
-              start = op.start + offsetA + offsetC;
-              e = new RetainOp(start, start + opInA.getLength(), attributes);
-              ops.push(e);
-              return offsetA += opInA.getLength();
-            });
-          } else {
-            throw new Error("Invalid delta in deltaB when composing");
-          }
-          return offsetC += opInC.getLength();
-        });
-        return offset += op.getLength();
-      });
-      deltaB = new Delta(insertDelta.startLength, insertDelta.endLength, ops);
-      return deltaB;
-    };
-
-    Delta.prototype.diff = function(other) {
-      var diff, finalLength, insertDelta, ops, originalLength, textA, textC, _ref;
-      _ref = _.map([this, other], function(delta) {
-        return _.map(delta.ops, function(op) {
-          if (op.value != null) {
-            return op.value;
-          } else {
-            return "";
-          }
-        }).join('');
-      }), textA = _ref[0], textC = _ref[1];
-      if (!(textA === '' && textC === '')) {
-        diff = jsdiff.diffChars(textA, textC);
-        if (diff.length <= 0) {
-          throw new Error("diffToDelta called with diff with length <= 0");
-        }
-        originalLength = 0;
-        finalLength = 0;
-        ops = [];
-        _.each(diff, function(part) {
-          if (part.added) {
-            ops.push(new InsertOp(part.value));
-            return finalLength += part.value.length;
-          } else if (part.removed) {
-            return originalLength += part.value.length;
-          } else {
-            ops.push(new RetainOp(originalLength, originalLength + part.value.length));
-            originalLength += part.value.length;
-            return finalLength += part.value.length;
-          }
-        });
-        insertDelta = new Delta(originalLength, finalLength, ops);
-      } else {
-        insertDelta = new Delta(0, 0, []);
-      }
-      return insertDelta;
-    };
-
-    _insertInsertCase = function(elemA, elemB, indexes, aIsRemote) {
-      var length, results;
-      results = _.extend({}, indexes);
-      length = Math.min(elemA.getLength(), elemB.getLength());
-      if (aIsRemote) {
-        results.transformOp = new RetainOp(results.indexA, results.indexA + length);
-        results.indexA += length;
-        if (length === elemA.getLength()) {
-          results.elemIndexA++;
-        } else if (length < elemA.getLength()) {
-          results.elemA = _.last(elemA.split(length));
-        } else {
-          throw new Error("Invalid elem length in transform");
-        }
-      } else {
-        results.transformOp = _.first(elemB.split(length));
-        results.indexB += length;
-        if (length === elemB.getLength()) {
-          results.elemIndexB++;
-        } else {
-          results.elemB = _.last(elemB.split(length));
-        }
-      }
-      return results;
-    };
-
-    _retainRetainCase = function(elemA, elemB, indexes) {
-      var addedAttributes, elemIndexA, elemIndexB, errMsg, indexA, indexB, length, results;
-      indexA = indexes.indexA, indexB = indexes.indexB, elemIndexA = indexes.elemIndexA, elemIndexB = indexes.elemIndexB;
-      results = _.extend({}, indexes);
-      if (elemA.end < elemB.start) {
-        results.indexA += elemA.getLength();
-        results.elemIndexA++;
-      } else if (elemB.end < elemA.start) {
-        results.indexB += elemB.getLength();
-        results.elemIndexB++;
-      } else {
-        if (elemA.start < elemB.start) {
-          results.indexA += elemB.start - elemA.start;
-          elemA = results.elemA = new RetainOp(elemB.start, elemA.end, elemA.attributes);
-        } else if (elemB.start < elemA.start) {
-          results.indexB += elemA.start - elemB.start;
-          elemB = results.elemB = new RetainOp(elemA.start, elemB.end, elemB.attributes);
-        }
-        errMsg = "RetainOps must have same start length in transform";
-        if (elemA.start !== elemB.start) {
-          throw new Error(errMsg);
-        }
-        length = Math.min(elemA.end, elemB.end) - elemA.start;
-        addedAttributes = elemA.addAttributes(elemB.attributes);
-        results.transformOp = new RetainOp(results.indexA, results.indexA + length, addedAttributes);
-        results.indexA += length;
-        results.indexB += length;
-        if (elemA.end === elemB.end) {
-          results.elemIndexA++;
-          results.elemIndexB++;
-        } else if (elemA.end < elemB.end) {
-          results.elemIndexA++;
-          results.elemB = _.last(elemB.split(length));
-        } else {
-          results.elemIndexB++;
-          results.elemA = _.last(elemA.split(length));
-        }
-      }
-      if (results.elemIndexA !== indexes.elemIndexA) {
-        results.elemA = null;
-      }
-      if (results.elemIndexB !== indexes.elemIndexB) {
-        results.elemB = null;
-      }
-      return results;
-    };
-
-    Delta.prototype.transform = function(deltaA, aIsRemote) {
-      var deltaB, elemA, elemB, elemIndexA, elemIndexB, errMsg, indexA, indexB, results, transformEndLength, transformOps, transformStartLength, _applyResults, _buildIndexes;
-      if (aIsRemote == null) {
-        aIsRemote = false;
-      }
-      if (!Delta.isDelta(deltaA)) {
-        errMsg = "Transform called when deltaA is not a Delta, type: ";
-        throw new Error(errMsg + typeof deltaA);
-      }
-      deltaA = new Delta(deltaA.startLength, deltaA.endLength, deltaA.ops);
-      deltaB = new Delta(this.startLength, this.endLength, this.ops);
-      transformOps = [];
-      indexA = indexB = 0;
-      elemIndexA = elemIndexB = 0;
-      _applyResults = function(results) {
-        if (results.indexA != null) {
-          indexA = results.indexA;
-        }
-        if (results.indexB != null) {
-          indexB = results.indexB;
-        }
-        if (results.elemIndexA != null) {
-          elemIndexA = results.elemIndexA;
-        }
-        if (results.elemIndexB != null) {
-          elemIndexB = results.elemIndexB;
-        }
-        if (results.elemA != null) {
-          deltaA.ops[elemIndexA] = results.elemA;
-        }
-        if (results.elemB != null) {
-          deltaB.ops[elemIndexB] = results.elemB;
-        }
-        if (results.transformOp != null) {
-          return transformOps.push(results.transformOp);
-        }
-      };
-      _buildIndexes = function() {
-        return {
-          indexA: indexA,
-          indexB: indexB,
-          elemIndexA: elemIndexA,
-          elemIndexB: elemIndexB
-        };
-      };
-      while (elemIndexA < deltaA.ops.length && elemIndexB < deltaB.ops.length) {
-        elemA = deltaA.ops[elemIndexA];
-        elemB = deltaB.ops[elemIndexB];
-        if (Op.isInsert(elemA) && Op.isInsert(elemB)) {
-          results = _insertInsertCase(elemA, elemB, _buildIndexes(), aIsRemote);
-          _applyResults(results);
-        } else if (Op.isRetain(elemA) && Op.isRetain(elemB)) {
-          results = _retainRetainCase(elemA, elemB, _buildIndexes());
-          _applyResults(results);
-        } else if (Op.isInsert(elemA) && Op.isRetain(elemB)) {
-          transformOps.push(new RetainOp(indexA, indexA + elemA.getLength()));
-          indexA += elemA.getLength();
-          elemIndexA++;
-        } else if (Op.isRetain(elemA) && Op.isInsert(elemB)) {
-          transformOps.push(elemB);
-          indexB += elemB.getLength();
-          elemIndexB++;
-        }
-      }
-      while (elemIndexA < deltaA.ops.length) {
-        elemA = deltaA.ops[elemIndexA];
-        if (Op.isInsert(elemA)) {
-          transformOps.push(new RetainOp(indexA, indexA + elemA.getLength()));
-        }
-        indexA += elemA.getLength();
-        elemIndexA++;
-      }
-      while (elemIndexB < deltaB.ops.length) {
-        elemB = deltaB.ops[elemIndexB];
-        if (Op.isInsert(elemB)) {
-          transformOps.push(elemB);
-        }
-        indexB += elemB.getLength();
-        elemIndexB++;
-      }
-      transformStartLength = deltaA.endLength;
-      transformEndLength = _.reduce(transformOps, function(transformEndLength, op) {
-        return transformEndLength + op.getLength();
-      }, 0);
-      return new Delta(transformStartLength, transformEndLength, transformOps);
-    };
-
-    Delta.prototype.getOpsAt = function(index, length) {
-      var changes, getLength, offset, op, opLength, start, _i, _len, _ref;
-      changes = [];
-      if ((this.savedOpOffset != null) && this.savedOpOffset < index) {
-        offset = this.savedOpOffset;
-      } else {
-        offset = this.savedOpOffset = this.savedOpIndex = 0;
-      }
-      _ref = this.ops.slice(this.savedOpIndex);
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        op = _ref[_i];
-        if (offset >= index + length) {
+Delta.prototype.diff = function (other) {
+  var strings = [this.ops, other.ops].map(function (ops) {
+    return ops.map(function (op) {
+      if (is.string(op.insert)) return op.insert;
+      if (is.number(op.insert)) return NULL_CHARACTER;
+      var prep = ops === other.ops ? 'on' : 'with';
+      throw new Error('diff() called ' + prep + ' non-document');
+    }).join('');
+  });
+  var diffResult = diff(strings[0], strings[1]);
+  var thisIter = op.iterator(this.ops);
+  var otherIter = op.iterator(other.ops);
+  var delta = new Delta();
+  diffResult.forEach(function (component) {
+    var length = component[1].length;
+    while (length > 0) {
+      var opLength = 0;
+      switch (component[0]) {
+        case diff.INSERT:
+          opLength = Math.min(otherIter.peekLength(), length);
+          delta.push(otherIter.next(opLength));
           break;
-        }
-        opLength = op.getLength();
-        if (index < offset + opLength) {
-          start = Math.max(index - offset, 0);
-          getLength = Math.min(opLength - start, index + length - offset - start);
-          changes.push(op.getAt(start, getLength));
-        }
-        offset += opLength;
-        this.savedOpIndex += 1;
-        this.savedOpOffset += opLength;
-      }
-      return changes;
-    };
-
-    Delta.prototype.invert = function(deltaB) {
-      var deltaA, deltaC, inverse;
-      if (!this.isInsertsOnly()) {
-        throw new Error("Invert called on invalid delta containing non-insert ops");
-      }
-      deltaA = this;
-      deltaC = deltaA.compose(deltaB);
-      inverse = deltaA.decompose(deltaC);
-      return inverse;
-    };
-
-    Delta.prototype.isEqual = function(other) {
-      if (!other) {
-        return false;
-      }
-      if (this.startLength !== other.startLength || this.endLength !== other.endLength) {
-        return false;
-      }
-      if (!_.isArray(other.ops) || this.ops.length !== other.ops.length) {
-        return false;
-      }
-      return _.all(this.ops, function(op, i) {
-        return op.isEqual(other.ops[i]);
-      });
-    };
-
-    Delta.prototype.isIdentity = function() {
-      var index, op, _i, _len, _ref;
-      if (this.startLength === this.endLength) {
-        if (this.ops.length === 0) {
-          return true;
-        }
-        index = 0;
-        _ref = this.ops;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          op = _ref[_i];
-          if (!Op.isRetain(op)) {
-            return false;
-          }
-          if (op.start !== index) {
-            return false;
-          }
-          if (!(op.numAttributes() === 0 || (op.numAttributes() === 1 && _.has(op.attributes, 'authorId')))) {
-            return false;
-          }
-          index = op.end;
-        }
-        if (index !== this.endLength) {
-          return false;
-        }
-        return true;
-      }
-      return false;
-    };
-
-    Delta.prototype.isInsertsOnly = function() {
-      return _.every(this.ops, function(op) {
-        return Op.isInsert(op);
-      });
-    };
-
-    Delta.prototype.merge = function(other) {
-      var ops;
-      ops = _.map(other.ops, (function(_this) {
-        return function(op) {
-          if (Op.isRetain(op)) {
-            return new RetainOp(op.start + _this.startLength, op.end + _this.startLength, op.attributes);
+        case diff.DELETE:
+          opLength = Math.min(length, thisIter.peekLength());
+          thisIter.next(opLength);
+          delta['delete'](opLength);
+          break;
+        case diff.EQUAL:
+          opLength = Math.min(thisIter.peekLength(), otherIter.peekLength(), length);
+          var thisOp = thisIter.next(opLength);
+          var otherOp = otherIter.next(opLength);
+          if (thisOp.insert === otherOp.insert) {
+            delta.retain(opLength, op.attributes.diff(thisOp.attributes, otherOp.attributes));
           } else {
-            return op;
+            delta.push(otherOp)['delete'](opLength);
           }
-        };
-      })(this));
-      ops = this.ops.concat(ops);
-      return new Delta(this.startLength + other.startLength, ops);
-    };
-
-    Delta.prototype.split = function(index) {
-      var leftOps, rightOps;
-      if (!this.isInsertsOnly()) {
-        throw new Error("Split only implemented for inserts only");
+          break;
       }
-      if (!(0 <= index && index <= this.endLength)) {
-        throw new Error("Split at invalid index");
-      }
-      leftOps = [];
-      rightOps = [];
-      _.reduce(this.ops, function(offset, op) {
-        var left, right, _ref;
-        if (offset + op.getLength() <= index) {
-          leftOps.push(op);
-        } else if (offset >= index) {
-          rightOps.push(op);
-        } else {
-          _ref = op.split(index - offset), left = _ref[0], right = _ref[1];
-          leftOps.push(left);
-          rightOps.push(right);
-        }
-        return offset + op.getLength();
-      }, 0);
-      return [new Delta(0, leftOps), new Delta(0, rightOps)];
-    };
-
-    Delta.prototype.toString = function() {
-      return "{(" + this.startLength + "->" + this.endLength + ") [" + (this.ops.join(', ')) + "]}";
-    };
-
-    return Delta;
-
-  })();
-
-  module.exports = Delta;
-
-}).call(this);
-
-},{"./insert":6,"./op":7,"./retain":8,"diff":11,"lodash":"M4+//f"}],5:[function(_dereq_,module,exports){
-(function() {
-  var Delta, DeltaGenerator, InsertOp, RetainOp, getUtils, setDomain, _, _domain;
-
-  _ = _dereq_('lodash');
-
-  Delta = _dereq_('./delta');
-
-  InsertOp = _dereq_('./insert');
-
-  RetainOp = _dereq_('./retain');
-
-  _domain = {
-    alphabet: "abcdefghijklmnopqrstuvwxyz\n\n\n\n  ",
-    booleanAttributes: {
-      'bold': [true, false],
-      'italic': [true, false],
-      'strike': [true, false]
-    },
-    nonBooleanAttributes: {
-      'back-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow'],
-      'fore-color': ['white', 'black', 'red', 'blue', 'lime', 'teal', 'magenta', 'yellow'],
-      'font-name': ['monospace', 'serif'],
-      'font-size': ['huge', 'large', 'small']
-    },
-    defaultAttributeValue: {
-      'back-color': 'white',
-      'fore-color': 'black',
-      'font-name': 'san-serif',
-      'font-size': 'normal'
+      length -= opLength;
     }
-  };
+  });
+  return delta.chop();
+};
 
-  setDomain = function(domain) {
-    if (domain != null) {
-      return _domain = domain;
-    }
-  };
-
-  getUtils = function(domain) {
-    domain = domain || _domain;
-    if (domain == null) {
-      throw new Error("Must provide DeltaGenerator with a domain.");
-    }
-    if (domain.alphabet == null) {
-      throw new Error("Domain must define alphabet.");
-    }
-    if (domain.booleanAttributes == null) {
-      throw new Error("Domain must define booleanAttributes.");
-    }
-    if (domain.nonBooleanAttributes == null) {
-      throw new Error("Domain must define nonBooleanAttributes.");
-    }
-    if (domain.defaultAttributeValue == null) {
-      throw new Error("Domain must define defaultAttributeValue.");
-    }
-    return {
-      getDomain: function(domain) {
-        return _domain;
-      },
-      getRandomString: function(length) {
-        var _i, _ref, _results;
-        return _.map((function() {
-          _results = [];
-          for (var _i = 0, _ref = length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; 0 <= _ref ? _i++ : _i--){ _results.push(_i); }
-          return _results;
-        }).apply(this), function() {
-          return domain.alphabet[_.random(0, domain.alphabet.length - 1)];
-        }).join('');
-      },
-      getRandomLength: function() {
-        var rand;
-        rand = Math.random();
-        if (rand < 0.6) {
-          return _.random(1, 2);
-        } else if (rand < 0.8) {
-          return _.random(3, 4);
-        } else if (rand < 0.9) {
-          return _.random(5, 9);
-        } else {
-          return _.random(10, 50);
-        }
-      },
-      insertAt: function(delta, insertionPoint, insertions) {
-        var charIndex, head, op, opIndex, tail, _i, _len, _ref, _ref1;
-        charIndex = opIndex = 0;
-        _ref = delta.ops;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          op = _ref[_i];
-          if (charIndex === insertionPoint) {
-            break;
-          }
-          if (insertionPoint < charIndex + op.getLength()) {
-            _ref1 = op.split(insertionPoint - charIndex), head = _ref1[0], tail = _ref1[1];
-            delta.ops.splice(opIndex, 1, head, tail);
-            opIndex++;
-            break;
-          }
-          charIndex += op.getLength();
-          opIndex++;
-        }
-        delta.ops.splice(opIndex, 0, new InsertOp(insertions));
-        delta.endLength += insertions.length;
-        return delta.compact();
-      },
-      deleteAt: function(delta, deletionPoint, numToDelete) {
-        var charIndex, curDelete, head, newText, op, ops, reachedDeletionPoint, tail, _i, _len, _ref;
-        charIndex = 0;
-        ops = [];
-        _ref = delta.ops;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          op = _ref[_i];
-          reachedDeletionPoint = charIndex === deletionPoint || deletionPoint < charIndex + op.getLength();
-          if (numToDelete > 0 && reachedDeletionPoint) {
-            curDelete = Math.min(numToDelete, op.getLength() - (deletionPoint - charIndex));
-            numToDelete -= curDelete;
-            if (InsertOp.isInsert(op)) {
-              newText = op.value.substring(0, deletionPoint - charIndex) + op.value.substring(deletionPoint - charIndex + curDelete);
-              if (newText.length > 0) {
-                ops.push(new InsertOp(newText));
-              }
-            } else {
-              if (!RetainOp.isRetain(op)) {
-                throw new Error("Expected retain but got " + op);
-              }
-              head = new RetainOp(op.start, op.start + deletionPoint - charIndex, _.clone(op.attributes));
-              tail = new RetainOp(op.start + deletionPoint - charIndex + curDelete, op.end, _.clone(op.attributes));
-              if (head.start < head.end) {
-                ops.push(head);
-              }
-              if (tail.start < tail.end) {
-                ops.push(tail);
-              }
-            }
-            deletionPoint += curDelete;
-          } else {
-            ops.push(op);
-          }
-          charIndex += op.getLength();
-        }
-        delta.ops = ops;
-        return delta.endLength = _.reduce(ops, function(length, op) {
-          return length + op.getLength();
-        }, 0);
-      },
-      formatAt: function(delta, formatPoint, numToFormat, attrs, reference) {
-        var attr, charIndex, cur, curFormat, head, op, ops, reachedFormatPoint, tail, _formatBooleanAttribute, _formatNonBooleanAttribute, _i, _j, _len, _len1, _limitScope, _ref, _ref1, _splitOpInThree;
-        _splitOpInThree = function(elem, splitAt, length, reference) {
-          var cur, curStr, head, headStr, marker, newCur, op, origOps, tail, tailStr, _i, _len;
-          if (InsertOp.isInsert(elem)) {
-            headStr = elem.value.substring(0, splitAt);
-            head = new InsertOp(headStr, _.clone(elem.attributes));
-            curStr = elem.value.substring(splitAt, splitAt + length);
-            cur = new InsertOp(curStr, _.clone(elem.attributes));
-            tailStr = elem.value.substring(splitAt + length);
-            tail = new InsertOp(tailStr, _.clone(elem.attributes));
-            if (curStr.indexOf('\n') !== -1) {
-              newCur = curStr.substring(0, curStr.indexOf('\n'));
-              tailStr = curStr.substring(curStr.indexOf('\n')) + tailStr;
-              cur = new InsertOp(newCur, _.clone(elem.attributes));
-              tail = new InsertOp(tailStr, _.clone(elem.attributes));
-            }
-          } else {
-            if (!RetainOp.isRetain(elem)) {
-              throw new Error("Expected retain but got " + elem);
-            }
-            head = new RetainOp(elem.start, elem.start + splitAt, _.clone(elem.attributes));
-            cur = new RetainOp(head.end, head.end + length, _.clone(elem.attributes));
-            tail = new RetainOp(cur.end, elem.end, _.clone(elem.attributes));
-            origOps = reference.getOpsAt(cur.start, cur.getLength());
-            if (!_.every(origOps, function(op) {
-              return InsertOp.isInsert(op);
-            })) {
-              throw new Error("Non insert op in backref");
-            }
-            marker = cur.start;
-            for (_i = 0, _len = origOps.length; _i < _len; _i++) {
-              op = origOps[_i];
-              if (InsertOp.isInsert(op)) {
-                if (op.value.indexOf('\n') !== -1) {
-                  cur = new RetainOp(cur.start, marker + op.value.indexOf('\n'), _.clone(cur.attributes));
-                  tail = new RetainOp(marker + op.value.indexOf('\n'), tail.end, _.clone(tail.attributes));
-                  break;
-                } else {
-                  marker += op.getLength();
-                }
-              } else {
-                throw new Error("Got retainOp in reference delta!");
-              }
-            }
-          }
-          return [head, cur, tail];
-        };
-        _limitScope = function(op, tail, attr, referenceOps) {
-          var length, refOp, val, _i, _len, _results;
-          length = 0;
-          val = referenceOps[0].attributes[attr];
-          _results = [];
-          for (_i = 0, _len = referenceOps.length; _i < _len; _i++) {
-            refOp = referenceOps[_i];
-            if (refOp.attributes[attr] !== val) {
-              op.end = op.start + length;
-              tail.start = op.end;
-              break;
-            } else {
-              _results.push(length += refOp.getLength());
-            }
-          }
-          return _results;
-        };
-        _formatBooleanAttribute = function(op, tail, attr, reference) {
-          var referenceOps;
-          if (InsertOp.isInsert(op)) {
-            if (op.attributes[attr] != null) {
-              return delete op.attributes[attr];
-            } else {
-              return op.attributes[attr] = true;
-            }
-          } else {
-            if (!RetainOp.isRetain(op)) {
-              throw new Error("Expected retain but got " + op);
-            }
-            if (op.attributes[attr] != null) {
-              return delete op.attributes[attr];
-            } else {
-              referenceOps = reference.getOpsAt(op.start, op.getLength());
-              if (!_.every(referenceOps, function(op) {
-                return InsertOp.isInsert(op);
-              })) {
-                throw new Error("Formatting a retain that does not refer to an insert.");
-              }
-              if (referenceOps.length > 0) {
-                _limitScope(op, tail, attr, referenceOps);
-                if (referenceOps[0].attributes[attr] != null) {
-                  if (!referenceOps[0].attributes[attr]) {
-                    throw new Error("Boolean attribute on reference delta should only be true!");
-                  }
-                  return op.attributes[attr] = null;
-                } else {
-                  return op.attributes[attr] = true;
-                }
-              }
-            }
-          }
-        };
-        _formatNonBooleanAttribute = (function(_this) {
-          return function(op, tail, attr, reference) {
-            var getNewAttrVal, referenceOps;
-            getNewAttrVal = function(prevVal) {
-              if (prevVal != null) {
-                return _.first(_.shuffle(_.without(domain.nonBooleanAttributes[attr], prevVal)));
-              } else {
-                return _.first(_.shuffle(_.without(domain.nonBooleanAttributes[attr], domain.defaultAttributeValue[attr])));
-              }
-            };
-            if (InsertOp.isInsert(op)) {
-              return op.attributes[attr] = getNewAttrVal(attr, op.attributes[attr]);
-            } else {
-              if (!RetainOp.isRetain(op)) {
-                throw new Error("Expected retain but got " + op);
-              }
-              referenceOps = reference.getOpsAt(op.start, op.getLength());
-              if (!_.every(referenceOps, function(op) {
-                return InsertOp.isInsert(op);
-              })) {
-                throw new Error("Formatting a retain that does not refer to an insert.");
-              }
-              if (referenceOps.length > 0) {
-                _limitScope(op, tail, attr, referenceOps);
-                if ((op.attributes[attr] != null) && Math.random() < 0.5) {
-                  return delete op.attributes[attr];
-                } else {
-                  return op.attributes[attr] = getNewAttrVal(op.attributes[attr]);
-                }
-              }
-            }
-          };
-        })(this);
-        charIndex = 0;
-        ops = [];
-        _ref = delta.ops;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          op = _ref[_i];
-          reachedFormatPoint = charIndex === formatPoint || charIndex + op.getLength() > formatPoint;
-          if (numToFormat > 0 && reachedFormatPoint) {
-            curFormat = Math.min(numToFormat, op.getLength() - (formatPoint - charIndex));
-            numToFormat -= curFormat;
-            _ref1 = _splitOpInThree(op, formatPoint - charIndex, curFormat, reference), head = _ref1[0], cur = _ref1[1], tail = _ref1[2];
-            ops.push(head);
-            ops.push(cur);
-            ops.push(tail);
-            for (_j = 0, _len1 = attrs.length; _j < _len1; _j++) {
-              attr = attrs[_j];
-              if (_.has(domain.booleanAttributes, attr)) {
-                _formatBooleanAttribute(cur, tail, attr, reference);
-              } else if (_.has(domain.nonBooleanAttributes, attr)) {
-                _formatNonBooleanAttribute(cur, tail, attr, reference);
-              } else {
-                throw new Error("Received unknown attribute: " + attr);
-              }
-            }
-            formatPoint += curFormat;
-          } else {
-            ops.push(op);
-          }
-          charIndex += op.getLength();
-        }
-        delta.endLength = _.reduce(ops, function(length, delta) {
-          return length + delta.getLength();
-        }, 0);
-        delta.ops = ops;
-        return delta.compact();
-      },
-      addRandomOp: function(newDelta, referenceDelta) {
-        var attrs, finalIndex, numAttrs, opIndex, opLength, rand, shuffled_attrs;
-        finalIndex = referenceDelta.endLength - 1;
-        opIndex = _.random(0, finalIndex);
-        rand = Math.random();
-        if (rand < 0.5) {
-          opLength = this.getRandomLength();
-          this.insertAt(newDelta, opIndex, this.getRandomString(opLength));
-        } else if (rand < 0.75) {
-          if (referenceDelta.endLength <= 1) {
-            return newDelta;
-          }
-          opIndex = _.random(0, finalIndex - 1);
-          opLength = _.random(1, finalIndex - opIndex);
-          this.deleteAt(newDelta, opIndex, opLength);
-        } else {
-          shuffled_attrs = _.shuffle(_.keys(domain.booleanAttributes).concat(_.keys(domain.nonBooleanAttributes)));
-          numAttrs = _.random(1, shuffled_attrs.length);
-          attrs = shuffled_attrs.slice(0, numAttrs);
-          opLength = _.random(1, finalIndex - opIndex);
-          this.formatAt(newDelta, opIndex, opLength, attrs, referenceDelta);
-        }
-        return newDelta;
-      },
-      getRandomDelta: function(referenceDelta, numOps) {
-        var i, newDelta, _i;
-        newDelta = new Delta(referenceDelta.endLength, referenceDelta.endLength, [new RetainOp(0, referenceDelta.endLength)]);
-        numOps || (numOps = _.random(1, 10));
-        for (i = _i = 0; 0 <= numOps ? _i < numOps : _i > numOps; i = 0 <= numOps ? ++_i : --_i) {
-          this.addRandomOp(newDelta, referenceDelta);
-        }
-        return newDelta;
-      }
-    };
-  };
-
-  DeltaGenerator = {
-    setDomain: setDomain,
-    getUtils: getUtils
-  };
-
-  module.exports = DeltaGenerator;
-
-}).call(this);
-
-},{"./delta":4,"./insert":6,"./retain":8,"lodash":"M4+//f"}],6:[function(_dereq_,module,exports){
-(function() {
-  var InsertOp, Op, _,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  _ = _dereq_('lodash');
-
-  Op = _dereq_('./op');
-
-  InsertOp = (function(_super) {
-    __extends(InsertOp, _super);
-
-    function InsertOp(value, attributes) {
-      this.value = value;
-      if (attributes == null) {
-        attributes = {};
-      }
-      this.attributes = _.clone(attributes);
-    }
-
-    InsertOp.prototype.getAt = function(start, length) {
-      return new InsertOp(this.value.substr(start, length), this.attributes);
-    };
-
-    InsertOp.prototype.getLength = function() {
-      return this.value.length;
-    };
-
-    InsertOp.prototype.isEqual = function(other) {
-      return (other != null) && this.value === other.value && _.isEqual(this.attributes, other.attributes);
-    };
-
-    InsertOp.prototype.join = function(other) {
-      if (_.isEqual(this.attributes, other.attributes)) {
-        return new InsertOp(this.value + second.value, this.attributes);
+Delta.prototype.transform = function (other, priority) {
+  priority = !!priority;
+  if (is.number(other)) {
+    return this.transformPosition(other, priority);
+  }
+  var thisIter = op.iterator(this.ops);
+  var otherIter = op.iterator(other.ops);
+  var delta = new Delta();
+  while (thisIter.hasNext() || otherIter.hasNext()) {
+    if (thisIter.peekType() === 'insert' && (priority || otherIter.peekType() !== 'insert')) {
+      delta.retain(op.length(thisIter.next()));
+    } else if (otherIter.peekType() === 'insert') {
+      delta.push(otherIter.next());
+    } else {
+      var length = Math.min(thisIter.peekLength(), otherIter.peekLength());
+      var thisOp = thisIter.next(length);
+      var otherOp = otherIter.next(length);
+      if (thisOp['delete']) {
+        // Our delete either makes their delete redundant or removes their retain
+        continue;
+      } else if (otherOp['delete']) {
+        delta.push(otherOp);
       } else {
-        throw Error;
+        // We retain either their retain or insert
+        delta.retain(length, op.attributes.transform(thisOp.attributes, otherOp.attributes, priority));
       }
-    };
-
-    InsertOp.prototype.split = function(offset) {
-      var left, right;
-      left = new InsertOp(this.value.substr(0, offset), this.attributes);
-      right = new InsertOp(this.value.substr(offset), this.attributes);
-      return [left, right];
-    };
-
-    InsertOp.prototype.toString = function() {
-      return "{" + this.value + ", " + (this.printAttributes()) + "}";
-    };
-
-    return InsertOp;
-
-  })(Op);
-
-  module.exports = InsertOp;
-
-}).call(this);
-
-},{"./op":7,"lodash":"M4+//f"}],7:[function(_dereq_,module,exports){
-(function() {
-  var Op, _;
-
-  _ = _dereq_('lodash');
-
-  Op = (function() {
-    Op.isInsert = function(i) {
-      return (i != null) && typeof i.value === "string";
-    };
-
-    Op.isRetain = function(r) {
-      return (r != null) && typeof r.start === "number" && typeof r.end === "number";
-    };
-
-    function Op(attributes) {
-      if (attributes == null) {
-        attributes = {};
-      }
-      this.attributes = _.clone(attributes);
     }
+  }
+  return delta.chop();
+};
 
-    Op.prototype.addAttributes = function(attributes) {
-      var addedAttributes, key, value;
-      addedAttributes = {};
-      for (key in attributes) {
-        value = attributes[key];
-        if (this.attributes[key] === void 0) {
-          addedAttributes[key] = value;
+Delta.prototype.transformPosition = function (index, priority) {
+  priority = !!priority;
+  var thisIter = op.iterator(this.ops);
+  var offset = 0;
+  while (thisIter.hasNext() && offset <= index) {
+    var length = thisIter.peekLength();
+    var nextType = thisIter.peekType();
+    thisIter.next();
+    if (nextType === 'delete') {
+      index -= Math.min(length, index - offset);
+      continue;
+    } else if (nextType === 'insert' && (offset < index || !priority)) {
+      index += length;
+    }
+    offset += length;
+  }
+  return index;
+};
+
+
+module.exports = Delta;
+
+},{"./is":6,"./op":7,"fast-diff":9}],6:[function(_dereq_,module,exports){
+module.exports = {
+  equal: function (a, b) {
+    if (a === b) return true;
+    if (a == null && b == null) return true;
+    if (a == null || b == null) return false;
+    if (Object.keys(a).length != Object.keys(b).length) return false;
+    for(var key in a) {
+      // Only compare one level deep
+      if (a[key] !== b[key]) return false;
+    }
+    return true;
+  },
+
+  array: function (value) {
+    return Array.isArray(value);
+  },
+
+  number: function (value) {
+    if (typeof value === 'number') return true;
+    if (typeof value === 'object' && Object.prototype.toString.call(value) === '[object Number]') return true;
+    return false;
+  },
+
+  object: function (value) {
+    if (!value) return false;
+    return (typeof value === 'function' || typeof value === 'object');
+  },
+
+  string: function (value) {
+    if (typeof value === 'string') return true;
+    if (typeof value === 'object' && Object.prototype.toString.call(value) === '[object String]') return true;
+    return false;
+  }
+};
+
+},{}],7:[function(_dereq_,module,exports){
+var is = _dereq_('./is');
+
+
+var lib = {
+  attributes: {
+    clone: function (attributes, keepNull) {
+      if (!is.object(attributes)) return {};
+      return Object.keys(attributes).reduce(function (memo, key) {
+        if (attributes[key] !== undefined && (attributes[key] !== null || keepNull)) {
+          memo[key] = attributes[key];
+        }
+        return memo;
+      }, {});
+    },
+
+    compose: function (a, b, keepNull) {
+      if (!is.object(a)) a = {};
+      if (!is.object(b)) b = {};
+      var attributes = this.clone(b, keepNull);
+      for (var key in a) {
+        if (a[key] !== undefined && b[key] === undefined) {
+          attributes[key] = a[key];
         }
       }
-      return addedAttributes;
-    };
+      return Object.keys(attributes).length > 0 ? attributes : undefined;
+    },
 
-    Op.prototype.attributesMatch = function(other) {
-      var otherAttributes;
-      otherAttributes = other.attributes || {};
-      return _.isEqual(this.attributes, otherAttributes);
-    };
+    diff: function(a, b) {
+      if (!is.object(a)) a = {};
+      if (!is.object(b)) b = {};
+      var attributes = Object.keys(a).concat(Object.keys(b)).reduce(function (attributes, key) {
+        if (a[key] !== b[key]) {
+          attributes[key] = b[key] === undefined ? null : b[key];
+        }
+        return attributes;
+      }, {});
+      return Object.keys(attributes).length > 0 ? attributes : undefined;
+    },
 
-    Op.prototype.composeAttributes = function(attributes) {
-      var resolveAttributes;
-      resolveAttributes = (function(_this) {
-        return function(oldAttrs, newAttrs) {
-          var key, resolvedAttrs, value;
-          if (!newAttrs) {
-            return oldAttrs;
-          }
-          resolvedAttrs = _.clone(oldAttrs);
-          for (key in newAttrs) {
-            value = newAttrs[key];
-            if (Op.isInsert(_this) && value === null) {
-              delete resolvedAttrs[key];
-            } else if (typeof value !== 'undefined') {
-              if (typeof resolvedAttrs[key] === 'object' && typeof value === 'object' && _.all([resolvedAttrs[key], newAttrs[key]], (function(val) {
-                return val !== null;
-              }))) {
-                resolvedAttrs[key] = resolveAttributes(resolvedAttrs[key], value);
-              } else {
-                resolvedAttrs[key] = value;
-              }
-            }
-          }
-          return resolvedAttrs;
-        };
-      })(this);
-      return resolveAttributes(this.attributes, attributes);
-    };
-
-    Op.prototype.numAttributes = function() {
-      return _.keys(this.attributes).length;
-    };
-
-    Op.prototype.printAttributes = function() {
-      return JSON.stringify(this.attributes);
-    };
-
-    return Op;
-
-  })();
-
-  module.exports = Op;
-
-}).call(this);
-
-},{"lodash":"M4+//f"}],8:[function(_dereq_,module,exports){
-(function() {
-  var Op, RetainOp, _,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  _ = _dereq_('lodash');
-
-  Op = _dereq_('./op');
-
-  RetainOp = (function(_super) {
-    __extends(RetainOp, _super);
-
-    function RetainOp(start, end, attributes) {
-      this.start = start;
-      this.end = end;
-      if (attributes == null) {
-        attributes = {};
-      }
-      this.attributes = _.clone(attributes);
+    transform: function (a, b, priority) {
+      if (!is.object(a)) return b;
+      if (!is.object(b)) return undefined;
+      if (!priority) return b;  // b simply overwrites us without priority
+      var attributes = Object.keys(b).reduce(function (attributes, key) {
+        if (a[key] === undefined) attributes[key] = b[key];  // null is a valid value
+        return attributes;
+      }, {});
+      return Object.keys(attributes).length > 0 ? attributes : undefined;
     }
+  },
 
-    RetainOp.prototype.getAt = function(start, length) {
-      return new RetainOp(this.start + start, this.start + start + length, this.attributes);
-    };
+  clone: function (op) {
+    var newOp = this.attributes.clone(op);
+    if (is.object(newOp.attributes)) {
+      newOp.attributes = this.attributes.clone(newOp.attributes, true);
+    }
+    return newOp;
+  },
 
-    RetainOp.prototype.getLength = function() {
-      return this.end - this.start;
-    };
+  iterator: function (ops) {
+    return new Iterator(ops);
+  },
 
-    RetainOp.prototype.isEqual = function(other) {
-      return (other != null) && this.start === other.start && this.end === other.end && _.isEqual(this.attributes, other.attributes);
-    };
+  length: function (op) {
+    if (is.number(op['delete'])) {
+      return op['delete'];
+    } else if (is.number(op.retain)) {
+      return op.retain;
+    } else {
+      return is.string(op.insert) ? op.insert.length : 1;
+    }
+  }
+};
 
-    RetainOp.prototype.split = function(offset) {
-      var left, right;
-      left = new RetainOp(this.start, this.start + offset, this.attributes);
-      right = new RetainOp(this.start + offset, this.end, this.attributes);
-      return [left, right];
-    };
 
-    RetainOp.prototype.toString = function() {
-      return "{{" + this.start + " - " + this.end + "), " + (this.printAttributes()) + "}";
-    };
+function Iterator(ops) {
+  this.ops = ops;
+  this.index = 0;
+  this.offset = 0;
+};
 
-    return RetainOp;
+Iterator.prototype.hasNext = function () {
+  return this.peekLength() < Infinity;
+};
 
-  })(Op);
+Iterator.prototype.next = function (length) {
+  if (!length) length = Infinity;
+  var nextOp = this.ops[this.index];
+  if (nextOp) {
+    var offset = this.offset;
+    var opLength = lib.length(nextOp)
+    if (length >= opLength - offset) {
+      length = opLength - offset;
+      this.index += 1;
+      this.offset = 0;
+    } else {
+      this.offset += length;
+    }
+    if (is.number(nextOp['delete'])) {
+      return { 'delete': length };
+    } else {
+      var retOp = {};
+      if (nextOp.attributes) {
+        retOp.attributes = nextOp.attributes;
+      }
+      if (is.number(nextOp.retain)) {
+        retOp.retain = length;
+      } else if (is.string(nextOp.insert)) {
+        retOp.insert = nextOp.insert.substr(offset, length);
+      } else {
+        // offset should === 0, length should === 1
+        retOp.insert = nextOp.insert;
+      }
+      return retOp;
+    }
+  } else {
+    return { retain: Infinity };
+  }
+};
 
-  module.exports = RetainOp;
+Iterator.prototype.peekLength = function () {
+  if (this.ops[this.index]) {
+    // Should never return 0 if our index is being managed correctly
+    return lib.length(this.ops[this.index]) - this.offset;
+  } else {
+    return Infinity;
+  }
+};
 
-}).call(this);
+Iterator.prototype.peekType = function () {
+  if (this.ops[this.index]) {
+    if (is.number(this.ops[this.index]['delete'])) {
+      return 'delete';
+    } else if (is.number(this.ops[this.index].retain)) {
+      return 'retain';
+    } else {
+      return 'insert';
+    }
+  }
+  return 'retain';
+};
 
-},{"./op":7,"lodash":"M4+//f"}],9:[function(_dereq_,module,exports){
-(function() {
-  module.exports = {
-    Delta: _dereq_('./delta'),
-    DeltaGen: _dereq_('./delta_generator'),
-    Op: _dereq_('./op'),
-    InsertOp: _dereq_('./insert'),
-    RetainOp: _dereq_('./retain')
-  };
 
-}).call(this);
+module.exports = lib;
 
-},{"./delta":4,"./delta_generator":5,"./insert":6,"./op":7,"./retain":8}],10:[function(_dereq_,module,exports){
-module.exports = _dereq_('./build/tandem-core')
+},{"./is":6}],8:[function(_dereq_,module,exports){
+var Delta = _dereq_('./delta');
+var pkg = _dereq_('../package.json');
 
-},{"./build/tandem-core":9}],11:[function(_dereq_,module,exports){
-/* See LICENSE file for terms of use */
 
-/*
- * Text diff implementation.
+module.exports = {
+  Delta: Delta,
+  name: 'rich-text',
+  uri: 'http://sharejs.org/types/rich-text/v1',
+
+  create: function (initial) {
+    return new Delta(initial);
+  },
+
+  apply: function (snapshot, delta) {
+    snapshot = new Delta(snapshot);
+    delta = new Delta(delta);
+    return snapshot.compose(delta);
+  },
+
+  compose: function (delta1, delta2) {
+    delta1 = new Delta(delta1);
+    delta2 = new Delta(delta2);
+    return delta1.compose(delta2);
+  },
+
+  diff: function (delta1, delta2) {
+    delta1 = new Delta(delta1);
+    delta2 = new Delta(delta2);
+    return delta1.diff(delta2);
+  },
+
+  transform: function (delta1, delta2, side) {
+    delta1 = new Delta(delta1);
+    delta2 = new Delta(delta2);
+    // Fuzzer specs is in opposite order of delta interface
+    return delta2.transform(delta1, side === 'left');
+  }
+};
+
+},{"../package.json":10,"./delta":5}],9:[function(_dereq_,module,exports){
+/**
+ * This library modifies the diff-patch-match library by Neil Fraser
+ * by removing the patch and match functionality and certain advanced
+ * options in the diff function. The original license is as follows:
  *
- * This library supports the following APIS:
- * JsDiff.diffChars: Character by character diff
- * JsDiff.diffWords: Word (as defined by \b regex) diff which ignores whitespace
- * JsDiff.diffLines: Line based diff
+ * ===
  *
- * JsDiff.diffCss: Diff targeted at CSS content
+ * Diff Match and Patch
  *
- * These methods are based on the implementation proposed in
- * "An O(ND) Difference Algorithm and its Variations" (Myers, 1986).
- * http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.4.6927
+ * Copyright 2006 Google Inc.
+ * http://code.google.com/p/google-diff-match-patch/
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-var JsDiff = (function() {
-  /*jshint maxparams: 5*/
-  function clonePath(path) {
-    return { newPos: path.newPos, components: path.components.slice(0) };
+
+
+/**
+ * The data structure representing a diff is an array of tuples:
+ * [[DIFF_DELETE, 'Hello'], [DIFF_INSERT, 'Goodbye'], [DIFF_EQUAL, ' world.']]
+ * which means: delete 'Hello', add 'Goodbye' and keep ' world.'
+ */
+var DIFF_DELETE = -1;
+var DIFF_INSERT = 1;
+var DIFF_EQUAL = 0;
+
+
+/**
+ * Find the differences between two texts.  Simplifies the problem by stripping
+ * any common prefix or suffix off the texts before diffing.
+ * @param {string} text1 Old string to be diffed.
+ * @param {string} text2 New string to be diffed.
+ * @return {Array} Array of diff tuples.
+ */
+function diff_main(text1, text2) {
+  // Check for equality (speedup).
+  if (text1 == text2) {
+    if (text1) {
+      return [[DIFF_EQUAL, text1]];
+    }
+    return [];
   }
-  function removeEmpty(array) {
-    var ret = [];
-    for (var i = 0; i < array.length; i++) {
-      if (array[i]) {
-        ret.push(array[i]);
+
+  // Trim off common prefix (speedup).
+  var commonlength = diff_commonPrefix(text1, text2);
+  var commonprefix = text1.substring(0, commonlength);
+  text1 = text1.substring(commonlength);
+  text2 = text2.substring(commonlength);
+
+  // Trim off common suffix (speedup).
+  commonlength = diff_commonSuffix(text1, text2);
+  var commonsuffix = text1.substring(text1.length - commonlength);
+  text1 = text1.substring(0, text1.length - commonlength);
+  text2 = text2.substring(0, text2.length - commonlength);
+
+  // Compute the diff on the middle block.
+  var diffs = diff_compute_(text1, text2);
+
+  // Restore the prefix and suffix.
+  if (commonprefix) {
+    diffs.unshift([DIFF_EQUAL, commonprefix]);
+  }
+  if (commonsuffix) {
+    diffs.push([DIFF_EQUAL, commonsuffix]);
+  }
+  diff_cleanupMerge(diffs);
+  return diffs;
+};
+
+
+/**
+ * Find the differences between two texts.  Assumes that the texts do not
+ * have any common prefix or suffix.
+ * @param {string} text1 Old string to be diffed.
+ * @param {string} text2 New string to be diffed.
+ * @return {Array} Array of diff tuples.
+ */
+function diff_compute_(text1, text2) {
+  var diffs;
+
+  if (!text1) {
+    // Just add some text (speedup).
+    return [[DIFF_INSERT, text2]];
+  }
+
+  if (!text2) {
+    // Just delete some text (speedup).
+    return [[DIFF_DELETE, text1]];
+  }
+
+  var longtext = text1.length > text2.length ? text1 : text2;
+  var shorttext = text1.length > text2.length ? text2 : text1;
+  var i = longtext.indexOf(shorttext);
+  if (i != -1) {
+    // Shorter text is inside the longer text (speedup).
+    diffs = [[DIFF_INSERT, longtext.substring(0, i)],
+             [DIFF_EQUAL, shorttext],
+             [DIFF_INSERT, longtext.substring(i + shorttext.length)]];
+    // Swap insertions for deletions if diff is reversed.
+    if (text1.length > text2.length) {
+      diffs[0][0] = diffs[2][0] = DIFF_DELETE;
+    }
+    return diffs;
+  }
+
+  if (shorttext.length == 1) {
+    // Single character string.
+    // After the previous speedup, the character can't be an equality.
+    return [[DIFF_DELETE, text1], [DIFF_INSERT, text2]];
+  }
+
+  // Check to see if the problem can be split in two.
+  var hm = diff_halfMatch_(text1, text2);
+  if (hm) {
+    // A half-match was found, sort out the return data.
+    var text1_a = hm[0];
+    var text1_b = hm[1];
+    var text2_a = hm[2];
+    var text2_b = hm[3];
+    var mid_common = hm[4];
+    // Send both pairs off for separate processing.
+    var diffs_a = diff_main(text1_a, text2_a);
+    var diffs_b = diff_main(text1_b, text2_b);
+    // Merge the results.
+    return diffs_a.concat([[DIFF_EQUAL, mid_common]], diffs_b);
+  }
+
+  return diff_bisect_(text1, text2);
+};
+
+
+/**
+ * Find the 'middle snake' of a diff, split the problem in two
+ * and return the recursively constructed diff.
+ * See Myers 1986 paper: An O(ND) Difference Algorithm and Its Variations.
+ * @param {string} text1 Old string to be diffed.
+ * @param {string} text2 New string to be diffed.
+ * @return {Array} Array of diff tuples.
+ * @private
+ */
+function diff_bisect_(text1, text2) {
+  // Cache the text lengths to prevent multiple calls.
+  var text1_length = text1.length;
+  var text2_length = text2.length;
+  var max_d = Math.ceil((text1_length + text2_length) / 2);
+  var v_offset = max_d;
+  var v_length = 2 * max_d;
+  var v1 = new Array(v_length);
+  var v2 = new Array(v_length);
+  // Setting all elements to -1 is faster in Chrome & Firefox than mixing
+  // integers and undefined.
+  for (var x = 0; x < v_length; x++) {
+    v1[x] = -1;
+    v2[x] = -1;
+  }
+  v1[v_offset + 1] = 0;
+  v2[v_offset + 1] = 0;
+  var delta = text1_length - text2_length;
+  // If the total number of characters is odd, then the front path will collide
+  // with the reverse path.
+  var front = (delta % 2 != 0);
+  // Offsets for start and end of k loop.
+  // Prevents mapping of space beyond the grid.
+  var k1start = 0;
+  var k1end = 0;
+  var k2start = 0;
+  var k2end = 0;
+  for (var d = 0; d < max_d; d++) {
+    // Walk the front path one step.
+    for (var k1 = -d + k1start; k1 <= d - k1end; k1 += 2) {
+      var k1_offset = v_offset + k1;
+      var x1;
+      if (k1 == -d || (k1 != d && v1[k1_offset - 1] < v1[k1_offset + 1])) {
+        x1 = v1[k1_offset + 1];
+      } else {
+        x1 = v1[k1_offset - 1] + 1;
+      }
+      var y1 = x1 - k1;
+      while (x1 < text1_length && y1 < text2_length &&
+             text1.charAt(x1) == text2.charAt(y1)) {
+        x1++;
+        y1++;
+      }
+      v1[k1_offset] = x1;
+      if (x1 > text1_length) {
+        // Ran off the right of the graph.
+        k1end += 2;
+      } else if (y1 > text2_length) {
+        // Ran off the bottom of the graph.
+        k1start += 2;
+      } else if (front) {
+        var k2_offset = v_offset + delta - k1;
+        if (k2_offset >= 0 && k2_offset < v_length && v2[k2_offset] != -1) {
+          // Mirror x2 onto top-left coordinate system.
+          var x2 = text1_length - v2[k2_offset];
+          if (x1 >= x2) {
+            // Overlap detected.
+            return diff_bisectSplit_(text1, text2, x1, y1);
+          }
+        }
       }
     }
-    return ret;
-  }
-  function escapeHTML(s) {
-    var n = s;
-    n = n.replace(/&/g, '&amp;');
-    n = n.replace(/</g, '&lt;');
-    n = n.replace(/>/g, '&gt;');
-    n = n.replace(/"/g, '&quot;');
 
-    return n;
-  }
-
-  var Diff = function(ignoreWhitespace) {
-    this.ignoreWhitespace = ignoreWhitespace;
-  };
-  Diff.prototype = {
-      diff: function(oldString, newString) {
-        // Handle the identity case (this is due to unrolling editLength == 0
-        if (newString === oldString) {
-          return [{ value: newString }];
-        }
-        if (!newString) {
-          return [{ value: oldString, removed: true }];
-        }
-        if (!oldString) {
-          return [{ value: newString, added: true }];
-        }
-
-        newString = this.tokenize(newString);
-        oldString = this.tokenize(oldString);
-
-        var newLen = newString.length, oldLen = oldString.length;
-        var maxEditLength = newLen + oldLen;
-        var bestPath = [{ newPos: -1, components: [] }];
-
-        // Seed editLength = 0
-        var oldPos = this.extractCommon(bestPath[0], newString, oldString, 0);
-        if (bestPath[0].newPos+1 >= newLen && oldPos+1 >= oldLen) {
-          return bestPath[0].components;
-        }
-
-        for (var editLength = 1; editLength <= maxEditLength; editLength++) {
-          for (var diagonalPath = -1*editLength; diagonalPath <= editLength; diagonalPath+=2) {
-            var basePath;
-            var addPath = bestPath[diagonalPath-1],
-                removePath = bestPath[diagonalPath+1];
-            oldPos = (removePath ? removePath.newPos : 0) - diagonalPath;
-            if (addPath) {
-              // No one else is going to attempt to use this value, clear it
-              bestPath[diagonalPath-1] = undefined;
-            }
-
-            var canAdd = addPath && addPath.newPos+1 < newLen;
-            var canRemove = removePath && 0 <= oldPos && oldPos < oldLen;
-            if (!canAdd && !canRemove) {
-              bestPath[diagonalPath] = undefined;
-              continue;
-            }
-
-            // Select the diagonal that we want to branch from. We select the prior
-            // path whose position in the new string is the farthest from the origin
-            // and does not pass the bounds of the diff graph
-            if (!canAdd || (canRemove && addPath.newPos < removePath.newPos)) {
-              basePath = clonePath(removePath);
-              this.pushComponent(basePath.components, oldString[oldPos], undefined, true);
-            } else {
-              basePath = clonePath(addPath);
-              basePath.newPos++;
-              this.pushComponent(basePath.components, newString[basePath.newPos], true, undefined);
-            }
-
-            var oldPos = this.extractCommon(basePath, newString, oldString, diagonalPath);
-
-            if (basePath.newPos+1 >= newLen && oldPos+1 >= oldLen) {
-              return basePath.components;
-            } else {
-              bestPath[diagonalPath] = basePath;
-            }
+    // Walk the reverse path one step.
+    for (var k2 = -d + k2start; k2 <= d - k2end; k2 += 2) {
+      var k2_offset = v_offset + k2;
+      var x2;
+      if (k2 == -d || (k2 != d && v2[k2_offset - 1] < v2[k2_offset + 1])) {
+        x2 = v2[k2_offset + 1];
+      } else {
+        x2 = v2[k2_offset - 1] + 1;
+      }
+      var y2 = x2 - k2;
+      while (x2 < text1_length && y2 < text2_length &&
+             text1.charAt(text1_length - x2 - 1) ==
+             text2.charAt(text2_length - y2 - 1)) {
+        x2++;
+        y2++;
+      }
+      v2[k2_offset] = x2;
+      if (x2 > text1_length) {
+        // Ran off the left of the graph.
+        k2end += 2;
+      } else if (y2 > text2_length) {
+        // Ran off the top of the graph.
+        k2start += 2;
+      } else if (!front) {
+        var k1_offset = v_offset + delta - k2;
+        if (k1_offset >= 0 && k1_offset < v_length && v1[k1_offset] != -1) {
+          var x1 = v1[k1_offset];
+          var y1 = v_offset + x1 - k1_offset;
+          // Mirror x2 onto top-left coordinate system.
+          x2 = text1_length - x2;
+          if (x1 >= x2) {
+            // Overlap detected.
+            return diff_bisectSplit_(text1, text2, x1, y1);
           }
         }
-      },
-
-      pushComponent: function(components, value, added, removed) {
-        var last = components[components.length-1];
-        if (last && last.added === added && last.removed === removed) {
-          // We need to clone here as the component clone operation is just
-          // as shallow array clone
-          components[components.length-1] =
-            {value: this.join(last.value, value), added: added, removed: removed };
-        } else {
-          components.push({value: value, added: added, removed: removed });
-        }
-      },
-      extractCommon: function(basePath, newString, oldString, diagonalPath) {
-        var newLen = newString.length,
-            oldLen = oldString.length,
-            newPos = basePath.newPos,
-            oldPos = newPos - diagonalPath;
-        while (newPos+1 < newLen && oldPos+1 < oldLen && this.equals(newString[newPos+1], oldString[oldPos+1])) {
-          newPos++;
-          oldPos++;
-
-          this.pushComponent(basePath.components, newString[newPos], undefined, undefined);
-        }
-        basePath.newPos = newPos;
-        return oldPos;
-      },
-
-      equals: function(left, right) {
-        var reWhitespace = /\S/;
-        if (this.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right)) {
-          return true;
-        } else {
-          return left === right;
-        }
-      },
-      join: function(left, right) {
-        return left + right;
-      },
-      tokenize: function(value) {
-        return value;
-      }
-  };
-
-  var CharDiff = new Diff();
-
-  var WordDiff = new Diff(true);
-  var WordWithSpaceDiff = new Diff();
-  WordDiff.tokenize = WordWithSpaceDiff.tokenize = function(value) {
-    return removeEmpty(value.split(/(\s+|\b)/));
-  };
-
-  var CssDiff = new Diff(true);
-  CssDiff.tokenize = function(value) {
-    return removeEmpty(value.split(/([{}:;,]|\s+)/));
-  };
-
-  var LineDiff = new Diff();
-  LineDiff.tokenize = function(value) {
-    var retLines = [],
-        lines = value.split(/^/m);
-
-    for(var i = 0; i < lines.length; i++) {
-      var line = lines[i],
-          lastLine = lines[i - 1];
-
-      // Merge lines that may contain windows new lines
-      if (line == '\n' && lastLine && lastLine[lastLine.length - 1] === '\r') {
-        retLines[retLines.length - 1] += '\n';
-      } else if (line) {
-        retLines.push(line);
       }
     }
+  }
+  // Diff took too long and hit the deadline or
+  // number of diffs equals number of characters, no commonality at all.
+  return [[DIFF_DELETE, text1], [DIFF_INSERT, text2]];
+};
 
-    return retLines;
-  };
 
-  return {
-    Diff: Diff,
+/**
+ * Given the location of the 'middle snake', split the diff in two parts
+ * and recurse.
+ * @param {string} text1 Old string to be diffed.
+ * @param {string} text2 New string to be diffed.
+ * @param {number} x Index of split point in text1.
+ * @param {number} y Index of split point in text2.
+ * @return {Array} Array of diff tuples.
+ */
+function diff_bisectSplit_(text1, text2, x, y) {
+  var text1a = text1.substring(0, x);
+  var text2a = text2.substring(0, y);
+  var text1b = text1.substring(x);
+  var text2b = text2.substring(y);
 
-    diffChars: function(oldStr, newStr) { return CharDiff.diff(oldStr, newStr); },
-    diffWords: function(oldStr, newStr) { return WordDiff.diff(oldStr, newStr); },
-    diffWordsWithSpace: function(oldStr, newStr) { return WordWithSpaceDiff.diff(oldStr, newStr); },
-    diffLines: function(oldStr, newStr) { return LineDiff.diff(oldStr, newStr); },
+  // Compute both diffs serially.
+  var diffs = diff_main(text1a, text2a);
+  var diffsb = diff_main(text1b, text2b);
 
-    diffCss: function(oldStr, newStr) { return CssDiff.diff(oldStr, newStr); },
+  return diffs.concat(diffsb);
+};
 
-    createPatch: function(fileName, oldStr, newStr, oldHeader, newHeader) {
-      var ret = [];
 
-      ret.push('Index: ' + fileName);
-      ret.push('===================================================================');
-      ret.push('--- ' + fileName + (typeof oldHeader === 'undefined' ? '' : '\t' + oldHeader));
-      ret.push('+++ ' + fileName + (typeof newHeader === 'undefined' ? '' : '\t' + newHeader));
+/**
+ * Determine the common prefix of two strings.
+ * @param {string} text1 First string.
+ * @param {string} text2 Second string.
+ * @return {number} The number of characters common to the start of each
+ *     string.
+ */
+function diff_commonPrefix(text1, text2) {
+  // Quick check for common null cases.
+  if (!text1 || !text2 || text1.charAt(0) != text2.charAt(0)) {
+    return 0;
+  }
+  // Binary search.
+  // Performance analysis: http://neil.fraser.name/news/2007/10/09/
+  var pointermin = 0;
+  var pointermax = Math.min(text1.length, text2.length);
+  var pointermid = pointermax;
+  var pointerstart = 0;
+  while (pointermin < pointermid) {
+    if (text1.substring(pointerstart, pointermid) ==
+        text2.substring(pointerstart, pointermid)) {
+      pointermin = pointermid;
+      pointerstart = pointermin;
+    } else {
+      pointermax = pointermid;
+    }
+    pointermid = Math.floor((pointermax - pointermin) / 2 + pointermin);
+  }
+  return pointermid;
+};
 
-      var diff = LineDiff.diff(oldStr, newStr);
-      if (!diff[diff.length-1].value) {
-        diff.pop();   // Remove trailing newline add
+
+/**
+ * Determine the common suffix of two strings.
+ * @param {string} text1 First string.
+ * @param {string} text2 Second string.
+ * @return {number} The number of characters common to the end of each string.
+ */
+function diff_commonSuffix(text1, text2) {
+  // Quick check for common null cases.
+  if (!text1 || !text2 ||
+      text1.charAt(text1.length - 1) != text2.charAt(text2.length - 1)) {
+    return 0;
+  }
+  // Binary search.
+  // Performance analysis: http://neil.fraser.name/news/2007/10/09/
+  var pointermin = 0;
+  var pointermax = Math.min(text1.length, text2.length);
+  var pointermid = pointermax;
+  var pointerend = 0;
+  while (pointermin < pointermid) {
+    if (text1.substring(text1.length - pointermid, text1.length - pointerend) ==
+        text2.substring(text2.length - pointermid, text2.length - pointerend)) {
+      pointermin = pointermid;
+      pointerend = pointermin;
+    } else {
+      pointermax = pointermid;
+    }
+    pointermid = Math.floor((pointermax - pointermin) / 2 + pointermin);
+  }
+  return pointermid;
+};
+
+
+/**
+ * Do the two texts share a substring which is at least half the length of the
+ * longer text?
+ * This speedup can produce non-minimal diffs.
+ * @param {string} text1 First string.
+ * @param {string} text2 Second string.
+ * @return {Array.<string>} Five element Array, containing the prefix of
+ *     text1, the suffix of text1, the prefix of text2, the suffix of
+ *     text2 and the common middle.  Or null if there was no match.
+ */
+function diff_halfMatch_(text1, text2) {
+  var longtext = text1.length > text2.length ? text1 : text2;
+  var shorttext = text1.length > text2.length ? text2 : text1;
+  if (longtext.length < 4 || shorttext.length * 2 < longtext.length) {
+    return null;  // Pointless.
+  }
+
+  /**
+   * Does a substring of shorttext exist within longtext such that the substring
+   * is at least half the length of longtext?
+   * Closure, but does not reference any external variables.
+   * @param {string} longtext Longer string.
+   * @param {string} shorttext Shorter string.
+   * @param {number} i Start index of quarter length substring within longtext.
+   * @return {Array.<string>} Five element Array, containing the prefix of
+   *     longtext, the suffix of longtext, the prefix of shorttext, the suffix
+   *     of shorttext and the common middle.  Or null if there was no match.
+   * @private
+   */
+  function diff_halfMatchI_(longtext, shorttext, i) {
+    // Start with a 1/4 length substring at position i as a seed.
+    var seed = longtext.substring(i, i + Math.floor(longtext.length / 4));
+    var j = -1;
+    var best_common = '';
+    var best_longtext_a, best_longtext_b, best_shorttext_a, best_shorttext_b;
+    while ((j = shorttext.indexOf(seed, j + 1)) != -1) {
+      var prefixLength = diff_commonPrefix(longtext.substring(i),
+                                           shorttext.substring(j));
+      var suffixLength = diff_commonSuffix(longtext.substring(0, i),
+                                           shorttext.substring(0, j));
+      if (best_common.length < suffixLength + prefixLength) {
+        best_common = shorttext.substring(j - suffixLength, j) +
+            shorttext.substring(j, j + prefixLength);
+        best_longtext_a = longtext.substring(0, i - suffixLength);
+        best_longtext_b = longtext.substring(i + prefixLength);
+        best_shorttext_a = shorttext.substring(0, j - suffixLength);
+        best_shorttext_b = shorttext.substring(j + prefixLength);
       }
-      diff.push({value: '', lines: []});   // Append an empty value to make cleanup easier
+    }
+    if (best_common.length * 2 >= longtext.length) {
+      return [best_longtext_a, best_longtext_b,
+              best_shorttext_a, best_shorttext_b, best_common];
+    } else {
+      return null;
+    }
+  }
 
-      function contextLines(lines) {
-        return lines.map(function(entry) { return ' ' + entry; });
-      }
-      function eofNL(curRange, i, current) {
-        var last = diff[diff.length-2],
-            isLast = i === diff.length-2,
-            isLastOfType = i === diff.length-3 && (current.added !== last.added || current.removed !== last.removed);
+  // First check if the second quarter is the seed for a half-match.
+  var hm1 = diff_halfMatchI_(longtext, shorttext,
+                             Math.ceil(longtext.length / 4));
+  // Check again based on the third quarter.
+  var hm2 = diff_halfMatchI_(longtext, shorttext,
+                             Math.ceil(longtext.length / 2));
+  var hm;
+  if (!hm1 && !hm2) {
+    return null;
+  } else if (!hm2) {
+    hm = hm1;
+  } else if (!hm1) {
+    hm = hm2;
+  } else {
+    // Both matched.  Select the longest.
+    hm = hm1[4].length > hm2[4].length ? hm1 : hm2;
+  }
 
-        // Figure out if this is the last line for the given file and missing NL
-        if (!/\n$/.test(current.value) && (isLast || isLastOfType)) {
-          curRange.push('\\ No newline at end of file');
-        }
-      }
+  // A half-match was found, sort out the return data.
+  var text1_a, text1_b, text2_a, text2_b;
+  if (text1.length > text2.length) {
+    text1_a = hm[0];
+    text1_b = hm[1];
+    text2_a = hm[2];
+    text2_b = hm[3];
+  } else {
+    text2_a = hm[0];
+    text2_b = hm[1];
+    text1_a = hm[2];
+    text1_b = hm[3];
+  }
+  var mid_common = hm[4];
+  return [text1_a, text1_b, text2_a, text2_b, mid_common];
+};
 
-      var oldRangeStart = 0, newRangeStart = 0, curRange = [],
-          oldLine = 1, newLine = 1;
-      for (var i = 0; i < diff.length; i++) {
-        var current = diff[i],
-            lines = current.lines || current.value.replace(/\n$/, '').split('\n');
-        current.lines = lines;
 
-        if (current.added || current.removed) {
-          if (!oldRangeStart) {
-            var prev = diff[i-1];
-            oldRangeStart = oldLine;
-            newRangeStart = newLine;
-
-            if (prev) {
-              curRange = contextLines(prev.lines.slice(-4));
-              oldRangeStart -= curRange.length;
-              newRangeStart -= curRange.length;
-            }
-          }
-          curRange.push.apply(curRange, lines.map(function(entry) { return (current.added?'+':'-') + entry; }));
-          eofNL(curRange, i, current);
-
-          if (current.added) {
-            newLine += lines.length;
-          } else {
-            oldLine += lines.length;
-          }
-        } else {
-          if (oldRangeStart) {
-            // Close out any changes that have been output (or join overlapping)
-            if (lines.length <= 8 && i < diff.length-2) {
-              // Overlapping
-              curRange.push.apply(curRange, contextLines(lines));
-            } else {
-              // end the range and output
-              var contextSize = Math.min(lines.length, 4);
-              ret.push(
-                  '@@ -' + oldRangeStart + ',' + (oldLine-oldRangeStart+contextSize)
-                  + ' +' + newRangeStart + ',' + (newLine-newRangeStart+contextSize)
-                  + ' @@');
-              ret.push.apply(ret, curRange);
-              ret.push.apply(ret, contextLines(lines.slice(0, contextSize)));
-              if (lines.length <= 4) {
-                eofNL(ret, i, current);
+/**
+ * Reorder and merge like edit sections.  Merge equalities.
+ * Any edit section can move as long as it doesn't cross an equality.
+ * @param {Array} diffs Array of diff tuples.
+ */
+function diff_cleanupMerge(diffs) {
+  diffs.push([DIFF_EQUAL, '']);  // Add a dummy entry at the end.
+  var pointer = 0;
+  var count_delete = 0;
+  var count_insert = 0;
+  var text_delete = '';
+  var text_insert = '';
+  var commonlength;
+  while (pointer < diffs.length) {
+    switch (diffs[pointer][0]) {
+      case DIFF_INSERT:
+        count_insert++;
+        text_insert += diffs[pointer][1];
+        pointer++;
+        break;
+      case DIFF_DELETE:
+        count_delete++;
+        text_delete += diffs[pointer][1];
+        pointer++;
+        break;
+      case DIFF_EQUAL:
+        // Upon reaching an equality, check for prior redundancies.
+        if (count_delete + count_insert > 1) {
+          if (count_delete !== 0 && count_insert !== 0) {
+            // Factor out any common prefixies.
+            commonlength = diff_commonPrefix(text_insert, text_delete);
+            if (commonlength !== 0) {
+              if ((pointer - count_delete - count_insert) > 0 &&
+                  diffs[pointer - count_delete - count_insert - 1][0] ==
+                  DIFF_EQUAL) {
+                diffs[pointer - count_delete - count_insert - 1][1] +=
+                    text_insert.substring(0, commonlength);
+              } else {
+                diffs.splice(0, 0, [DIFF_EQUAL,
+                                    text_insert.substring(0, commonlength)]);
+                pointer++;
               }
-
-              oldRangeStart = 0;  newRangeStart = 0; curRange = [];
+              text_insert = text_insert.substring(commonlength);
+              text_delete = text_delete.substring(commonlength);
+            }
+            // Factor out any common suffixies.
+            commonlength = diff_commonSuffix(text_insert, text_delete);
+            if (commonlength !== 0) {
+              diffs[pointer][1] = text_insert.substring(text_insert.length -
+                  commonlength) + diffs[pointer][1];
+              text_insert = text_insert.substring(0, text_insert.length -
+                  commonlength);
+              text_delete = text_delete.substring(0, text_delete.length -
+                  commonlength);
             }
           }
-          oldLine += lines.length;
-          newLine += lines.length;
-        }
-      }
-
-      return ret.join('\n') + '\n';
-    },
-
-    applyPatch: function(oldStr, uniDiff) {
-      var diffstr = uniDiff.split('\n');
-      var diff = [];
-      var remEOFNL = false,
-          addEOFNL = false;
-
-      for (var i = (diffstr[0][0]==='I'?4:0); i < diffstr.length; i++) {
-        if(diffstr[i][0] === '@') {
-          var meh = diffstr[i].split(/@@ -(\d+),(\d+) \+(\d+),(\d+) @@/);
-          diff.unshift({
-            start:meh[3],
-            oldlength:meh[2],
-            oldlines:[],
-            newlength:meh[4],
-            newlines:[]
-          });
-        } else if(diffstr[i][0] === '+') {
-          diff[0].newlines.push(diffstr[i].substr(1));
-        } else if(diffstr[i][0] === '-') {
-          diff[0].oldlines.push(diffstr[i].substr(1));
-        } else if(diffstr[i][0] === ' ') {
-          diff[0].newlines.push(diffstr[i].substr(1));
-          diff[0].oldlines.push(diffstr[i].substr(1));
-        } else if(diffstr[i][0] === '\\') {
-          if (diffstr[i-1][0] === '+') {
-            remEOFNL = true;
-          } else if(diffstr[i-1][0] === '-') {
-            addEOFNL = true;
+          // Delete the offending records and add the merged ones.
+          if (count_delete === 0) {
+            diffs.splice(pointer - count_insert,
+                count_delete + count_insert, [DIFF_INSERT, text_insert]);
+          } else if (count_insert === 0) {
+            diffs.splice(pointer - count_delete,
+                count_delete + count_insert, [DIFF_DELETE, text_delete]);
+          } else {
+            diffs.splice(pointer - count_delete - count_insert,
+                count_delete + count_insert, [DIFF_DELETE, text_delete],
+                [DIFF_INSERT, text_insert]);
           }
+          pointer = pointer - count_delete - count_insert +
+                    (count_delete ? 1 : 0) + (count_insert ? 1 : 0) + 1;
+        } else if (pointer !== 0 && diffs[pointer - 1][0] == DIFF_EQUAL) {
+          // Merge this equality with the previous one.
+          diffs[pointer - 1][1] += diffs[pointer][1];
+          diffs.splice(pointer, 1);
+        } else {
+          pointer++;
         }
-      }
-
-      var str = oldStr.split('\n');
-      for (var i = diff.length - 1; i >= 0; i--) {
-        var d = diff[i];
-        for (var j = 0; j < d.oldlength; j++) {
-          if(str[d.start-1+j] !== d.oldlines[j]) {
-            return false;
-          }
-        }
-        Array.prototype.splice.apply(str,[d.start-1,+d.oldlength].concat(d.newlines));
-      }
-
-      if (remEOFNL) {
-        while (!str[str.length-1]) {
-          str.pop();
-        }
-      } else if (addEOFNL) {
-        str.push('');
-      }
-      return str.join('\n');
-    },
-
-    convertChangesToXML: function(changes){
-      var ret = [];
-      for ( var i = 0; i < changes.length; i++) {
-        var change = changes[i];
-        if (change.added) {
-          ret.push('<ins>');
-        } else if (change.removed) {
-          ret.push('<del>');
-        }
-
-        ret.push(escapeHTML(change.value));
-
-        if (change.added) {
-          ret.push('</ins>');
-        } else if (change.removed) {
-          ret.push('</del>');
-        }
-      }
-      return ret.join('');
-    },
-
-    // See: http://code.google.com/p/google-diff-match-patch/wiki/API
-    convertChangesToDMP: function(changes){
-      var ret = [], change;
-      for ( var i = 0; i < changes.length; i++) {
-        change = changes[i];
-        ret.push([(change.added ? 1 : change.removed ? -1 : 0), change.value]);
-      }
-      return ret;
+        count_insert = 0;
+        count_delete = 0;
+        text_delete = '';
+        text_insert = '';
+        break;
     }
-  };
-})();
+  }
+  if (diffs[diffs.length - 1][1] === '') {
+    diffs.pop();  // Remove the dummy entry at the end.
+  }
 
-if (typeof module !== 'undefined') {
-    module.exports = JsDiff;
+  // Second pass: look for single edits surrounded on both sides by equalities
+  // which can be shifted sideways to eliminate an equality.
+  // e.g: A<ins>BA</ins>C -> <ins>AB</ins>AC
+  var changes = false;
+  pointer = 1;
+  // Intentionally ignore the first and last element (don't need checking).
+  while (pointer < diffs.length - 1) {
+    if (diffs[pointer - 1][0] == DIFF_EQUAL &&
+        diffs[pointer + 1][0] == DIFF_EQUAL) {
+      // This is a single edit surrounded by equalities.
+      if (diffs[pointer][1].substring(diffs[pointer][1].length -
+          diffs[pointer - 1][1].length) == diffs[pointer - 1][1]) {
+        // Shift the edit over the previous equality.
+        diffs[pointer][1] = diffs[pointer - 1][1] +
+            diffs[pointer][1].substring(0, diffs[pointer][1].length -
+                                        diffs[pointer - 1][1].length);
+        diffs[pointer + 1][1] = diffs[pointer - 1][1] + diffs[pointer + 1][1];
+        diffs.splice(pointer - 1, 1);
+        changes = true;
+      } else if (diffs[pointer][1].substring(0, diffs[pointer + 1][1].length) ==
+          diffs[pointer + 1][1]) {
+        // Shift the edit over the next equality.
+        diffs[pointer - 1][1] += diffs[pointer + 1][1];
+        diffs[pointer][1] =
+            diffs[pointer][1].substring(diffs[pointer + 1][1].length) +
+            diffs[pointer + 1][1];
+        diffs.splice(pointer + 1, 1);
+        changes = true;
+      }
+    }
+    pointer++;
+  }
+  // If shifts were made, the diff needs reordering and another shift sweep.
+  if (changes) {
+    diff_cleanupMerge(diffs);
+  }
+};
+
+
+var diff = diff_main;
+diff.INSERT = DIFF_INSERT;
+diff.DELETE = DIFF_DELETE;
+diff.EQUAL = DIFF_EQUAL;
+
+
+module.exports = diff;
+
+},{}],10:[function(_dereq_,module,exports){
+module.exports={
+  "name": "rich-text",
+  "version": "1.0.2",
+  "description": "Format for representing rich text documents and changes.",
+  "author": {
+    "name": "Jason Chen",
+    "email": "jhchen7@gmail.com"
+  },
+  "homepage": "https://github.com/ottypes/rich-text",
+  "main": "index.js",
+  "dependencies": {
+    "fast-diff": "~1.0.0"
+  },
+  "devDependencies": {
+    "chai": "~1.9.1",
+    "coveralls": "~2.11.1",
+    "grunt": "~0.4.5",
+    "istanbul": "~0.3.0",
+    "lodash": "~2.4.1",
+    "mocha": "~1.21.4",
+    "ot-fuzzer": "~1.0.0"
+  },
+  "engines": {
+    "node": ">=0.10"
+  },
+  "license": "MIT",
+  "scripts": {
+    "test": "grunt test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ottypes/rich-text"
+  },
+  "bugs": {
+    "url": "https://github.com/ottypes/rich-text/issues"
+  },
+  "keywords": [
+    "rich text",
+    "ot",
+    "operational transform",
+    "delta"
+  ],
+  "readme": "# Rich Text [![Build Status](https://travis-ci.org/ottypes/rich-text.svg?branch=master)](http://travis-ci.org/ottypes/rich-text) [![Coverage Status](https://img.shields.io/coveralls/ottypes/rich-text.svg)](https://coveralls.io/r/ottypes/rich-text)\n\nA format for representing rich text documents and changes. It aimes to be intuitive and human readable with the ability to express any change necessary to deal with rich text. A document can also be expressed with this format--as the change from an empty document.\n\n## Quick Example\n\n```js\nvar delta = new Delta([\n  { insert: 'Gandalf', attributes: { bold: true } },\n  { insert: ' the ' },\n  { insert: 'Grey', attributes: { color: '#ccc' } }\n]);\n\n// Keep the first 12 characters, delete the next 4, and insert a white 'White'\nvar death = new Delta().retain(12)\n                       .delete(4)\n                       .insert('White', { color: '#fff' });\n// this produces:\n// {\n//   ops: [\n//     { retain: 12 },\n//     { delete: '4 ' },\n//     { insert: 'White', attributes: { color: '#fff' } }\n//   ]\n// }\n\ndelta.compose(death);\n// delta is now:\n// {\n//   ops: [\n//     { insert: 'Gandalf ', attributes: { bold: true } },\n//     { insert: 'the ' },\n//     { insert: 'White', attributes: { color: '#fff' } }\n//   ]\n// }\n\n```\n\nThis format is suitable for [Operational Transform](https://en.wikipedia.org/wiki/Operational_transformation) and defines several functions to support this use case.\n\n## Contents\n\n#### [Operations](#operations-1)\n\n- [insert](#insert-operation)\n- [delete](#delete-operation)\n- [retain](#retain-operation)\n\n#### [Deltas](#deltas-1)\n\n- [`constructor`](#constructor)\n- [`insert`](#insert)\n- [`delete`](#delete)\n- [`retain`](#retain)\n- [`length`](#length)\n- [`slice`](#slice)\n- [`compose`](#compose)\n- [`transform`](#transform)\n\n#### [Documents](#documents-1)\n\n- [`diff`](#diff)\n\n\n## Operations\n\nOperations describe a singular change to a document. They can be an [`insert`](#insert-operation), [`delete`](#delete-operation) or [`retain`](#retain-operation). Note operations do not take an index. They always describe the change at the current index. Use retains to \"keep\" or \"skip\" certain parts of the document.\n\n### Insert Operation\n\nInsert operations have an `insert` key defined. A String value represents inserting text. A Number value represents inserting an embed, with the value corresponding to an embed type (such as an image or video).\n\nHere we will use 1 to represent images and 2 to represent videos, but your application can choose whatever mapping is convenient.\n\nIn both cases of text and embeds, an optional `attributes` key can be defined with an Object to describe additonal formatting information. Formats can be changed by the [retain](#retain) operation.\n\n```js\n// Insert a bolded \"Text\"\n{ insert: \"Text\", attributes: { bold: true } }\n\n// Insert a link\n{ insert: \"Google\", attributes: { href: 'https://www.google.com' } }\n\n// Insert an image\n{\n  insert: 1,\n  attributes: {\n    alt: \"Lab Octocat\",\n    src: 'https://octodex.github.com/images/labtocat.png'\n  }\n}\n\n// Insert a video\n{\n  insert: 2,\n  attributes: {\n    src: \"https://www.youtube.com/watch?v=dMH0bHeiRNg\",\n    width: 420,\n    height: 315\n  }\n}\n```\n\n### Delete Operation\n\nDelete operations have a Number `delete` key defined representing the number of characters to delete. All embeds have a length of 1.\n\n```js\n// Delete the next 10 characters\n{ delete: 10 }\n```\n\n### Retain Operation\n\nRetain operations have a Number `retain` key defined representing the number of characters to keep (other libraries might use the name keep or skip). An optional `attributes` key can be defined with an Object to describe formatting changes to the character range. A value of null in the `attributes` Object represents removal of that key.\n\n*Note: It is not necessary to retain the last characters of a document as this is implied.*\n\n```js\n// Keep the next 5 characters\n{ retain: 5 }\n\n// Keep and bold the next 5 characters\n{ retain: 5, attributes: { bold: true } }\n\n// Keep and unbold the next 5 characters\n// More specifically, remove the bold key in the attributes Object\n// in the next 5 characters\n{ retain: 5, attributes: { bold: null } }\n```\n\n\n## Deltas\n\nA Delta is made up of an array of operations. Unless otherwise specified all methods are self modifying and return `this` for chainability.\n\nAll methods also maintain the property that Deltas are represented in the most compact form. For example two consecutive insert operations of plain text will be merged into one.\n\n---\n\n### constructor\n\nCreates a new Delta object.\n\n#### Methods\n\n- `new Delta()`\n- `new Delta(ops)`\n- `new Delta(delta)`\n\n#### Parameters\n\n- `ops` - Array of operations\n- `delta` - Object with an `ops` key set to an array of operations\n\n*Note: No validity/sanity check is performed when constructed with ops or delta. The new delta's internal ops array will also be assigned to ops or delta.ops without deep copying.*\n\n#### Example\n\n```js\nvar delta = new Delta([\n  { insert: 'Hello World' },\n  { insert: '!', attributes: { bold: true }}\n]);\n\nvar packet = JSON.stringify(delta);\n\nvar other = new Delta(JSON.parse(packet));\n\nvar chained = new Delta().insert('Hello World').insert('!', { bold: true });\n```\n\n---\n\n### insert()\n\nAppends an insert operation.\n\n#### Methods\n\n- `insert(text, attributes)`\n- `insert(embed, attributes)`\n\n#### Parameters\n\n- `text` - String representing text to insert\n- `embed` - Number representing embed type to insert\n- `attributes` - Optional attributes to apply\n\n#### Example\n\n```js\ndelta.insert('Text', { bold: true, color: '#ccc' });\ndelta.insert(1, { src: 'https://octodex.github.com/images/labtocat.png' });\n```\n\n---\n\n### delete()\n\nAppends a delete operation.\n\n#### Methods\n\n- `delete(length)`\n\n#### Parameters\n\n- `length` - Number of characters to delete\n\n#### Example\n\n```js\ndelta.delete(5);\n```\n\n---\n\n### retain()\n\nAppends a retain operation.\n\n#### Methods\n\n- `retain(length, attributes)`\n\n#### Parameters\n\n- `length` - Number of characters to retain\n- `attributes` - Optional attributes to apply\n\n#### Example\n\n```js\ndelta.retain(4).retain(5, { color: '#0c6' });\n```\n\n---\n\n### length()\n\nReturns length of Delta.\n\n#### Methods\n\n- `length()`\n\n#### Example\n\n```js\nnew Delta().insert('Hello').length();  // Returns 5\n\nnew Delta().insert('A').retain(2).delete(1) // Returns 4\n```\n\n---\n\n### slice()\n\nReturns copy of delta with subset of operations.\n\n#### Methods\n\n- `slice()`\n- `slice(start)`\n- `slice(start, end)`\n\n#### Parameters\n\n- `start` - Start index of subset, defaults to 0\n- `end` - End index of subset, defaults to rest of operations\n\n#### Example\n\n```js\nvar delta = new Delta().insert('Hello', { bold: true }).insert(' World');\n\n// {\n//   ops: [\n//     { insert: 'Hello', attributes: { bold: true } },\n//     { insert: ' World' }\n//   ]\n// }\nvar copy = delta.slice();\n\n// { ops: [{ insert: 'World' }] }\nvar world = delta.slice(6);\n\n// { ops: [{ insert: ' ' }] }\nvar space = delta.slice(5, 6);\n```\n\n---\n\n### compose()\n\nCompose with another Delta, i.e. merge the operations of another Delta. This method is self modifying.\n\n#### Methods\n\n- `compose(other)`\n\n#### Parameters\n\n- `other` - Delta to compose\n\n#### Example\n\n```js\nvar a = new Delta().insert('abc');\nvar b = new Delta().retain(1).delete(1);\n\na.compose(b);  // a == new Delta().insert('ac');\n```\n\n### transform()\n\nTransform given Delta against own operations.\n\n#### Methods\n\n- `transform(other, priority)`\n- `transform(index)` - Alias for [`transformPosition`](#tranformposition)\n\n#### Parameters\n\n- `other` - Delta to transform\n- `priority` - Boolean used to break ties\n\n#### Returns\n\n- `Delta` - transformed Delta\n\n#### Example\n\n```js\nvar a = new Delta().insert('a');\nvar b = new Delta().insert('b');\n\nb = a.transform(b, true);  // new Delta().retain(1).insert('b');\n```\n\n---\n\n### transformPosition()\n\nTransform an index against the delta. Useful for representing cursor/selection positions.\n\n#### Methods\n\n- `transformPosition(index)`\n\n#### Parameters\n\n- `index` - index to transform\n\n#### Returns\n\n- `Number` - transformed index\n\n#### Example\n\n```js\nvar index = 12;\nvar transformedIndex = delta.transformPosition(index);\n```\n\n\n## Documents\n\nA Delta with only insert operations can be used to represent a rich text document. This can be thought of as a Delta applied to an empty document.\n\n---\n\n### diff()\n\nCalculates the difference between two documents expressed as a Delta.\n\n#### Methods\n\n- `diff(other)`\n\n#### Parameters\n\n- `other` - Document Delta to diff against\n\n#### Returns\n\n- `Delta` - difference between the two documents\n\n#### Example\n\n```js\nvar a = new Delta().insert('Hello');\nvar b = new Delta().insert('Hello!');\n\nvar diff = a.diff(b);  // { ops: [{ retain: 5 }, { insert: '!' }] }\n```\n",
+  "readmeFilename": "README.md",
+  "_id": "rich-text@1.0.2",
+  "_from": "rich-text@~1.0.2"
 }
 
-},{}],12:[function(_dereq_,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 module.exports={
   "name": "quilljs",
-  "version": "0.17.6",
+  "version": "0.18.1",
   "description": "Cross browser rich text editor",
   "author": "Jason Chen <jhchen7@gmail.com>",
   "homepage": "http://quilljs.com",
@@ -38680,7 +39440,7 @@ module.exports={
   "dependencies": {
     "eventemitter2": "~0.4.13",
     "lodash": "~2.4.1",
-    "tandem-core": "~0.6.2"
+    "rich-text": "~1.0.2"
   },
   "devDependencies": {
     "async": "~0.9.0",
@@ -38690,18 +39450,18 @@ module.exports={
     "grunt": "~0.4.3",
     "grunt-browserify": "~2.1.0",
     "grunt-contrib-clean": "~0.6.0",
-    "grunt-contrib-coffee": "~0.11.0",
-    "grunt-contrib-compress": "~0.10.0",
+    "grunt-contrib-coffee": "~0.12.0",
+    "grunt-contrib-compress": "~0.12.0",
     "grunt-contrib-concat": "~0.5.0",
     "grunt-contrib-connect": "~0.8.0",
-    "grunt-contrib-copy": "~0.5.0",
+    "grunt-contrib-copy": "~0.7.0",
     "grunt-contrib-stylus": "~0.18.0",
-    "grunt-contrib-uglify": "~0.5.0",
+    "grunt-contrib-uglify": "~0.6.0",
     "grunt-karma": "~0.9.0",
     "grunt-lodash": "~0.3.0",
     "grunt-protractor-runner": "~1.1.0",
     "grunt-sauce-connect-launcher": "~0.3.0",
-    "harp": "~0.13.0",
+    "harp": "~0.14.0",
     "istanbul": "~0.3.0",
     "jquery": "~2.1.1",
     "karma": "~0.12.0",
@@ -38715,8 +39475,8 @@ module.exports={
     "karma-safari-launcher": "~0.1.1",
     "karma-sauce-launcher": "~0.2.2",
     "load-grunt-tasks": "~0.6.0",
-    "protractor": "~1.1.1",
-    "stylus": "~0.48.1",
+    "protractor": "~1.3.1",
+    "stylus": "~0.49.2",
     "watchify": "~0.10.2"
   },
   "engines": {
@@ -38742,10 +39502,12 @@ module.exports={
   ]
 }
 
-},{}],13:[function(_dereq_,module,exports){
-var Document, Format, Line, LinkedList, Normalizer, Tandem, dom, _;
+},{}],12:[function(_dereq_,module,exports){
+var Delta, Document, Format, Line, LinkedList, Normalizer, dom, _;
 
 _ = _dereq_('lodash');
+
+Delta = _dereq_('rich-text').Delta;
 
 dom = _dereq_('../lib/dom');
 
@@ -38756,8 +39518,6 @@ Line = _dereq_('./line');
 LinkedList = _dereq_('../lib/linked-list');
 
 Normalizer = _dereq_('../lib/normalizer');
-
-Tandem = _dereq_('tandem-core');
 
 Document = (function() {
   function Document(root, options) {
@@ -38812,7 +39572,7 @@ Document = (function() {
     if (!(this.lines.length > 0)) {
       return [null, index];
     }
-    length = this.toDelta().endLength;
+    length = this.toDelta().length();
     if (index === length) {
       return [this.lines.last, this.lines.last.length];
     }
@@ -38939,12 +39699,15 @@ Document = (function() {
   };
 
   Document.prototype.toDelta = function() {
-    var lines, ops;
+    var delta, lines;
     lines = this.lines.toArray();
-    ops = _.flatten(_.map(lines, function(line) {
-      return _.clone(line.delta.ops);
-    }), true);
-    return new Tandem.Delta(0, ops);
+    delta = new Delta();
+    lines.forEach(function(line) {
+      return line.delta.ops.forEach(function(op) {
+        return delta.push(op);
+      });
+    });
+    return delta;
   };
 
   return Document;
@@ -38955,8 +39718,8 @@ module.exports = Document;
 
 
 
-},{"../lib/dom":22,"../lib/linked-list":23,"../lib/normalizer":24,"./format":15,"./line":17,"lodash":"M4+//f","tandem-core":10}],14:[function(_dereq_,module,exports){
-var Document, Editor, Line, Renderer, Selection, Tandem, dom, _;
+},{"../lib/dom":21,"../lib/linked-list":22,"../lib/normalizer":23,"./format":14,"./line":16,"lodash":"M4+//f","rich-text":4}],13:[function(_dereq_,module,exports){
+var Document, Editor, Line, Renderer, Selection, dom, _;
 
 _ = _dereq_('lodash');
 
@@ -38970,9 +39733,13 @@ Renderer = _dereq_('./renderer');
 
 Selection = _dereq_('./selection');
 
-Tandem = _dereq_('tandem-core');
-
 Editor = (function() {
+  Editor.sources = {
+    API: 'api',
+    SILENT: 'silent',
+    USER: 'user'
+  };
+
   function Editor(iframeContainer, quill, options) {
     this.iframeContainer = iframeContainer;
     this.quill = quill;
@@ -38984,11 +39751,6 @@ Editor = (function() {
     this.delta = this.doc.toDelta();
     this.selection = new Selection(this.doc, this.renderer.iframe, this.quill);
     this.timer = setInterval(_.bind(this.checkUpdate, this), this.options.pollInterval);
-    this.quill.on(this.quill.constructor.events.SELECTION_CHANGE, (function(_this) {
-      return function(range) {
-        return _this.savedRange = range;
-      };
-    })(this));
     if (!this.options.readOnly) {
       this.enable();
     }
@@ -39006,37 +39768,49 @@ Editor = (function() {
   };
 
   Editor.prototype.applyDelta = function(delta, source) {
-    var localDelta, tempDelta;
+    var localDelta;
     localDelta = this._update();
     if (localDelta) {
-      tempDelta = localDelta;
-      localDelta = localDelta.transform(delta, true);
-      delta = delta.transform(tempDelta, false);
-      this.delta = this.doc.toDelta();
+      delta = localDelta.transform(delta, true);
+      localDelta = delta.transform(localDelta, false);
     }
-    if (!delta.isIdentity()) {
-      if (delta.startLength !== this.delta.endLength) {
-        console.warn("Trying to apply delta to incorrect doc length", delta, this.delta);
-      }
+    if (delta.ops.length > 0) {
       delta = this._trackDelta((function(_this) {
         return function() {
-          delta.apply(_this._insertAt, _this._deleteAt, _this._formatAt, _this);
+          var index;
+          index = 0;
+          _.each(delta.ops, function(op) {
+            if (_.isString(op.insert)) {
+              _this._insertAt(index, op.insert, op.attributes);
+              return index += op.insert.length;
+            } else if (_.isNumber(op.insert)) {
+              _this._insertAt(index, dom.EMBED_TEXT, op.attributes);
+              return index += 1;
+            } else if (_.isNumber(op["delete"])) {
+              return _this._deleteAt(index, op["delete"]);
+            } else if (_.isNumber(op.retain)) {
+              _.each(op.attributes, function(value, name) {
+                return _this._formatAt(index, op.retain, name, value);
+              });
+              return index += op.retain;
+            }
+          });
           return _this.selection.shiftAfter(0, 0, _.bind(_this.doc.optimizeLines, _this.doc));
         };
       })(this));
       this.delta = this.doc.toDelta();
       this.innerHTML = this.root.innerHTML;
-      if (delta && source !== 'silent') {
+      if (delta && source !== Editor.sources.SILENT) {
         this.quill.emit(this.quill.constructor.events.TEXT_CHANGE, delta, source);
       }
     }
-    if (localDelta && !localDelta.isIdentity() && source !== 'silent') {
-      return this.quill.emit(this.quill.constructor.events.TEXT_CHANGE, localDelta, 'user');
+    if (localDelta && localDelta.ops.length > 0 && source !== Editor.sources.SILENT) {
+      return this.quill.emit(this.quill.constructor.events.TEXT_CHANGE, localDelta, Editor.sources.USER);
     }
   };
 
   Editor.prototype.checkUpdate = function(source) {
-    var delta, oldDelta;
+    var delta;
     if (source == null) {
       source = 'user';
     }
@@ -39045,12 +39819,11 @@ Editor = (function() {
     }
     delta = this._update();
     if (delta) {
-      oldDelta = this.delta;
-      this.delta = oldDelta.compose(delta);
+      this.delta.compose(delta);
       this.quill.emit(this.quill.constructor.events.TEXT_CHANGE, delta, source);
     }
     if (delta) {
-      source = 'silent';
+      source = Editor.sources.SILENT;
     }
     return this.selection.update(source);
   };
@@ -39157,37 +39930,11 @@ Editor = (function() {
   };
 
   Editor.prototype._trackDelta = function(fn) {
-    var decompose, decomposeA, decomposeB, decomposeLeft, decomposeRight, ignored, lengthA, lengthB, newDelta, newIndex, newLeftDelta, newRightDelta, oldIndex, oldLeftDelta, oldRightDelta, _ref, _ref1, _ref2, _ref3, _ref4;
-    oldIndex = (_ref = this.savedRange) != null ? _ref.start : void 0;
+    var delta, newDelta;
     fn();
     newDelta = this.doc.toDelta();
-    try {
-      newIndex = (_ref1 = this.selection.getRange()) != null ? _ref1.start : void 0;
-      if ((oldIndex != null) && (newIndex != null) && oldIndex <= this.delta.endLength && newIndex <= newDelta.endLength) {
-        _ref2 = this.delta.split(oldIndex), oldLeftDelta = _ref2[0], oldRightDelta = _ref2[1];
-        _ref3 = newDelta.split(newIndex), newLeftDelta = _ref3[0], newRightDelta = _ref3[1];
-        decomposeLeft = newLeftDelta.decompose(oldLeftDelta);
-        decomposeRight = newRightDelta.decompose(oldRightDelta);
-        decomposeA = decomposeLeft.merge(decomposeRight);
-      }
-    } catch (_error) {
-      ignored = _error;
-    }
-    decomposeB = newDelta.decompose(this.delta);
-    if (decomposeA && decomposeB) {
-      _ref4 = _.map([decomposeA, decomposeB], function(delta) {
-        return _.reduce(delta.ops, function(count, op) {
-          if (op.value != null) {
-            count += op.value.length;
-          }
-          return count;
-        }, 0);
-      }), lengthA = _ref4[0], lengthB = _ref4[1];
-      decompose = lengthA < lengthA ? decomposeA : decomposeB;
-    } else {
-      decompose = decomposeA || decomposeB;
-    }
-    return decompose;
+    delta = this.delta.diff(newDelta);
+    return delta;
   };
 
   Editor.prototype._update = function() {
@@ -39202,10 +39949,10 @@ Editor = (function() {
       };
     })(this));
     this.innerHTML = this.root.innerHTML;
-    if (delta.isIdentity()) {
-      return false;
-    } else {
+    if (delta.ops.length > 0) {
       return delta;
+    } else {
+      return false;
     }
   };
 
@@ -39217,7 +39964,7 @@ module.exports = Editor;
 
 
 
-},{"../lib/dom":22,"./document":13,"./line":17,"./renderer":18,"./selection":19,"lodash":"M4+//f","tandem-core":10}],15:[function(_dereq_,module,exports){
+},{"../lib/dom":21,"./document":12,"./line":16,"./renderer":17,"./selection":18,"lodash":"M4+//f"}],14:[function(_dereq_,module,exports){
 var Format, dom, _;
 
 _ = _dereq_('lodash');
@@ -39482,7 +40229,7 @@ module.exports = Format;
 
 
 
-},{"../lib/dom":22,"lodash":"M4+//f"}],16:[function(_dereq_,module,exports){
+},{"../lib/dom":21,"lodash":"M4+//f"}],15:[function(_dereq_,module,exports){
 var Format, Leaf, LinkedList, dom, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -39552,12 +40299,14 @@ module.exports = Leaf;
 
 
 
-},{"../lib/dom":22,"../lib/linked-list":23,"./format":15,"lodash":"M4+//f"}],17:[function(_dereq_,module,exports){
-var Format, Leaf, Line, LinkedList, Normalizer, Tandem, dom, _,
+},{"../lib/dom":21,"../lib/linked-list":22,"./format":14,"lodash":"M4+//f"}],16:[function(_dereq_,module,exports){
+var Delta, Format, Leaf, Line, LinkedList, Normalizer, dom, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
 _ = _dereq_('lodash');
+
+Delta = _dereq_('rich-text').Delta;
 
 dom = _dereq_('../lib/dom');
 
@@ -39570,8 +40319,6 @@ Line = _dereq_('./line');
 LinkedList = _dereq_('../lib/linked-list');
 
 Normalizer = _dereq_('../lib/normalizer');
-
-Tandem = _dereq_('tandem-core');
 
 Line = (function(_super) {
   __extends(Line, _super);
@@ -39789,20 +40536,23 @@ Line = (function(_super) {
   };
 
   Line.prototype.resetContent = function() {
-    var ops;
     if (this.node.id !== this.id) {
       this.node.id = this.id;
     }
     this.outerHTML = this.node.outerHTML;
     this.length = 1;
-    ops = _.map(this.leaves.toArray(), (function(_this) {
+    this.delta = new Delta();
+    this.leaves.toArray().forEach((function(_this) {
       return function(leaf) {
         _this.length += leaf.length;
-        return new Tandem.InsertOp(leaf.text, leaf.formats);
+        if (dom.EMBED_TAGS[leaf.node.tagName] != null) {
+          return _this.delta.insert(1, leaf.formats);
+        } else {
+          return _this.delta.insert(leaf.text, leaf.formats);
+        }
       };
     })(this));
-    ops.push(new Tandem.InsertOp('\n', this.formats));
-    return this.delta = new Tandem.Delta(0, this.length, ops);
+    return this.delta.insert('\n', this.formats);
   };
 
   return Line;
@@ -39813,7 +40563,7 @@ module.exports = Line;
 
 
 
-},{"../lib/dom":22,"../lib/linked-list":23,"../lib/normalizer":24,"./format":15,"./leaf":16,"./line":17,"lodash":"M4+//f","tandem-core":10}],18:[function(_dereq_,module,exports){
+},{"../lib/dom":21,"../lib/linked-list":22,"../lib/normalizer":23,"./format":14,"./leaf":15,"./line":16,"lodash":"M4+//f","rich-text":4}],17:[function(_dereq_,module,exports){
 var DEFAULT_STYLES, LIST_STYLES, Normalizer, Renderer, dom, rule, _;
 
 _ = _dereq_('lodash');
@@ -39994,7 +40744,7 @@ module.exports = Renderer;
 
 
 
-},{"../lib/dom":22,"../lib/normalizer":24,"lodash":"M4+//f"}],19:[function(_dereq_,module,exports){
+},{"../lib/dom":21,"../lib/normalizer":23,"lodash":"M4+//f"}],18:[function(_dereq_,module,exports){
 var Leaf, Normalizer, Range, Selection, dom, _;
 
 _ = _dereq_('lodash');
@@ -40146,17 +40896,9 @@ Selection = (function() {
     }
   };
 
-  Selection.prototype._getNativeSelection = function() {
-    if (this.document.getSelection != null) {
-      return this.document.getSelection();
-    } else {
-      return null;
-    }
-  };
-
   Selection.prototype._getNativeRange = function() {
     var range, selection;
-    selection = this._getNativeSelection();
+    selection = this.document.getSelection();
     if ((selection != null ? selection.rangeCount : void 0) > 0) {
       range = selection.getRangeAt(0);
       if (dom(range.startContainer).isAncestor(this.doc.root, true)) {
@@ -40203,7 +40945,7 @@ Selection = (function() {
 
   Selection.prototype._setNativeRange = function(startNode, startOffset, endNode, endOffset) {
     var nativeRange, selection;
-    selection = this._getNativeSelection();
+    selection = this.document.getSelection();
     if (!selection) {
       return;
     }
@@ -40236,7 +40978,7 @@ module.exports = Selection;
 
 
 
-},{"../lib/dom":22,"../lib/normalizer":24,"../lib/range":26,"./leaf":16,"lodash":"M4+//f"}],20:[function(_dereq_,module,exports){
+},{"../lib/dom":21,"../lib/normalizer":23,"../lib/range":25,"./leaf":15,"lodash":"M4+//f"}],19:[function(_dereq_,module,exports){
 _dereq_('./modules/authorship');
 
 _dereq_('./modules/image-tooltip');
@@ -40259,7 +41001,7 @@ module.exports = _dereq_('./quill');
 
 
 
-},{"./modules/authorship":27,"./modules/image-tooltip":28,"./modules/keyboard":29,"./modules/link-tooltip":30,"./modules/multi-cursor":31,"./modules/paste-manager":32,"./modules/toolbar":33,"./modules/tooltip":34,"./modules/undo-manager":35,"./quill":36}],21:[function(_dereq_,module,exports){
+},{"./modules/authorship":26,"./modules/image-tooltip":27,"./modules/keyboard":28,"./modules/link-tooltip":29,"./modules/multi-cursor":30,"./modules/paste-manager":31,"./modules/toolbar":32,"./modules/tooltip":33,"./modules/undo-manager":34,"./quill":35}],20:[function(_dereq_,module,exports){
 var ColorPicker, Picker, dom,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -40291,7 +41033,7 @@ module.exports = ColorPicker;
 
 
 
-},{"./dom":22,"./picker":25}],22:[function(_dereq_,module,exports){
+},{"./dom":21,"./picker":24}],21:[function(_dereq_,module,exports){
 var SelectWrapper, Wrapper, dom, lastKeyEvent, _,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
@@ -40480,16 +41222,18 @@ Wrapper = (function() {
   };
 
   Wrapper.prototype.on = function(eventName, listener) {
-    this.node.addEventListener(eventName, function(event) {
-      var arg, propogate;
-      arg = lastKeyEvent && (eventName === 'keydown' || eventName === 'keyup') ? lastKeyEvent : event;
-      propogate = listener(arg);
-      if (!propogate) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-      return propogate;
-    });
+    this.node.addEventListener(eventName, (function(_this) {
+      return function(event) {
+        var arg, propagate;
+        arg = lastKeyEvent && (eventName === 'keydown' || eventName === 'keyup') ? lastKeyEvent : event;
+        propagate = listener.call(_this.node, arg);
+        if (!propagate) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        return propagate;
+      };
+    })(this));
     return this;
   };
 
@@ -40766,13 +41510,21 @@ SelectWrapper = (function(_super) {
   };
 
   SelectWrapper.prototype.option = function(option, trigger) {
-    var value;
+    var child, i, value, _i, _len, _ref;
     if (trigger == null) {
       trigger = true;
     }
     value = _.isElement(option) ? option.value : option;
     if (value) {
-      this.node.value = value;
+      value = value.replace(/[^\w]+/g, '');
+      _ref = this.node.children;
+      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+        child = _ref[i];
+        if (child.value.replace(/[^\w]+/g, '') === value) {
+          this.node.selectedIndex = i;
+          break;
+        }
+      }
     } else {
       this.node.selectedIndex = -1;
     }
@@ -40949,7 +41701,7 @@ module.exports = dom;
 
 
 
-},{"lodash":"M4+//f"}],23:[function(_dereq_,module,exports){
+},{"lodash":"M4+//f"}],22:[function(_dereq_,module,exports){
 var LinkedList, Node;
 
 Node = (function() {
@@ -41041,7 +41793,7 @@ module.exports = LinkedList;
 
 
 
-},{}],24:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 var Normalizer, dom, _;
 
 _ = _dereq_('lodash');
@@ -41253,7 +42005,7 @@ module.exports = Normalizer;
 
 
 
-},{"./dom":22,"lodash":"M4+//f"}],25:[function(_dereq_,module,exports){
+},{"./dom":21,"lodash":"M4+//f"}],24:[function(_dereq_,module,exports){
 var Normalizer, Picker, dom, _;
 
 _ = _dereq_('lodash');
@@ -41364,7 +42116,7 @@ module.exports = Picker;
 
 
 
-},{"./dom":22,"./normalizer":24,"lodash":"M4+//f"}],26:[function(_dereq_,module,exports){
+},{"./dom":21,"./normalizer":23,"lodash":"M4+//f"}],25:[function(_dereq_,module,exports){
 var Range, _;
 
 _ = _dereq_('lodash');
@@ -41418,8 +42170,8 @@ module.exports = Range;
 
 
 
-},{"lodash":"M4+//f"}],27:[function(_dereq_,module,exports){
-var Authorship, Quill, Tandem, dom, _;
+},{"lodash":"M4+//f"}],26:[function(_dereq_,module,exports){
+var Authorship, Delta, Quill, dom, _;
 
 Quill = _dereq_('../quill');
 
@@ -41427,7 +42179,7 @@ _ = Quill.require('lodash');
 
 dom = Quill.require('dom');
 
-Tandem = Quill.require('tandem-core');
+Delta = Quill.require('delta');
 
 Authorship = (function() {
   Authorship.DEFAULTS = {
@@ -41453,23 +42205,25 @@ Authorship = (function() {
     }
     this.quill.on(this.quill.constructor.events.PRE_EVENT, (function(_this) {
       return function(eventName, delta, origin) {
-        var attribute, authorDelta;
+        var authorDelta, authorFormat;
         if (eventName === _this.quill.constructor.events.TEXT_CHANGE && origin === 'user') {
-          _.each(delta.ops, function(op) {
-            if (Tandem.InsertOp.isInsert(op) || _.keys(op.attributes).length > 0) {
-              return op.attributes['author'] = _this.options.authorId;
-            }
-          });
-          authorDelta = new Tandem.Delta(delta.endLength, [new Tandem.RetainOp(0, delta.endLength)]);
-          attribute = {
+          authorDelta = new Delta();
+          authorFormat = {
             author: _this.options.authorId
           };
-          delta.apply(function(index, text) {
-            return authorDelta = authorDelta.compose(Tandem.Delta.makeRetainDelta(delta.endLength, index, text.length, attribute));
-          }, (function() {}), function(index, length, name, value) {
-            return authorDelta = authorDelta.compose(Tandem.Delta.makeRetainDelta(delta.endLength, index, length, attribute));
+          _.each(delta.ops, function(op) {
+            if (op["delete"] != null) {
+              return;
+            }
+            if ((op.insert != null) || ((op.retain != null) && (op.attributes != null))) {
+              op.attributes || (op.attributes = {});
+              op.attributes.author = _this.options.authorId;
+              return authorDelta.retain(op.retain || op.insert.length || 1, authorFormat);
+            } else {
+              return authorDelta.retain(op.retain);
+            }
           });
-          return _this.quill.updateContents(authorDelta, 'silent');
+          return _this.quill.updateContents(authorDelta, Quill.sources.SILENT);
         }
       };
     })(this));
@@ -41517,8 +42271,8 @@ module.exports = Authorship;
 
 
 
-},{"../quill":36}],28:[function(_dereq_,module,exports){
-var ImageTooltip, Quill, Tandem, Tooltip, dom, _,
+},{"../quill":35}],27:[function(_dereq_,module,exports){
+var Delta, ImageTooltip, Quill, Tooltip, dom, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -41530,7 +42284,7 @@ _ = Quill.require('lodash');
 
 dom = Quill.require('dom');
 
-Tandem = Quill.require('tandem-core');
+Delta = Quill.require('delta');
 
 ImageTooltip = (function(_super) {
   __extends(ImageTooltip, _super);
@@ -41679,8 +42433,8 @@ module.exports = ImageTooltip;
 
 
 
-},{"../quill":36,"./tooltip":34}],29:[function(_dereq_,module,exports){
-var Keyboard, Quill, Tandem, dom, _;
+},{"../quill":35,"./tooltip":33}],28:[function(_dereq_,module,exports){
+var Delta, Keyboard, Quill, dom, _;
 
 Quill = _dereq_('../quill');
 
@@ -41688,7 +42442,7 @@ _ = Quill.require('lodash');
 
 dom = Quill.require('dom');
 
-Tandem = Quill.require('tandem-core');
+Delta = Quill.require('delta');
 
 Keyboard = (function() {
   Keyboard.hotkeys = {
@@ -41721,17 +42475,24 @@ Keyboard = (function() {
     this._initDeletes();
   }
 
-  Keyboard.prototype.addHotkey = function(hotkey, callback) {
-    var which, _base;
-    hotkey = _.isObject(hotkey) ? _.clone(hotkey) : {
-      key: hotkey
-    };
-    hotkey.callback = callback;
-    which = _.isNumber(hotkey.key) ? hotkey.key : hotkey.key.toUpperCase().charCodeAt(0);
-    if ((_base = this.hotkeys)[which] == null) {
-      _base[which] = [];
+  Keyboard.prototype.addHotkey = function(hotkeys, callback) {
+    if (!_.isArray(hotkeys)) {
+      hotkeys = [hotkeys];
     }
-    return this.hotkeys[which].push(hotkey);
+    return _.each(hotkeys, (function(_this) {
+      return function(hotkey) {
+        var which, _base;
+        hotkey = _.isObject(hotkey) ? _.clone(hotkey) : {
+          key: hotkey
+        };
+        hotkey.callback = callback;
+        which = _.isNumber(hotkey.key) ? hotkey.key : hotkey.key.toUpperCase().charCodeAt(0);
+        if ((_base = _this.hotkeys)[which] == null) {
+          _base[which] = [];
+        }
+        return _this.hotkeys[which].push(hotkey);
+      };
+    })(this));
   };
 
   Keyboard.prototype.toggleFormat = function(range, format) {
@@ -41742,7 +42503,8 @@ Keyboard = (function() {
       delta = this.quill.getContents(range);
     }
     value = delta.ops.length === 0 || !_.all(delta.ops, function(op) {
-      return op.attributes[format];
+      var _ref;
+      return (_ref = op.attributes) != null ? _ref[format] : void 0;
     });
     if (range.isCollapsed()) {
       this.quill.prepareFormat(format, value);
@@ -41756,11 +42518,9 @@ Keyboard = (function() {
   };
 
   Keyboard.prototype._initDeletes = function() {
-    return _.each([dom.KEYS.DELETE, dom.KEYS.BACKSPACE], (function(_this) {
-      return function(key) {
-        return _this.addHotkey(key, function() {
-          return _this.quill.getLength() > 1;
-        });
+    return this.addHotkey([dom.KEYS.DELETE, dom.KEYS.BACKSPACE], (function(_this) {
+      return function() {
+        return _this.quill.getLength() > 1;
       };
     })(this));
   };
@@ -41804,7 +42564,8 @@ Keyboard = (function() {
           if (!!hotkey.altKey !== !!event.altKey) {
             return;
           }
-          return prevent = hotkey.callback(_this.quill.getSelection()) === false || prevent;
+          prevent = hotkey.callback(_this.quill.getSelection()) === false || prevent;
+          return true;
         });
         return !prevent;
       };
@@ -41816,20 +42577,7 @@ Keyboard = (function() {
     if (shift == null) {
       shift = false;
     }
-    delta = Tandem.Delta.makeDelta({
-      startLength: this.quill.getLength(),
-      ops: [
-        {
-          start: 0,
-          end: range.start
-        }, {
-          value: "\t"
-        }, {
-          start: range.end,
-          end: this.quill.getLength()
-        }
-      ]
-    });
+    delta = new Delta().retain(range.start).insert("\t")["delete"](range.end - range.start).retain(this.quill.getLength() - range.end);
     this.quill.updateContents(delta);
     return this.quill.setSelection(range.start + 1, range.start + 1);
   };
@@ -41844,7 +42592,7 @@ module.exports = Keyboard;
 
 
 
-},{"../quill":36}],30:[function(_dereq_,module,exports){
+},{"../quill":35}],29:[function(_dereq_,module,exports){
 var LinkTooltip, Quill, Tooltip, dom, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -42011,7 +42759,7 @@ module.exports = LinkTooltip;
 
 
 
-},{"../quill":36,"./tooltip":34}],31:[function(_dereq_,module,exports){
+},{"../quill":35,"./tooltip":33}],30:[function(_dereq_,module,exports){
 var EventEmitter2, MultiCursor, Quill, dom, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -42160,17 +42908,22 @@ MultiCursor = (function(_super) {
   };
 
   MultiCursor.prototype._applyDelta = function(delta) {
-    delta.apply((function(_this) {
-      return function(index, text, formatting) {
-        return _this.shiftCursors(index, text.length, formatting['author']);
-      };
-    })(this), (function(_this) {
-      return function(index, length) {
-        return _this.shiftCursors(index, -1 * length, null);
-      };
-    })(this), (function(_this) {
-      return function(index, length, name, value) {
-        return _this.shiftCursors(index, 0, null);
+    var index;
+    index = 0;
+    _.each(delta.ops, (function(_this) {
+      return function(op) {
+        var length, _ref;
+        length = 0;
+        if (op.insert != null) {
+          length = op.insert.length || 1;
+          _this.shiftCursors(index, length, (_ref = op.attributes) != null ? _ref['author'] : void 0);
+        } else if (op["delete"] != null) {
+          _this.shiftCursors(index, -1 * op["delete"], null);
+        } else if (op.retain != null) {
+          _this.shiftCursors(index, 0, null);
+          length = op.retain;
+        }
+        return index += length;
       };
     })(this));
     return this.update();
@@ -42223,7 +42976,7 @@ MultiCursor = (function(_super) {
     if (didSplit) {
       dom(leaf.node.parentNode).normalize();
     }
-    return this.quill.editor.selection.update('silent');
+    return this.quill.editor.selection.update(Quill.sources.SILENT);
   };
 
   return MultiCursor;
@@ -42236,8 +42989,8 @@ module.exports = MultiCursor;
 
 
 
-},{"../quill":36,"eventemitter2":3}],32:[function(_dereq_,module,exports){
-var Document, PasteManager, Quill, Tandem, dom, _;
+},{"../quill":35,"eventemitter2":3}],31:[function(_dereq_,module,exports){
+var Delta, Document, PasteManager, Quill, dom, _;
 
 Quill = _dereq_('../quill');
 
@@ -42247,7 +43000,7 @@ _ = Quill.require('lodash');
 
 dom = Quill.require('dom');
 
-Tandem = Quill.require('tandem-core');
+Delta = Quill.require('delta');
 
 PasteManager = (function() {
   function PasteManager(quill, options) {
@@ -42266,7 +43019,7 @@ PasteManager = (function() {
   }
 
   PasteManager.prototype._paste = function() {
-    var iframe, oldDocLength, range, scrollY;
+    var iframe, iframeScrollY, oldDocLength, range, windowScrollX, windowScrollY;
     oldDocLength = this.quill.getLength();
     range = this.quill.getSelection();
     if (range == null) {
@@ -42274,31 +43027,32 @@ PasteManager = (function() {
     }
     this.container.innerHTML = "";
     iframe = dom(this.quill.root).window();
-    scrollY = iframe.scrollY;
+    iframeScrollY = iframe.scrollY;
+    windowScrollX = window.scrollX;
+    windowScrollY = window.scrollY;
     this.container.focus();
     return _.defer((function(_this) {
       return function() {
         var delta, doc, lengthAdded, line, lineBottom, offset, _ref;
         doc = new Document(_this.container, _this.quill.options);
         delta = doc.toDelta();
-        delta = delta.compose(Tandem.Delta.makeDeleteDelta(delta.endLength, delta.endLength - 1, 1));
-        lengthAdded = delta.endLength;
+        lengthAdded = delta.length() - 1;
+        delta.compose(new Delta().retain(lengthAdded)["delete"](1));
         if (range.start > 0) {
-          delta.ops.unshift(new Tandem.RetainOp(0, range.start));
+          delta.ops.unshift({
+            retain: range.start
+          });
         }
-        if (range.end < oldDocLength) {
-          delta.ops.push(new Tandem.RetainOp(range.end, oldDocLength));
-        }
-        delta.endLength += _this.quill.getLength() - (range.end - range.start);
-        delta.startLength = oldDocLength;
+        delta["delete"](range.end - range.start);
         _this.quill.updateContents(delta, 'user');
         _this.quill.setSelection(range.start + lengthAdded, range.start + lengthAdded);
         _ref = _this.quill.editor.doc.findLineAt(range.start + lengthAdded), line = _ref[0], offset = _ref[1];
         lineBottom = line.node.offsetTop + line.node.offsetHeight;
-        if (lineBottom > scrollY + _this.quill.root.offsetHeight) {
-          scrollY = line.node.offsetTop - _this.quill.root.offsetHeight / 2;
+        if (lineBottom > iframeScrollY + _this.quill.root.offsetHeight) {
+          iframeScrollY = line.node.offsetTop - _this.quill.root.offsetHeight / 2;
         }
-        return iframe.scrollTo(0, scrollY);
+        iframe.scrollTo(0, iframeScrollY);
+        return window.scrollTo(windowScrollX, windowScrollY);
       };
     })(this));
   };
@@ -42313,7 +43067,7 @@ module.exports = PasteManager;
 
 
 
-},{"../core/document":13,"../quill":36}],33:[function(_dereq_,module,exports){
+},{"../core/document":12,"../quill":35}],32:[function(_dereq_,module,exports){
 var Quill, Toolbar, dom, _;
 
 Quill = _dereq_('../quill');
@@ -42383,13 +43137,26 @@ Toolbar = (function() {
             _this.quill.formatText(range, format, value, 'user');
           }
           return _.defer(function() {
-            _this.updateActive(range);
+            _this.updateActive(range, ['bullet', 'list']);
             return _this.setActive(format, value);
           });
         });
       };
     })(this));
-    this.quill.on(this.quill.constructor.events.SELECTION_CHANGE, _.bind(this.updateActive, this));
+    this.quill.on(this.quill.constructor.events.SELECTION_CHANGE, (function(_this) {
+      return function(range) {
+        if (range != null) {
+          return _this.updateActive(range);
+        }
+      };
+    })(this));
+    this.quill.onModuleLoad('keyboard', (function(_this) {
+      return function(keyboard) {
+        return keyboard.addHotkey([dom.KEYS.BACKSPACE, dom.KEYS.DELETE, dom.KEYS.ENTER], function() {
+          return _.defer(_.bind(_this.updateActive, _this));
+        });
+      };
+    })(this));
     dom(this.container).addClass('ql-toolbar-container');
     if (dom.isIOS()) {
       dom(this.container).addClass('ios');
@@ -42434,7 +43201,7 @@ Toolbar = (function() {
   };
 
   Toolbar.prototype.setActive = function(format, value) {
-    var $input, input, selectValue;
+    var $input, input, selectValue, _ref;
     input = this.inputs[format];
     if (input == null) {
       return;
@@ -42443,14 +43210,17 @@ Toolbar = (function() {
     if (input.tagName === 'SELECT') {
       this.triggering = true;
       selectValue = $input.value(input);
+      if (value == null) {
+        value = (_ref = $input["default"]()) != null ? _ref.value : void 0;
+      }
       if (_.isArray(value)) {
         value = '';
       }
       if (value !== selectValue) {
         if (value != null) {
-          $input.option(value);
+          $input.option(value, false);
         } else {
-          $input.reset();
+          $input.reset(false);
         }
       }
       return this.triggering = false;
@@ -42459,15 +43229,21 @@ Toolbar = (function() {
     }
   };
 
-  Toolbar.prototype.updateActive = function(range) {
+  Toolbar.prototype.updateActive = function(range, formats) {
     var activeFormats;
+    if (formats == null) {
+      formats = null;
+    }
+    range || (range = this.quill.getSelection());
     if (!((range != null) && !this.preventUpdate)) {
       return;
     }
     activeFormats = this._getActive(range);
     return _.each(this.inputs, (function(_this) {
       return function(input, format) {
-        _this.setActive(format, activeFormats[format]);
+        if (!_.isArray(formats) || formats.indexOf(format) > -1) {
+          _this.setActive(format, activeFormats[format]);
+        }
         return true;
       };
     })(this));
@@ -42556,7 +43332,7 @@ module.exports = Toolbar;
 
 
 
-},{"../quill":36}],34:[function(_dereq_,module,exports){
+},{"../quill":35}],33:[function(_dereq_,module,exports){
 var Normalizer, Quill, Tooltip, dom, _;
 
 Quill = _dereq_('../quill');
@@ -42698,14 +43474,14 @@ module.exports = Tooltip;
 
 
 
-},{"../lib/normalizer":24,"../quill":36}],35:[function(_dereq_,module,exports){
-var Quill, Tandem, UndoManager, _;
+},{"../lib/normalizer":23,"../quill":35}],34:[function(_dereq_,module,exports){
+var Delta, Quill, UndoManager, _;
 
 Quill = _dereq_('../quill');
 
 _ = Quill.require('lodash');
 
-Tandem = Quill.require('tandem-core');
+Delta = Quill.require('delta');
 
 UndoManager = (function() {
   UndoManager.DEFAULTS = {
@@ -42749,8 +43525,7 @@ UndoManager = (function() {
     })(this));
     return this.quill.on(this.quill.constructor.events.TEXT_CHANGE, (function(_this) {
       return function(delta, origin) {
-        if (delta.isEqual(_this.emittedDelta)) {
-          _this.emittedDelta = null;
+        if (_.isEqual(delta, _this.emittedDelta)) {
           return;
         }
         _this.record(delta, _this.oldDelta);
@@ -42769,22 +43544,17 @@ UndoManager = (function() {
 
   UndoManager.prototype.record = function(changeDelta, oldDelta) {
     var change, ignored, timestamp, undoDelta;
-    if (changeDelta.isIdentity()) {
+    if (!(changeDelta.ops.length > 0)) {
       return;
     }
     this.stack.redo = [];
     try {
-      undoDelta = oldDelta.invert(changeDelta);
+      undoDelta = this.quill.getContents().diff(this.oldDelta);
       timestamp = new Date().getTime();
       if (this.lastRecorded + this.options.delay > timestamp && this.stack.undo.length > 0) {
         change = this.stack.undo.pop();
-        if (undoDelta.canCompose(change.undo) && change.redo.canCompose(changeDelta)) {
-          undoDelta = undoDelta.compose(change.undo);
-          changeDelta = change.redo.compose(changeDelta);
-        } else {
-          this.clear();
-          this.lastRecorded = timestamp;
-        }
+        undoDelta = undoDelta.compose(change.undo);
+        changeDelta = change.redo.compose(changeDelta);
       } else {
         this.lastRecorded = timestamp;
       }
@@ -42810,14 +43580,20 @@ UndoManager = (function() {
   };
 
   UndoManager.prototype._getLastChangeIndex = function(delta) {
-    var lastIndex;
+    var index, lastIndex;
     lastIndex = 0;
-    delta.apply(function(index, text) {
-      return lastIndex = Math.max(index + text.length, lastIndex);
-    }, function(index, length) {
-      return lastIndex = Math.max(index, lastIndex);
-    }, function(index, length) {
-      return lastIndex = Math.max(index + length, lastIndex);
+    index = 0;
+    delta.ops.forEach(function(op) {
+      if (op.insert != null) {
+        return lastIndex = Math.max(index + (op.insert.length || 1), lastIndex);
+      } else if (op["delete"] != null) {
+        return lastIndex = Math.max(index, lastIndex);
+      } else if (op.retain != null) {
+        if (op.attributes != null) {
+          lastIndex = Math.max(index + op.retain, lastIndex);
+        }
+        return index += op.retain;
+      }
     });
     return lastIndex;
   };
@@ -42832,6 +43608,7 @@ UndoManager = (function() {
       this.emittedDelta = null;
       index = this._getLastChangeIndex(change[source]);
       this.quill.setSelection(index, index);
+      this.oldDelta = this.quill.getContents();
       return this.stack[dest].push(change);
     }
   };
@@ -42846,8 +43623,8 @@ module.exports = UndoManager;
 
 
 
-},{"../quill":36}],36:[function(_dereq_,module,exports){
-var Editor, EventEmitter2, Format, Quill, Range, Tandem, dom, pkg, _,
+},{"../quill":35}],35:[function(_dereq_,module,exports){
+var Delta, Editor, EventEmitter2, Format, Quill, Range, dom, pkg, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   __slice = [].slice;
@@ -42855,6 +43632,8 @@ var Editor, EventEmitter2, Format, Quill, Range, Tandem, dom, pkg, _,
 _ = _dereq_('lodash');
 
 pkg = _dereq_('../package.json');
+
+Delta = _dereq_('rich-text').Delta;
 
 EventEmitter2 = _dereq_('eventemitter2').EventEmitter2;
 
@@ -42865,8 +43644,6 @@ Editor = _dereq_('./core/editor');
 Format = _dereq_('./core/format');
 
 Range = _dereq_('./lib/range');
-
-Tandem = _dereq_('tandem-core');
 
 Quill = (function(_super) {
   __extends(Quill, _super);
@@ -42899,11 +43676,7 @@ Quill = (function(_super) {
     TEXT_CHANGE: 'text-change'
   };
 
-  Quill.sources = {
-    API: 'api',
-    SILENT: 'silent',
-    USER: 'user'
-  };
+  Quill.sources = Editor.sources;
 
   Quill.registerModule = function(name, module) {
     if (Quill.modules[name] != null) {
@@ -42923,10 +43696,10 @@ Quill = (function(_super) {
     switch (name) {
       case 'lodash':
         return _;
+      case 'delta':
+        return Delta;
       case 'dom':
         return dom;
-      case 'tandem-core':
-        return Tandem;
       default:
         return null;
     }
@@ -43005,7 +43778,7 @@ Quill = (function(_super) {
     if (!(end > start)) {
       return;
     }
-    delta = Tandem.Delta.makeDeleteDelta(this.getLength(), start, end - start);
+    delta = new Delta().retain(start)["delete"](end - start);
     return this.editor.applyDelta(delta, source);
   };
 
@@ -43044,12 +43817,11 @@ Quill = (function(_super) {
         return formats;
       };
     })(this), formats);
-    delta = Tandem.Delta.makeRetainDelta(this.getLength(), start, end - start, formats);
+    delta = new Delta().retain(start).retain(end - start, formats);
     return this.editor.applyDelta(delta, source);
   };
 
   Quill.prototype.getContents = function(start, end) {
-    var ops;
     if (start == null) {
       start = 0;
     }
@@ -43059,13 +43831,8 @@ Quill = (function(_super) {
     if (_.isObject(start)) {
       end = start.end;
       start = start.start;
-    } else {
-      if (end == null) {
-        end = this.getLength();
-      }
     }
-    ops = this.editor.getDelta().getOpsAt(start, end - start);
-    return new Tandem.Delta(0, ops);
+    return this.editor.getDelta().slice(start, end);
   };
 
   Quill.prototype.getHTML = function() {
@@ -43073,7 +43840,7 @@ Quill = (function(_super) {
   };
 
   Quill.prototype.getLength = function() {
-    return this.editor.getDelta().endLength;
+    return this.editor.getDelta().length();
   };
 
   Quill.prototype.getModule = function(name) {
@@ -43092,7 +43859,13 @@ Quill = (function(_super) {
     if (end == null) {
       end = null;
     }
-    return _.pluck(this.getContents(start, end).ops, 'value').join('');
+    return _.map(this.getContents(start, end).ops, function(op) {
+      if (_.isString(op.insert)) {
+        return op.insert;
+      } else {
+        return '';
+      }
+    }).join('');
   };
 
   Quill.prototype.insertEmbed = function(index, type, url, source) {
@@ -43105,7 +43878,7 @@ Quill = (function(_super) {
     if (!(text.length > 0)) {
       return;
     }
-    delta = Tandem.Delta.makeInsertDelta(this.getLength(), index, text, formats);
+    delta = new Delta().retain(index).insert(text, formats);
     return this.editor.applyDelta(delta, source);
   };
 
@@ -43143,12 +43916,12 @@ Quill = (function(_super) {
     }
     if (_.isArray(delta)) {
       delta = {
-        startLength: this.getLength(),
         ops: delta
       };
-    } else {
-      delta.startLength = this.getLength();
     }
+    delta.ops.unshift({
+      "delete": this.getLength()
+    });
     return this.updateContents(delta, source);
   };
 
@@ -43181,7 +43954,6 @@ Quill = (function(_super) {
     if (source == null) {
       source = Quill.sources.API;
     }
-    delta = Tandem.Delta.makeDelta(delta);
     return this.editor.applyDelta(delta, source);
   };
 
@@ -43214,7 +43986,7 @@ module.exports = Quill;
 
 
 
-},{"../package.json":12,"./core/editor":14,"./core/format":15,"./lib/dom":22,"./lib/range":26,"./themes/default":37,"./themes/snow":38,"eventemitter2":3,"lodash":"M4+//f","tandem-core":10}],37:[function(_dereq_,module,exports){
+},{"../package.json":11,"./core/editor":13,"./core/format":14,"./lib/dom":21,"./lib/range":25,"./themes/default":36,"./themes/snow":37,"eventemitter2":3,"lodash":"M4+//f","rich-text":4}],36:[function(_dereq_,module,exports){
 var DefaultTheme;
 
 DefaultTheme = (function() {
@@ -43234,7 +44006,7 @@ module.exports = DefaultTheme;
 
 
 
-},{}],38:[function(_dereq_,module,exports){
+},{}],37:[function(_dereq_,module,exports){
 var ColorPicker, DefaultTheme, Picker, SnowTheme, dom, _,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -43403,8 +44175,8 @@ module.exports = SnowTheme;
 
 
 
-},{"../../lib/color-picker":21,"../../lib/dom":22,"../../lib/picker":25,"../default":37,"lodash":"M4+//f"}]},{},[20])
-(20)
+},{"../../lib/color-picker":20,"../../lib/dom":21,"../../lib/picker":24,"../default":36,"lodash":"M4+//f"}]},{},[19])
+(19)
 }); 
  }; /* ==  End source for module /vendor/quill/index.js  == */ return module; }());;
 ;require._modules["/views/create-document/create-document.js"] = (function() { var __filename = "/views/create-document/create-document.js"; var __dirname = "/views/create-document"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
@@ -43629,6 +44401,109 @@ var DashboardView = module.exports = View.extend({
 });
  
  }; /* ==  End source for module /views/dashboard/dashboard.js  == */ return module; }());;
+;require._modules["/views/document/comment/comment.js"] = (function() { var __filename = "/views/document/comment/comment.js"; var __dirname = "/views/document/comment"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/document/comment/comment.js  == */ var __module__ = function() { 
+ 
+var $             = require('jquery');
+var View          = require('cloak/view');
+var auth          = require('common/auth');
+var Comment       = require('models/comment');
+var announce      = require('common/announce');
+var QuillEditor   = require('views/quill/quill');
+var ConfirmModal  = require('views/modals/confirm/confirm');
+
+var CommentView = module.exports = View.extend({
+
+	tagName: 'article',
+	className: 'comment',
+	attributes: {rel: 'comment'},
+	template: 'views/document/comment/comment.hbs',
+
+	events: {
+		'click .edit':     'editComment',
+		'click .delete':   'deleteComment',
+		'click .reply':    'replyToComment'
+	},
+
+	initialize: function(comment) {
+		this.comment = comment;
+		this.author = comment.get('author');
+	},
+
+	draw: function(opts) {
+		opts = opts || { };
+
+		if (opts.animate) {
+			this.$elem.hide();
+		}
+
+		this.$elem.html(this.render({
+			comment: this.comment.serialize({ deep: true }),
+			gravatarHash: this.author.gravatarHash(),
+			isAuthor: this.author.is(auth.user)
+		}));
+
+		if (opts.animate) {
+			this.$elem.animate({ opacity: 'show', height: 'show' }, 600);
+		}
+
+		this.bindEvents();
+	},
+
+// --------------------------------------------------------
+
+	editComment: function(evt) {
+		if (evt) {
+			evt.preventDefault();
+		}
+
+		// 
+	},
+
+	deleteComment: function(evt) {
+		if (evt) {
+			evt.preventDefault();
+		}
+
+		var self = this;
+		var confirm = ConfirmModal.open({
+			prompt: 'Are you sure you want to delete the comment?',
+			yes: { text: 'Yes, delete the comment', classname: 'alert' },
+			no:  { text: 'Cancel',                  classname: 'secondary' }
+		});
+
+		confirm.on('no', confirm.close);
+		confirm.on('yes', function() {
+			confirm.close();
+
+			self.$elem.addClass('disabled');
+			
+			self.comment.del().then(
+				function() {
+					self.$elem.animate({ height: 'hide', opacity: 'hide' }, 600, function() {
+						self.$elem.parent().remove();
+						self.remove();
+					});
+				},
+				function(res) {
+					self.$elem.removeClass('disabled');
+					announce.show('alert', (res.body.message || res.body));
+				}
+			);
+		});
+	},
+
+	replyToComment: function(evt) {
+		if (evt) {
+			evt.preventDefault();
+		}
+
+		// 
+	}
+
+});
+ 
+ }; /* ==  End source for module /views/document/comment/comment.js  == */ return module; }());;
 ;require._modules["/views/document/document.js"] = (function() { var __filename = "/views/document/document.js"; var __dirname = "/views/document"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/document/document.js  == */ var __module__ = function() { 
  
@@ -43636,15 +44511,15 @@ var $            = require('jquery');
 var View         = require('cloak/view');
 var auth         = require('common/auth');
 var Comment      = require('models/comment');
-var StarsView    = require('views/document/stars/stars');
 var announce     = require('common/announce');
+var StarsView    = require('views/document/stars/stars');
 var QuillEditor  = require('views/quill/quill');
+var CommentView  = require('views/document/comment/comment');
 
 var DocumentView = module.exports = View.extend({
 
 	className: 'document',
 	template: 'views/document/document.hbs',
-	commentTemplate: 'views/document/comment.hbs',
 
 	events: {
 		'click .description .edit':           'editDescription',
@@ -43660,6 +44535,7 @@ var DocumentView = module.exports = View.extend({
 		this.commentCount = 0;
 
 		this.commentBoxOptions = {
+			atwho: [ ],
 			buttons: [
 				{text: 'Post Comment', classname: 'small action button post'},
 				{text: 'Cancel', classname: 'small secondary button cancel'}
@@ -43682,6 +44558,15 @@ var DocumentView = module.exports = View.extend({
 		this.bindPartials({
 			stars: StarsView,
 			quill: QuillEditor
+		});
+
+		this.commentUsernameAtList = [
+			this.document.get('owner').get('username')
+		];
+
+		var self = this;
+		this.commentBox.on('ready', function() {
+			this.atwho(self.commentUsernameAtList);
 		});
 
 		this.$description  = this.$('.description');
@@ -43743,25 +44628,15 @@ var DocumentView = module.exports = View.extend({
 
 // --------------------------------------------------------
 
-	drawNewComment: function(topOrBottom, comment, gravatarHash) {
-		var func = (topOrBottom === 'top') ? 'prepend' : 'append';
-
-		if (comment instanceof Comment) {
-			comment = comment.serialize({ deep: true });
-		}
+	drawNewComment: function(opts) {
+		var drawTo = (opts.drawTo === 'top') ? 'prepend' : 'append';
 
 		var $li = $('<li></li>');
-		var data = {
-			comment: comment,
-			gravatarHash: gravatarHash
-		};
+		$li[drawTo + 'To'](this.$commentList);
 
-		$li.hide();
-		$li[func + 'To'](this.$commentList);
-		$li.html(this.render(data, 'commentTemplate'));
-		$li.animate({ opacity: 'show', height: 'show' }, 600, function() {
-			// 
-		});
+		var view = new CommentView(opts.comment);
+		view.$elem.appendTo($li);
+		view.draw({ animate: opts.animate });
 	},
 
 	drawComments: function(comments) {
@@ -43781,7 +44656,11 @@ var DocumentView = module.exports = View.extend({
 
 		var self = this;
 		comments.forEach(function(comment) {
-			self.drawNewComment('bottom', comment, comment.get('author').gravatarHash());
+			self.drawNewComment({
+				drawTo: 'bottom',
+				comment: comment,
+				animate: false
+			});
 		});
 	},
 
@@ -43802,17 +44681,20 @@ var DocumentView = module.exports = View.extend({
 		}
 
 		var self = this;
-		var content = this.commentBox.quill.getHTML();
+		var content = this.commentBox.getHTML();
 
 		this.document.postComment(content)
 			.then(
 				function(comment) {
 					self.cancelComment();
 
-					comment = comment.serialize();
-					comment.author = auth.user.serialize();
+					comment.set('author', auth.user.clone());
 
-					self.drawNewComment('top', comment, auth.user.gravatarHash());
+					self.drawNewComment({
+						drawTo: 'top',
+						comment: comment,
+						animate: true
+					});
 				},
 				function(res) {
 					announce.show('alert', (res && res.body && res.body.message) || res);
@@ -43825,7 +44707,7 @@ var DocumentView = module.exports = View.extend({
 			evt.preventDefault();
 		}
 
-		this.commentBox.quill.setHTML('<div></div>');
+		this.commentBox.setHTML('<div></div>');
 		this.hideCommentEditor();
 	}
 
@@ -44108,7 +44990,7 @@ var ModalView = module.exports = View.extend({
 
 	draw: function(content, classname) {
 		if (! content && this.contentTemplate) {
-			content = this.render({ }, 'contentTemplate');
+			content = this.render(this.data || { }, 'contentTemplate');
 		}
 
 		this.$elem.html(this.render({
@@ -44168,6 +45050,10 @@ ModalView.template = function(defaults) {
 		_.extend(modal, opts.props || { });
 		modal.events = _.extend({ }, modal.events, opts.events || { });
 
+		if (typeof opts.init === 'function') {
+			opts.init.call(modal, opts);
+		}
+
 		modal.draw();
 		modal.$elem.appendTo(document.body);
 
@@ -44180,6 +45066,59 @@ ModalView.template = function(defaults) {
 };
  
  }; /* ==  End source for module /views/modal/modal.js  == */ return module; }());;
+;require._modules["/views/modals/confirm/confirm.js"] = (function() { var __filename = "/views/modals/confirm/confirm.js"; var __dirname = "/views/modals/confirm"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/modals/confirm/confirm.js  == */ var __module__ = function() { 
+ 
+var ModalView  = require('views/modal/modal');
+
+// 
+// Opens a new confirm modal
+// 
+exports.open = ModalView.template({
+
+	classname: 'confirm',
+	template: 'views/modals/confirm/confirm.hbs',
+	
+	events: {
+		'click   .yes':    'yes',
+		'click   .no':     'no'
+	},
+
+	init: function(opts) {
+		this.data = {
+			prompt: opts.prompt,
+			yes: opts.yes || {
+				text: 'Yes',
+				classname: 'action'
+			},
+			no: opts.no || {
+				text: 'No',
+				classname: 'secondary'
+			}
+		};
+	},
+	
+	props: {
+		yes: function(evt) {
+			if (evt) {
+				evt.preventDefault();
+			}
+
+			this.emit('yes');
+		},
+
+		no: function(evt) {
+			if (evt) {
+				evt.preventDefault();
+			}
+
+			this.emit('no');
+		}
+	}
+
+});
+ 
+ }; /* ==  End source for module /views/modals/confirm/confirm.js  == */ return module; }());;
 ;require._modules["/views/modals/login/login.js"] = (function() { var __filename = "/views/modals/login/login.js"; var __dirname = "/views/modals/login"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/modals/login/login.js  == */ var __module__ = function() { 
  
@@ -44480,6 +45419,7 @@ var ProfileView = module.exports = View.extend({
 ;require._modules["/views/quill/quill.js"] = (function() { var __filename = "/views/quill/quill.js"; var __dirname = "/views/quill"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/quill/quill.js  == */ var __module__ = function() { 
  
+var $      = require('jquery');
 var Quill  = require('quill');
 var View   = require('cloak/view');
 var auth   = require('common/auth');
@@ -44498,6 +45438,7 @@ var QuillView = module.exports = View.extend({
 		this.bind('initQuill');
 		this.buttons = opts && opts.buttons;
 		this.content = opts && opts.content;
+		this.enableAtwho = opts && opts.atwho;
 
 		if (this.buttons) {
 			this.buttons = this.buttons.map(function(button) {
@@ -44544,6 +45485,14 @@ var QuillView = module.exports = View.extend({
 		if (this.content) {
 			this.setContents(this.content);
 		}
+
+		this.$root = $(this.quill.root);
+
+		if (this.atwho) {
+			this.initAtwho();
+		}
+
+		this.emit('ready');
 	},
 
 	setContents: function(content) {
@@ -44552,6 +45501,47 @@ var QuillView = module.exports = View.extend({
 
 	getContents: function() {
 		return this.quill.getContents();
+	},
+
+	setHTML: function(html) {
+		this.quill.setHTML(html);
+	},
+
+	getHTML: function() {
+		var html = this.quill.getHTML();
+
+		if (this.atwho) {
+			// These ugly things are inserted after @username references by At.js, and need to be
+			// parsed out before sending to the server
+			var atrefSuffix = '<span contenteditable="false">&nbsp;</span>';
+
+			while (html.indexOf(atrefSuffix) >= 0) {
+				html = html.replace(atrefSuffix, '');
+			}
+		}
+
+		return html;
+	},
+
+	atwho: function(data) {
+		if (Array.isArray(data)) {
+			data = {
+				at: '@',
+				data: data,
+				insert_tpl: '<span class="atref" data-user="${name}">${atwho-data-value}</span>'
+			};
+		}
+
+		this.$root.atwho(data);
+	},
+
+	initAtwho: function() {
+		this.$root.atwho('setIframe', this.$('iframe')[0]);
+		this.$root.atwho({
+			at: '@',
+			data: this.atwho,
+			insert_tpl: '<span class="atref" data-user="${name}">${atwho-data-value}</span>'
+		});
 	}
 
 });

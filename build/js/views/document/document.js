@@ -5,15 +5,15 @@ var $            = require('jquery');
 var View         = require('cloak/view');
 var auth         = require('common/auth');
 var Comment      = require('models/comment');
-var StarsView    = require('views/document/stars/stars');
 var announce     = require('common/announce');
+var StarsView    = require('views/document/stars/stars');
 var QuillEditor  = require('views/quill/quill');
+var CommentView  = require('views/document/comment/comment');
 
 var DocumentView = module.exports = View.extend({
 
 	className: 'document',
 	template: 'views/document/document.hbs',
-	commentTemplate: 'views/document/comment.hbs',
 
 	events: {
 		'click .description .edit':           'editDescription',
@@ -29,6 +29,7 @@ var DocumentView = module.exports = View.extend({
 		this.commentCount = 0;
 
 		this.commentBoxOptions = {
+			atwho: [ ],
 			buttons: [
 				{text: 'Post Comment', classname: 'small action button post'},
 				{text: 'Cancel', classname: 'small secondary button cancel'}
@@ -51,6 +52,15 @@ var DocumentView = module.exports = View.extend({
 		this.bindPartials({
 			stars: StarsView,
 			quill: QuillEditor
+		});
+
+		this.commentUsernameAtList = [
+			this.document.get('owner').get('username')
+		];
+
+		var self = this;
+		this.commentBox.on('ready', function() {
+			this.atwho(self.commentUsernameAtList);
 		});
 
 		this.$description  = this.$('.description');
@@ -112,25 +122,15 @@ var DocumentView = module.exports = View.extend({
 
 // --------------------------------------------------------
 
-	drawNewComment: function(topOrBottom, comment, gravatarHash) {
-		var func = (topOrBottom === 'top') ? 'prepend' : 'append';
-
-		if (comment instanceof Comment) {
-			comment = comment.serialize({ deep: true });
-		}
+	drawNewComment: function(opts) {
+		var drawTo = (opts.drawTo === 'top') ? 'prepend' : 'append';
 
 		var $li = $('<li></li>');
-		var data = {
-			comment: comment,
-			gravatarHash: gravatarHash
-		};
+		$li[drawTo + 'To'](this.$commentList);
 
-		$li.hide();
-		$li[func + 'To'](this.$commentList);
-		$li.html(this.render(data, 'commentTemplate'));
-		$li.animate({ opacity: 'show', height: 'show' }, 600, function() {
-			// 
-		});
+		var view = new CommentView(opts.comment);
+		view.$elem.appendTo($li);
+		view.draw({ animate: opts.animate });
 	},
 
 	drawComments: function(comments) {
@@ -150,7 +150,11 @@ var DocumentView = module.exports = View.extend({
 
 		var self = this;
 		comments.forEach(function(comment) {
-			self.drawNewComment('bottom', comment, comment.get('author').gravatarHash());
+			self.drawNewComment({
+				drawTo: 'bottom',
+				comment: comment,
+				animate: false
+			});
 		});
 	},
 
@@ -171,17 +175,20 @@ var DocumentView = module.exports = View.extend({
 		}
 
 		var self = this;
-		var content = this.commentBox.quill.getHTML();
+		var content = this.commentBox.getHTML();
 
 		this.document.postComment(content)
 			.then(
 				function(comment) {
 					self.cancelComment();
 
-					comment = comment.serialize();
-					comment.author = auth.user.serialize();
+					comment.set('author', auth.user.clone());
 
-					self.drawNewComment('top', comment, auth.user.gravatarHash());
+					self.drawNewComment({
+						drawTo: 'top',
+						comment: comment,
+						animate: true
+					});
 				},
 				function(res) {
 					announce.show('alert', (res && res.body && res.body.message) || res);
@@ -194,7 +201,7 @@ var DocumentView = module.exports = View.extend({
 			evt.preventDefault();
 		}
 
-		this.commentBox.quill.setHTML('<div></div>');
+		this.commentBox.setHTML('<div></div>');
 		this.hideCommentEditor();
 	}
 

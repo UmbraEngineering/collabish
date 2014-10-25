@@ -1,0 +1,17 @@
+<div class="gravatar">
+	<img src="{{gravatar gravatarHash "s=48"}}" width="48" height="48" alt="" title="" />
+</div>
+<div class="content">
+	<a href="/#user/{{ comment.author.username }}" rel="author">{{ comment.author.username }}</a>
+	<main>{{{ comment.content }}}</main>
+	<footer>
+		<span class="posted">Posted: {{fromNow comment.created}}</span>
+		<div class="actions">
+			{{#if isAuthor}}
+			<a class="edit" data-tooltip="Edit">{{icon "edit"}}</a>
+			<a class="delete" data-tooltip="Delete">{{icon "trash-o"}}</a>
+			{{/if}}
+			<a class="reply" data-tooltip="Reply">{{icon "reply"}}</a>
+		</div>
+	</footer>
+</div>

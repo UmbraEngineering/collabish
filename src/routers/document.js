@@ -55,7 +55,7 @@ var DocumentRouter = module.exports = Router.extend({
 				view.drawComments(comments);
 			})
 			.catch(function(err) {
-				console.error(err);
+				console.error(err.stack || err);
 			});
 	}
 

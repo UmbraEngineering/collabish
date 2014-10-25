@@ -17,7 +17,7 @@ var ModalView = module.exports = View.extend({
 
 	draw: function(content, classname) {
 		if (! content && this.contentTemplate) {
-			content = this.render({ }, 'contentTemplate');
+			content = this.render(this.data || { }, 'contentTemplate');
 		}
 
 		this.$elem.html(this.render({
@@ -76,6 +76,10 @@ ModalView.template = function(defaults) {
 
 		_.extend(modal, opts.props || { });
 		modal.events = _.extend({ }, modal.events, opts.events || { });
+
+		if (typeof opts.init === 'function') {
+			opts.init.call(modal, opts);
+		}
 
 		modal.draw();
 		modal.$elem.appendTo(document.body);

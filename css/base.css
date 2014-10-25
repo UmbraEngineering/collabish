@@ -46,3 +46,8 @@ button.action:hover,
 	border-color: #e3bfbf;
 	background-color: #fdf;
 }
+
+.disabled {
+	opacity: .3;
+	pointer-events: none;
+}

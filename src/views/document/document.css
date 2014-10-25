@@ -123,42 +123,6 @@ section.document {
 			margin: 0;
 		}
 
-			section.document .comments ol article {
-				padding: 1rem;
-			}
-
-			section.document .comments ol li:nth-of-type(even) article {
-				background: #f0f0f0;
-			}
-
-				section.document .comments ol article .gravatar {
-					width: 48px;
-					float: left;
-				}
-
-					section.document .comments ol article .gravatar img {
-						margin-top: 10px;
-					}
-
-				section.document .comments ol article .content {
-					float: left;
-					margin-left: 1.5rem;
-				}
-
-					section.document .comments ol article:after {
-						display: block;
-						visibility: hidden;
-						content: " ";
-						height: 0;
-						line-height: 0;
-						clear: left;
-					}
-
-					section.document .comments ol article .posted {
-						font-size: .8rem;
-					}
-
-
 
 @media only screen and (max-width: 40em) {
 	section.document .meta.panel .icons {

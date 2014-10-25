@@ -1,0 +1,21 @@
+
+.confirm.modal {
+	/**/
+}
+
+	.confirm.modal label {
+		padding: 1rem;
+	}
+
+		.confirm.modal button {
+			margin-top: 2rem;
+			margin-bottom: 0;
+		}
+
+
+
+@media only screen and (max-width: 40em) {
+	.modal.wrapper .confirm.modal {
+		margin-top: 1rem;
+	}
+}

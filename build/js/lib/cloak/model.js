@@ -382,7 +382,7 @@ var Model = module.exports = AppObject.extend(modelStore.methods, {
 	// 
 	// @return string
 	// 
-	urlAttr: /\{([^}]+)\}/,
+	urlAttr: /\{([^}]+)\}/g,
 	reqUrl: function() {
 		var self = this;
 		// Replace any attribute placeholders in the URL

@@ -92,24 +92,39 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   return "<div class=\"no-results panel\">\n	<h3>You haven't starred any documents</h3>\n	<p>\n		Why not <a href=\"/#search\">take a look around</a>?\n	</p>\n</div>";
   });
 
-this["exports"]["views/document/comment.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+this["exports"]["views/document/comment/comment.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
-  var buffer = "", stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, functionType="function";
+  var buffer = "", stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, functionType="function", self=this;
 
+function program1(depth0,data) {
+  
+  var buffer = "", helper, options;
+  buffer += "\n			<a class=\"edit\" data-tooltip=\"Edit\">"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "edit", options) : helperMissing.call(depth0, "icon", "edit", options)))
+    + "</a>\n			<a class=\"delete\" data-tooltip=\"Delete\">"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "trash-o", options) : helperMissing.call(depth0, "icon", "trash-o", options)))
+    + "</a>\n			";
+  return buffer;
+  }
 
-  buffer += "<article rel=\"comment\">\n	<div class=\"gravatar\">\n		<img src=\""
+  buffer += "<div class=\"gravatar\">\n	<img src=\""
     + escapeExpression((helper = helpers.gravatar || (depth0 && depth0.gravatar),options={hash:{},data:data},helper ? helper.call(depth0, (depth0 && depth0.gravatarHash), "s=48", options) : helperMissing.call(depth0, "gravatar", (depth0 && depth0.gravatarHash), "s=48", options)))
-    + "\" width=\"48\" height=\"48\" alt=\"\" title=\"\" />\n	</div>\n	<div class=\"content\">\n		<a href=\"/#user/"
+    + "\" width=\"48\" height=\"48\" alt=\"\" title=\"\" />\n</div>\n<div class=\"content\">\n	<a href=\"/#user/"
     + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.comment)),stack1 == null || stack1 === false ? stack1 : stack1.author)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
     + "\" rel=\"author\">"
     + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.comment)),stack1 == null || stack1 === false ? stack1 : stack1.author)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + "</a>\n		";
+    + "</a>\n	<main>";
   stack1 = ((stack1 = ((stack1 = (depth0 && depth0.comment)),stack1 == null || stack1 === false ? stack1 : stack1.content)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1);
   if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += "\n		<span class=\"posted\">Posted: "
+  buffer += "</main>\n	<footer>\n		<span class=\"posted\">Posted: "
     + escapeExpression((helper = helpers.fromNow || (depth0 && depth0.fromNow),options={hash:{},data:data},helper ? helper.call(depth0, ((stack1 = (depth0 && depth0.comment)),stack1 == null || stack1 === false ? stack1 : stack1.created), options) : helperMissing.call(depth0, "fromNow", ((stack1 = (depth0 && depth0.comment)),stack1 == null || stack1 === false ? stack1 : stack1.created), options)))
-    + "</span>\n	</div>\n</article>\n";
+    + "</span>\n		<div class=\"actions\">\n			";
+  stack1 = helpers['if'].call(depth0, (depth0 && depth0.isAuthor), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n			<a class=\"reply\" data-tooltip=\"Reply\">"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "reply", options) : helperMissing.call(depth0, "icon", "reply", options)))
+    + "</a>\n		</div>\n	</footer>\n</div>";
   return buffer;
   });
 
@@ -236,7 +251,7 @@ function program24(depth0,data) {
 
   buffer += "<header>\n	<h1>"
     + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.name)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + "</h1>\n</header>\n<main class=\"row\">\n	<div class=\"small-12 medium-9 columns\">\n		<div class=\"meta panel\">\n			<div class=\"author\">\n				Author: <a href=\"/#user/"
+    + " (<a href=\"\">read</a>)</h1>\n</header>\n<main class=\"row\">\n	<div class=\"small-12 medium-9 columns\">\n		<div class=\"meta panel\">\n			<div class=\"author\">\n				Author: <a href=\"/#user/"
     + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.owner)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
     + "\">"
     + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.owner)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
@@ -437,6 +452,28 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   else { helper = (depth0 && depth0.content); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
   if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "\n</div>";
+  return buffer;
+  });
+
+this["exports"]["views/modals/confirm/confirm.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, helper, functionType="function", escapeExpression=this.escapeExpression;
+
+
+  buffer += "<label>\n	<p>";
+  if (helper = helpers.prompt) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.prompt); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "</p>\n	<button class=\"yes small "
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.yes)),stack1 == null || stack1 === false ? stack1 : stack1.classname)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\">"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.yes)),stack1 == null || stack1 === false ? stack1 : stack1.text)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "</button>\n	<button class=\"no small "
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.no)),stack1 == null || stack1 === false ? stack1 : stack1.classname)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\">"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.no)),stack1 == null || stack1 === false ? stack1 : stack1.text)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "</button>\n</label>";
   return buffer;
   });
 

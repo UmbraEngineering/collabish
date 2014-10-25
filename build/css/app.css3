@@ -4129,6 +4129,11 @@ button.action:hover,
 	background-color: #fdf;
 }
 
+.disabled {
+	opacity: .3;
+	pointer-events: none;
+}
+
 
 .announcement {
 	opacity: 0;
@@ -5890,6 +5895,53 @@ button.action:hover,
 .fa-meanpath:before {
   content: "\f20c";
 }
+.atwho-view {
+    position:absolute;
+    top: 0;
+    left: 0;
+    display: none;
+    margin-top: 18px;
+    background: white;
+    color: black;
+    border: 1px solid #DDD;
+    border-radius: 3px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    min-width: 120px;
+    z-index: 11110 !important;
+}
+
+.atwho-view .cur {
+    background: #3366FF;
+    color: white;
+}
+.atwho-view .cur small {
+    color: white;
+}
+.atwho-view strong {
+    color: #3366FF;
+}
+.atwho-view .cur strong {
+    color: white;
+    font:bold;
+}
+.atwho-view ul {
+    /* width: 100px; */
+    list-style:none;
+    padding:0;
+    margin:auto;
+}
+.atwho-view ul li {
+    display: block;
+    padding: 5px 10px;
+    border-bottom: 1px solid #DDD;
+    cursor: pointer;
+    /* border-top: 1px solid #C8C8C8; */
+}
+.atwho-view small {
+    font-size: smaller;
+    color: #777;
+    font-weight: normal;
+}
 /**
  * (C)Leanest CSS spinner ever
  *
@@ -6283,6 +6335,71 @@ section.dashboard {
 	}
 }
 
+article.comment {
+	padding: 1rem;
+}
+
+*:nth-of-type(even) article.comment {
+	background: #f0f0f0;
+}
+
+	article.comment .gravatar {
+		width: 48px;
+		float: left;
+	}
+
+		article.comment .gravatar img {
+			margin-top: 10px;
+		}
+
+	article.comment .content {
+		float: left;
+		margin-left: 1.5rem;
+		width: calc(100% - 48px - 1.5rem);
+		position: relative;
+	}
+
+		article.comment:after {
+			display: block;
+			visibility: hidden;
+			content: " ";
+			height: 0;
+			line-height: 0;
+			clear: left;
+		}
+
+		article.comment main {
+			/**/
+		}
+
+		article.comment footer {
+			margin-top: 10px;
+		}
+
+			article.comment .posted {
+				font-size: .8rem;
+			}
+
+			article.comment .actions {
+				text-align: right;
+				position: absolute;
+				bottom: 0;
+				right: 0;
+			}
+
+				article.comment .actions a {
+					color: #888;
+					margin: 0 5px;
+				}
+
+				article.comment .actions a:hover {
+					color: #444;
+				}
+
+				article.comment .actions [data-tooltip]:after {
+					width: 80px;
+				}
+
 
 section.document {
 	/**/
@@ -6407,42 +6524,6 @@ section.document {
 			padding: 3rem 1rem;
 			margin: 0;
 		}
-
-			section.document .comments ol article {
-				padding: 1rem;
-			}
-
-			section.document .comments ol li:nth-of-type(even) article {
-				background: #f0f0f0;
-			}
-
-				section.document .comments ol article .gravatar {
-					width: 48px;
-					float: left;
-				}
-
-					section.document .comments ol article .gravatar img {
-						margin-top: 10px;
-					}
-
-				section.document .comments ol article .content {
-					float: left;
-					margin-left: 1.5rem;
-				}
-
-					section.document .comments ol article:after {
-						display: block;
-						visibility: hidden;
-						content: " ";
-						height: 0;
-						line-height: 0;
-						clear: left;
-					}
-
-					section.document .comments ol article .posted {
-						font-size: .8rem;
-					}
-
 
 
 @media only screen and (max-width: 40em) {
@@ -6822,6 +6903,28 @@ section.stars {
 @media only screen and (min-width: 40.063em) {
 	.modal.wrapper .modal.box {
 		width: 500px;
+	}
+}
+
+
+.confirm.modal {
+	/**/
+}
+
+	.confirm.modal label {
+		padding: 1rem;
+	}
+
+		.confirm.modal button {
+			margin-top: 2rem;
+			margin-bottom: 0;
+		}
+
+
+
+@media only screen and (max-width: 40em) {
+	.modal.wrapper .confirm.modal {
+		margin-top: 1rem;
 	}
 }
 
