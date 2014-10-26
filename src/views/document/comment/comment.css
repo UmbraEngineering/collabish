@@ -35,6 +35,12 @@ article.comment {
 			/**/
 		}
 
+			article.comment main .atref {
+				color: #666;
+				font-size: .9em;
+				font-weight: bold;
+			}
+
 		article.comment footer {
 			margin-top: 10px;
 		}

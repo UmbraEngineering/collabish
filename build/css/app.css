@@ -8670,6 +8670,12 @@ article.comment main {
   /**/
 }
 
+article.comment main .atref {
+  color: #666;
+  font-size: .9em;
+  font-weight: bold;
+}
+
 article.comment footer {
   margin-top: 10px;
 }
@@ -8747,6 +8753,10 @@ section.document .meta.panel .stars {
   text-align: right;
 }
 
+section.document .meta.panel .tags {
+  max-width: 500px;
+}
+
 section.document .meta.panel .icons {
   /**/
 }
@@ -8814,6 +8824,7 @@ section.document .comments section.quill {
 section.document .comments p.no-results {
   margin: 1rem;
   font-style: italic;
+  text-align: center;
 }
 
 section.document .comments ol {

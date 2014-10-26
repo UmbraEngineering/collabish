@@ -40,6 +40,12 @@ var CommentView = module.exports = View.extend({
 			isAuthor: this.author.is(auth.user)
 		}));
 
+		this.$('[data-user]').each(function() {
+			var $this = $(this);
+			var user = $this.attr('data-user');
+			$this.replaceWith('<a href="/#user/' + user + '" class="atref">@' + user + '</a>');
+		});
+
 		if (opts.animate) {
 			this.$elem.animate({ opacity: 'show', height: 'show' }, 600);
 		}
@@ -54,7 +60,7 @@ var CommentView = module.exports = View.extend({
 			evt.preventDefault();
 		}
 
-		// 
+		announce.show('alert', 'Comment editing is not yet supported');
 	},
 
 	deleteComment: function(evt) {
@@ -95,7 +101,7 @@ var CommentView = module.exports = View.extend({
 			evt.preventDefault();
 		}
 
-		// 
+		announce.show('alert', 'Comment replies are not yet supported');
 	}
 
 });

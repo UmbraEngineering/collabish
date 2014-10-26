@@ -48,6 +48,10 @@ section.document {
 			text-align: right;
 		}
 
+		section.document .meta.panel .tags {
+			max-width: 500px;
+		}
+
 		section.document .meta.panel .icons {
 			/**/
 		}
@@ -115,6 +119,7 @@ section.document {
 		section.document .comments p.no-results {
 			margin: 1rem;
 			font-style: italic;
+			text-align: center;
 		}
 
 		section.document .comments ol {

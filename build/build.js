@@ -29069,17 +29069,21 @@ function program19(depth0,data) {
   
   var buffer = "", stack1;
   buffer += "\n			<dl>\n				";
-  stack1 = helpers.each.call(depth0, (depth0 && depth0.recentCommits), {hash:{},inverse:self.noop,fn:self.program(20, program20, data),data:data});
+  stack1 = helpers.each.call(depth0, (depth0 && depth0.recentCommits), {hash:{},inverse:self.noop,fn:self.programWithDepth(20, program20, data, depth0),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "\n			</dl>\n			";
   return buffer;
   }
-function program20(depth0,data) {
+function program20(depth0,data,depth1) {
   
   var buffer = "", stack1, helper, options;
   buffer += "\n				<dt>"
     + escapeExpression((helper = helpers.fromNow || (depth0 && depth0.fromNow),options={hash:{},data:data},helper ? helper.call(depth0, (depth0 && depth0.created), options) : helperMissing.call(depth0, "fromNow", (depth0 && depth0.created), options)))
-    + "</dt>\n				<dd>\n					"
+    + "\n					(<a href=\"/#document/"
+    + escapeExpression(((stack1 = ((stack1 = (depth1 && depth1.document)),stack1 == null || stack1 === false ? stack1 : stack1._id)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "/read/"
+    + escapeExpression(((stack1 = (depth0 && depth0._id)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\">read</a>)\n				</dt>\n				<dd>\n					"
     + escapeExpression(((stack1 = (depth0 && depth0.message)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
     + "\n				</dd>\n				";
   return buffer;
@@ -29094,13 +29098,15 @@ function program22(depth0,data) {
 function program24(depth0,data) {
   
   var buffer = "";
-  buffer += "\n<section rel=\"comments\" class=\"comments row\">\n	<h4>Leave a Comment</h4>\n	<textarea class=\"pseudo\"></textarea>\n	<section class=\"hide\" data-partial=\"quill\" name=\"commentBox\" data-partial-data=\"commentBoxOptions\"></section>\n	<ol>\n		\n	</ol>\n</section>\n";
+  buffer += "\n<section rel=\"comments\" class=\"comments row\">\n	<h4>Leave a Comment</h4>\n	<textarea class=\"pseudo\"></textarea>\n	<section class=\"hide\" data-partial=\"quill\" name=\"commentBox\" data-partial-data=\"commentBoxOptions\"></section>\n	<ol>\n		\n	</ol>\n	<button class=\"load-more action expand\">Load More Comments</button>\n</section>\n";
   return buffer;
   }
 
   buffer += "<header>\n	<h1>"
     + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.name)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + " (<a href=\"\">read</a>)</h1>\n</header>\n<main class=\"row\">\n	<div class=\"small-12 medium-9 columns\">\n		<div class=\"meta panel\">\n			<div class=\"author\">\n				Author: <a href=\"/#user/"
+    + " (<a href=\"/#document/"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1._id)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "/read\">read</a>)</h1>\n</header>\n<main class=\"row\">\n	<div class=\"small-12 medium-9 columns\">\n		<div class=\"meta panel\">\n			<div class=\"author\">\n				Author: <a href=\"/#user/"
     + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.owner)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
     + "\">"
     + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.owner)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
@@ -44443,6 +44449,12 @@ var CommentView = module.exports = View.extend({
 			isAuthor: this.author.is(auth.user)
 		}));
 
+		this.$('[data-user]').each(function() {
+			var $this = $(this);
+			var user = $this.attr('data-user');
+			$this.replaceWith('<a href="/#user/' + user + '" class="atref">@' + user + '</a>');
+		});
+
 		if (opts.animate) {
 			this.$elem.animate({ opacity: 'show', height: 'show' }, 600);
 		}
@@ -44457,7 +44469,7 @@ var CommentView = module.exports = View.extend({
 			evt.preventDefault();
 		}
 
-		// 
+		announce.show('alert', 'Comment editing is not yet supported');
 	},
 
 	deleteComment: function(evt) {
@@ -44498,7 +44510,7 @@ var CommentView = module.exports = View.extend({
 			evt.preventDefault();
 		}
 
-		// 
+		announce.show('alert', 'Comment replies are not yet supported');
 	}
 
 });
@@ -44527,7 +44539,8 @@ var DocumentView = module.exports = View.extend({
 		'click .description .cancel':         'cancelDescription',
 		'focus .comments textarea.pseudo':    'showCommentEditor',
 		'click .comments .post.button':       'postComment',
-		'click .comments .cancel.button':     'cancelComment'
+		'click .comments .cancel.button':     'cancelComment',
+		'click .comments .load-more':         'loadMoreComments'
 	},
 
 	initialize: function(document) {
@@ -44569,9 +44582,10 @@ var DocumentView = module.exports = View.extend({
 			this.atwho(self.commentUsernameAtList);
 		});
 
-		this.$description  = this.$('.description');
-		this.$comments     = this.$('section.comments');
-		this.$commentList  = this.$('section.comments ol');
+		this.$description     = this.$('.description');
+		this.$comments        = this.$('section.comments');
+		this.$commentList     = this.$('section.comments ol');
+		this.$loadMoreButton  = this.$('section.comments .load-more');
 
 		this.bindEvents();
 	},
@@ -44637,6 +44651,8 @@ var DocumentView = module.exports = View.extend({
 		var view = new CommentView(opts.comment);
 		view.$elem.appendTo($li);
 		view.draw({ animate: opts.animate });
+
+		this.commentCount++;
 	},
 
 	drawComments: function(comments) {
@@ -44709,6 +44725,37 @@ var DocumentView = module.exports = View.extend({
 
 		this.commentBox.setHTML('<div></div>');
 		this.hideCommentEditor();
+	},
+
+	loadMoreComments: function(evt) {
+		if (evt) {
+			evt.preventDefault();
+		}
+
+		var self = this;
+
+		this.$loadMoreButton.disable(true);
+
+		this.document.findComments({
+			populate: 'author',
+			sort: '-created',
+			offset: this.commentCount
+		})
+			.then(
+				function(comments) {
+					self.$loadMoreButton.disable(false);
+					
+					if (! comments.len()) {
+						self.$loadMoreButton.remove();
+					}
+
+					self.drawComments(comments);
+				},
+				function(res) {
+					self.$loadMoreButton.disable(false);
+					announce.show('alert', res.body.message || res.body);
+				}
+			);
 	}
 
 });
@@ -45473,6 +45520,9 @@ var QuillView = module.exports = View.extend({
 			styles: {
 				'body': {
 					'font-size': '16px'
+				},
+				'[data-user] + span': {
+					'display': 'none'
 				}
 			},
 			modules: {
@@ -45493,6 +45543,10 @@ var QuillView = module.exports = View.extend({
 		}
 
 		this.emit('ready');
+	},
+
+	disable: function(flag) {
+		this.quill.editor.disable(flag);
 	},
 
 	setContents: function(content) {
@@ -45528,7 +45582,7 @@ var QuillView = module.exports = View.extend({
 			data = {
 				at: '@',
 				data: data,
-				insert_tpl: '<span class="atref" data-user="${name}">${atwho-data-value}</span>'
+				insert_tpl: '<span data-user="${name}">${atwho-data-value}</span>'
 			};
 		}
 

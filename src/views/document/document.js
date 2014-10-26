@@ -19,7 +19,8 @@ var DocumentView = module.exports = View.extend({
 		'click .description .cancel':         'cancelDescription',
 		'focus .comments textarea.pseudo':    'showCommentEditor',
 		'click .comments .post.button':       'postComment',
-		'click .comments .cancel.button':     'cancelComment'
+		'click .comments .cancel.button':     'cancelComment',
+		'click .comments .load-more':         'loadMoreComments'
 	},
 
 	initialize: function(document) {
@@ -61,9 +62,10 @@ var DocumentView = module.exports = View.extend({
 			this.atwho(self.commentUsernameAtList);
 		});
 
-		this.$description  = this.$('.description');
-		this.$comments     = this.$('section.comments');
-		this.$commentList  = this.$('section.comments ol');
+		this.$description     = this.$('.description');
+		this.$comments        = this.$('section.comments');
+		this.$commentList     = this.$('section.comments ol');
+		this.$loadMoreButton  = this.$('section.comments .load-more');
 
 		this.bindEvents();
 	},
@@ -129,6 +131,8 @@ var DocumentView = module.exports = View.extend({
 		var view = new CommentView(opts.comment);
 		view.$elem.appendTo($li);
 		view.draw({ animate: opts.animate });
+
+		this.commentCount++;
 	},
 
 	drawComments: function(comments) {
@@ -201,6 +205,37 @@ var DocumentView = module.exports = View.extend({
 
 		this.commentBox.setHTML('<div></div>');
 		this.hideCommentEditor();
+	},
+
+	loadMoreComments: function(evt) {
+		if (evt) {
+			evt.preventDefault();
+		}
+
+		var self = this;
+
+		this.$loadMoreButton.disable(true);
+
+		this.document.findComments({
+			populate: 'author',
+			sort: '-created',
+			offset: this.commentCount
+		})
+			.then(
+				function(comments) {
+					self.$loadMoreButton.disable(false);
+					
+					if (! comments.len()) {
+						self.$loadMoreButton.remove();
+					}
+
+					self.drawComments(comments);
+				},
+				function(res) {
+					self.$loadMoreButton.disable(false);
+					announce.show('alert', res.body.message || res.body);
+				}
+			);
 	}
 
 });

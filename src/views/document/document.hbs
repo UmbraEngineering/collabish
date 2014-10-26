@@ -1,5 +1,5 @@
 <header>
-	<h1>{{ document.name }} (<a href="">read</a>)</h1>
+	<h1>{{ document.name }} (<a href="/#document/{{ document._id }}/read">read</a>)</h1>
 </header>
 <main class="row">
 	<div class="small-12 medium-9 columns">
@@ -67,7 +67,9 @@
 			{{#if document.history.length}}
 			<dl>
 				{{#each recentCommits}}
-				<dt>{{fromNow this.created}}</dt>
+				<dt>{{fromNow this.created}}
+					(<a href="/#document/{{ ../document._id }}/read/{{ this._id }}">read</a>)
+				</dt>
 				<dd>
 					{{ this.message }}
 				</dd>
@@ -87,5 +89,6 @@
 	<ol>
 		{{!-- Comments --}}
 	</ol>
+	<button class="load-more action expand">Load More Comments</button>
 </section>
 {{/if}}

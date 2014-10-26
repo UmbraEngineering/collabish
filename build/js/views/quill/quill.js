@@ -55,6 +55,9 @@ var QuillView = module.exports = View.extend({
 			styles: {
 				'body': {
 					'font-size': '16px'
+				},
+				'[data-user] + span': {
+					'display': 'none'
 				}
 			},
 			modules: {
@@ -75,6 +78,10 @@ var QuillView = module.exports = View.extend({
 		}
 
 		this.emit('ready');
+	},
+
+	disable: function(flag) {
+		this.quill.editor.disable(flag);
 	},
 
 	setContents: function(content) {
@@ -110,7 +117,7 @@ var QuillView = module.exports = View.extend({
 			data = {
 				at: '@',
 				data: data,
-				insert_tpl: '<span class="atref" data-user="${name}">${atwho-data-value}</span>'
+				insert_tpl: '<span data-user="${name}">${atwho-data-value}</span>'
 			};
 		}
 
