@@ -181,6 +181,8 @@ var DocumentView = module.exports = View.extend({
 		var self = this;
 		var content = this.commentBox.getHTML();
 
+		this.commentBox.disable(true);
+
 		this.document.postComment(content)
 			.then(
 				function(comment) {
@@ -195,6 +197,7 @@ var DocumentView = module.exports = View.extend({
 					});
 				},
 				function(res) {
+					self.commentBox.disable(false);
 					announce.show('alert', (res && res.body && res.body.message) || res);
 				}
 			);
@@ -226,7 +229,7 @@ var DocumentView = module.exports = View.extend({
 			.then(
 				function(comments) {
 					self.$loadMoreButton.disable(false);
-					
+
 					if (! comments.len()) {
 						self.$loadMoreButton.remove();
 					}

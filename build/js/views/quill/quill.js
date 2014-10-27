@@ -81,7 +81,8 @@ var QuillView = module.exports = View.extend({
 	},
 
 	disable: function(flag) {
-		this.quill.editor.disable(flag);
+		var func = (flag === false) ? 'enable' : 'disable';
+		this.quill.editor[func]();
 	},
 
 	setContents: function(content) {
