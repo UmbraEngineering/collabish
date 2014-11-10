@@ -115,7 +115,8 @@ function program1(depth0,data) {
     + "\" rel=\"author\">"
     + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.comment)),stack1 == null || stack1 === false ? stack1 : stack1.author)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
     + "</a>\n	<main>";
-  stack1 = ((stack1 = ((stack1 = (depth0 && depth0.comment)),stack1 == null || stack1 === false ? stack1 : stack1.content)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1);
+  if (helper = helpers.content) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.content); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
   if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "</main>\n	<footer>\n		<span class=\"posted\">Posted: "
     + escapeExpression((helper = helpers.fromNow || (depth0 && depth0.fromNow),options={hash:{},data:data},helper ? helper.call(depth0, ((stack1 = (depth0 && depth0.comment)),stack1 == null || stack1 === false ? stack1 : stack1.created), options) : helperMissing.call(depth0, "fromNow", ((stack1 = (depth0 && depth0.comment)),stack1 == null || stack1 === false ? stack1 : stack1.created), options)))
@@ -377,9 +378,18 @@ function program9(depth0,data) {
 this["exports"]["views/document/read/read.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
-  var buffer = "";
+  var buffer = "", stack1, helper, functionType="function", escapeExpression=this.escapeExpression;
 
 
+  buffer += "<header>\n	<h1>"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.name)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + " (<a href=\"/#document/"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1._id)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\">overview</a>)</h1>\n</header>\n<main class=\"row\">\n	<div class=\"small-12 columns\">\n		<div class=\"contents panel\">\n			";
+  if (helper = helpers.contents) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.contents); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n		</div>\n	</div>\n</main>";
   return buffer;
   });
 

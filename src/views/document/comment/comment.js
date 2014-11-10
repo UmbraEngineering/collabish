@@ -33,6 +33,7 @@ var CommentView = module.exports = View.extend({
 		}
 
 		this.$elem.html(this.render({
+			content: this.comment.render(),
 			comment: this.comment.serialize({ deep: true }),
 			gravatarHash: this.author.gravatarHash(),
 			isAuthor: this.author.is(auth.user)

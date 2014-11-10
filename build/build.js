@@ -916,6 +916,60 @@ module.exports = function(s) {
 };
  
  }; /* ==  End source for module /common/md5/index.js  == */ return module; }());;
+;require._modules["/common/quill-atref/index.js"] = (function() { var __filename = "/common/quill-atref/index.js"; var __dirname = "/common/quill-atref"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /common/quill-atref/index.js  == */ var __module__ = function() { 
+ 
+// // 
+// // QuillJS module for @user atref support
+// // 
+
+// var Quill  = require('quill');
+// var merge  = require('merge-recursive');
+
+// Atref.defaults = {
+// 	data: [ ]
+// };
+
+// function Atref(quill, options) {
+// 	this.quill = quill;
+// 	this.options = merge({ }, Atref.defaults, options);
+// 	this.options.data = this.options.data.slice();
+
+// 	this.preEvent = this.preEvent.bind(this);
+
+// 	this.quill.addFormat('atref', {
+// 		tag: 'SPAN',
+// 		class: 'atref'
+// 	});
+
+// 	this.quill.on(Quill.events.PRE_EVENT, this.preEvent);
+// }
+
+// Atref.prototype.preEvent = function(eventName, delta, origin) {
+// 	if (eventName === Quill.events.TEXT_CHANGE && origin === 'user') {
+// 		atrefDelta = new Delta();
+// 		atrefFormat = {
+// 			atref: _this.options.authorId
+// 		};
+// 		_.each(delta.ops, function(op) {
+// 			if (op["delete"] != null) {
+// 				return;
+// 			}
+// 			if ((op.insert != null) || ((op.retain != null) && (op.attributes != null))) {
+// 				op.attributes || (op.attributes = {});
+// 				op.attributes.author = _this.options.authorId;
+// 				return authorDelta.retain(op.retain || op.insert.length || 1, authorFormat);
+// 			} else {
+// 				return authorDelta.retain(op.retain);
+// 			}
+// 		});
+// 		return _this.quill.updateContents(authorDelta, Quill.sources.SILENT);
+// 	}
+// };
+
+// Quill.registerModule('atref', Atref);
+ 
+ }; /* ==  End source for module /common/quill-atref/index.js  == */ return module; }());;
 ;require._modules["/common/spin/index.js"] = (function() { var __filename = "/common/spin/index.js"; var __dirname = "/common/spin"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /common/spin/index.js  == */ var __module__ = function() { 
  
@@ -27870,6 +27924,7 @@ exports.random = function() {
 var Model     = require('cloak/model');
 var User      = require('models/user');
 var Document  = require('models/document');
+var renderer  = require('quilljs-renderer');
 
 var Comment = module.exports = Model.extend({
 
@@ -27881,6 +27936,16 @@ var Comment = module.exports = Model.extend({
 		content: null,
 		created: null,
 		updated: null
+	},
+
+// --------------------------------------------------------
+
+	render: function() {
+		var comment = new renderer.Document(this.get('content'));
+
+		return comment.convertTo('html', {
+			line: '<p class="line" style="{lineStyle}">{content}</p>'
+		});
 	}
 
 });
@@ -27893,6 +27958,7 @@ var Model     = require('cloak/model');
 var Request   = require('cloak/model-stores/dagger').Request;
 var User      = require('models/user');
 var Comment   = require('models/comment');
+var renderer  = require('quilljs-renderer');
 
 var Document = module.exports = Model.extend({
 
@@ -27988,6 +28054,16 @@ var Document = module.exports = Model.extend({
 			.then(function(res) {
 				return new Comment(res.body);
 			});
+	},
+
+	// 
+	// 
+	// 
+	render: function() {
+		var content = this.get('current').composed;
+		return (new renderer.Document(content)).convertTo('html', {
+			line: '<p class="line" style="{lineStyle}">{content}</p>'
+		});
 	}
 
 });
@@ -28002,6 +28078,20 @@ Document.find = function(data) {
 	return Request.send('GET', '/documents', data)
 		.then(function(res) {
 			return (new Document.Collection()).add(res.body);
+		});
+};
+
+// 
+// Find a specific document by ID
+// 
+// @param {id} the document id
+// @param {data} addition query params
+// @return promise
+// 
+Document.findById = function(id, data) {
+	return Request.send('GET', '/documents/' + id, data)
+		.then(function(res) {
+			return Document.create(res.body);
 		});
 };
 
@@ -28311,20 +28401,23 @@ var DashboardRouter = module.exports = Router.extend({
 ;require._modules["/routers/document.js"] = (function() { var __filename = "/routers/document.js"; var __dirname = "/routers"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /routers/document.js  == */ var __module__ = function() { 
  
-var purl          = require('purl');
-var cloak         = require('cloak');
-var Router        = require('cloak/router');
-var auth          = require('common/auth');
-var User          = require('models/user');
-var DocumentView  = require('views/document/document');
-var Request       = require('cloak/model-stores/dagger').Request;
+var purl              = require('purl');
+var cloak             = require('cloak');
+var Router            = require('cloak/router');
+var auth              = require('common/auth');
+var User              = require('models/user');
+var DocumentView      = require('views/document/document');
+var DocumentReadView  = require('views/document/read/read');
+var Request           = require('cloak/model-stores/dagger').Request;
 
 var Document = require('models/document');
 
 var DocumentRouter = module.exports = Router.extend({
 
 	routes: {
-		'/document/:id':       'overview',
+		'/document/:id':                 'overview',
+		'/document/:id/read':            'readDocument',
+		'/document/:id/read/:commit':    'readDocument'
 	},
 
 	initialize: function() {
@@ -28369,6 +28462,39 @@ var DocumentRouter = module.exports = Router.extend({
 			.catch(function(err) {
 				console.error(err.stack || err);
 			});
+	},
+
+// --------------------------------------------------------
+	
+	// 
+	// Document reading screen
+	// 
+	readDocument: function(params) {
+		document.title = 'Read Document / Collabish';
+
+		if (! auth.user) {
+			this.redirectTo('/');
+			return;
+		}
+
+		var view = new DocumentReadView();
+		var renderPromise = this.parent.renderView(view);
+		var documentQuery = Document.findById(params.id, {populate: 'owner'});
+
+		Promise.all([ documentQuery, renderPromise ])
+			.then(function(results) {
+				view.document = results[0];
+				view.drawDocument();
+			})
+			.catch(function(err) {
+				console.error(err.stack || err);
+			});
+
+		if (params.commit) {
+			// TODO
+		} else {
+			// 
+		}
 	}
 
 }); 
@@ -28799,6 +28925,9 @@ exports.run = function(opts) {
 	require('common/icons');
 	require('common/disable');
 
+	// Load the delta -> html renderer
+	require('quilljs-renderer').loadFormat('html');
+
 	// Load in the auth module and router
 	var auth = require('common/auth');
 	var MainRouter = require('routers/main');
@@ -28964,7 +29093,8 @@ function program1(depth0,data) {
     + "\" rel=\"author\">"
     + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.comment)),stack1 == null || stack1 === false ? stack1 : stack1.author)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
     + "</a>\n	<main>";
-  stack1 = ((stack1 = ((stack1 = (depth0 && depth0.comment)),stack1 == null || stack1 === false ? stack1 : stack1.content)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1);
+  if (helper = helpers.content) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.content); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
   if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "</main>\n	<footer>\n		<span class=\"posted\">Posted: "
     + escapeExpression((helper = helpers.fromNow || (depth0 && depth0.fromNow),options={hash:{},data:data},helper ? helper.call(depth0, ((stack1 = (depth0 && depth0.comment)),stack1 == null || stack1 === false ? stack1 : stack1.created), options) : helperMissing.call(depth0, "fromNow", ((stack1 = (depth0 && depth0.comment)),stack1 == null || stack1 === false ? stack1 : stack1.created), options)))
@@ -29226,9 +29356,18 @@ function program9(depth0,data) {
 this["exports"]["views/document/read/read.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
-  var buffer = "";
+  var buffer = "", stack1, helper, functionType="function", escapeExpression=this.escapeExpression;
 
 
+  buffer += "<header>\n	<h1>"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.name)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + " (<a href=\"/#document/"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1._id)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\">overview</a>)</h1>\n</header>\n<main class=\"row\">\n	<div class=\"small-12 columns\">\n		<div class=\"contents panel\">\n			";
+  if (helper = helpers.contents) { stack1 = helper.call(depth0, {hash:{},data:data}); }
+  else { helper = (depth0 && depth0.contents); stack1 = typeof helper === functionType ? helper.call(depth0, {hash:{},data:data}) : helper; }
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n		</div>\n	</div>\n</main>";
   return buffer;
   });
 
@@ -32062,6 +32201,82 @@ delete window.jQuery;
 
 })(jQuery || this.jQuery || window.jQuery); 
  }; /* ==  End source for module /vendor/jquery.hotkeys/jquery.hotkeys.js  == */ return module; }());;
+;require._modules["/vendor/merge-recursive/index.js"] = (function() { var __filename = "/vendor/merge-recursive/index.js"; var __dirname = "/vendor/merge-recursive"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /vendor/merge-recursive/index.js  == */ var __module__ = function() { 
+ 
+// Flat merge
+module.exports = exports = function(host) {
+	var donors = slice(arguments, 1);
+	donors.forEach(function(donor) {
+		Object.keys(donor).forEach(function(key) {
+			host[key] = donor[key];
+		});
+	});
+	return host;
+};
+
+// Flat, selective merge
+exports.selective = function(keys, host) {
+	var donors = slice(arguments, 1);
+	donors.forEach(function(donor) {
+		keys.forEach(function(key) {
+			host[key] = donor[key];
+		});
+	});
+	return host;
+};
+
+// Recursive merge
+exports.recursive = function(host) {
+	var donors = slice(arguments, 1);
+	donors.forEach(function(donor) {
+		Object.keys(donor).forEach(recurser(host, donor));
+	});
+	return host;
+};
+
+// Recursive, selective merge
+exports.selective.recursive = function(keys, host) {
+	var donors = slice(arguments, 1);
+	donors.forEach(function(donor) {
+		keys.forEach(recurser(host, donor));
+	});
+	return host;
+};
+
+// Helpers
+
+function slice(arr, i) {
+	return Array.prototype.slice.call(arr, i);
+}
+
+function isObj(value) {
+	return !! (typeof value === 'object' && value);
+}
+
+function getType(value) {
+	return Object.prototype.toString.call(value).slice(8, -1).toLowerCase();
+}
+
+function recurser(host, donor) {
+	return function(key) {
+		if (isObj(donor[key])) {
+			if (isObj(host[key])) {
+				exports.recursive(host[key], donor[key]);
+			} else {
+				var base = Array.isArray(donor[key]) ? [ ] : { };
+				host[key] = exports.recursive(base, donor[key]);
+			}
+		} else {
+			host[key] = donor[key];
+		}
+	};
+}
+
+/* End of file index.js */
+/* Location: ./lib/index.js */
+ 
+ }; /* ==  End source for module /vendor/merge-recursive/index.js  == */ return module; }());;
 ;require._modules["/vendor/moment/index.js"] = (function() { var __filename = "/vendor/moment/index.js"; var __dirname = "/vendor/moment"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /vendor/moment/index.js  == */ var __module__ = function() { 
  //! moment.js
@@ -44185,6 +44400,426 @@ module.exports = SnowTheme;
 (19)
 }); 
  }; /* ==  End source for module /vendor/quill/index.js  == */ return module; }());;
+;require._modules["/vendor/quilljs-renderer/index.js"] = (function() { var __filename = "/vendor/quilljs-renderer/index.js"; var __dirname = "/vendor/quilljs-renderer"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /vendor/quilljs-renderer/index.js  == */ var __module__ = function() { 
+ module.exports = require('./lib/document'); 
+ }; /* ==  End source for module /vendor/quilljs-renderer/index.js  == */ return module; }());;
+;require._modules["/vendor/quilljs-renderer/lib/document.js"] = (function() { var __filename = "/vendor/quilljs-renderer/lib/document.js"; var __dirname = "/vendor/quilljs-renderer/lib"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /vendor/quilljs-renderer/lib/document.js  == */ var __module__ = function() { 
+ 
+var merge = require('merge-recursive');
+
+// 
+// This is where we store the various formats for output
+// 
+var formats = { };
+
+// 
+// Define a new output format
+// 
+// @param {type} optional, the type of processing function ("line", "op", or "raw")
+// @param {name} the name of the format
+// @param {defaults} defaults options
+// @param {func} the processing function
+// @return void
+// 
+exports.defineFormat = function(type, name, defaults, func) {
+	formats[name] = {
+		type: type,
+		func: func,
+		defaults: defaults
+	};
+};
+
+// 
+// Load a built-in format
+// 
+// @param {format} the format to load
+// @return void
+// 
+exports.loadFormat = function(format) {
+	require('./formats/' + format);
+};
+
+// 
+// The main constructor
+// 
+// @param {delta} the delta to be rendered
+// 
+var Document = exports.Document = function(delta) {
+	if (delta.ops) {
+		delta = delta.ops;
+	}
+	this.delta = delta || [ ];
+};
+
+// 
+// Convert the document into the given format
+// 
+// @param {format} the format to convert to
+// @param {options} formatting options
+// @return string
+// 
+Document.prototype.convertTo = function(format, options) {
+	format = formats[format];
+
+	if (! format) {
+		throw new Error('Unknown conversion format "' + format + '"');
+	}
+
+	options = merge.recursive({ }, format.defaults || { }, options || { });
+
+	switch (format.type) {
+		case 'line':
+			return lineTypeConvert(this.delta, format.func, options);
+		case 'op':
+			return this.delta.map(function(op, index) {
+				return format.func(op, options, index);
+			});
+		case 'raw':
+			return format.func(this.delta, options);
+		default:
+			throw new Error('Unknown conversion format type "' + format.type + '"');
+	}
+};
+
+// 
+// Perform a line type conversion
+// 
+// @param {delta} the document delta
+// @param {func} the formatting function
+// @param {options} formatting options
+// @return string
+// 
+function lineTypeConvert(delta, func, options) {
+	var op, line, chunks;
+	var ops = delta.slice();
+	var content = '';
+	var lines = [ ];
+	
+	newline();
+
+	while (ops.length) {
+		op = ops.shift();
+
+		// This is an EOL marker
+		if (op.insert === '\n') {
+			line.attributes = op.attributes;
+			newline();
+		}
+
+		// If this op is an embed, it belongs on its own line
+		else if (typeof op.insert === 'number') {
+			// Create a new line for this if we're currently in the middle of line
+			if (line.ops.length) {
+				newline();
+			}
+			line.ops.push(op);
+			newline();
+		}
+
+		// If this op contains a newline, we will need to break it up
+		else if (op.insert.indexOf('\n') >= 0) {
+			chunks = op.insert.split('\n');
+			chunks.forEach(chunkToOp);
+		}
+
+		// Otherwise, this is just an inline chunk
+		else {
+			line.ops.push(op);
+		}
+	}
+
+	function newline() {
+		lines.push(
+			line = {ops: [ ], attributes: { }}
+		);
+	}
+
+	function isLastChunk(index) {
+		return ((chunks.length - 1) === index);
+	}
+
+	function chunkToOp(chunk, index) {
+		line.ops.push({
+			insert: chunk, attributes: op.attributes
+		});
+		if (! isLastChunk(index)) {
+			newline();
+		}
+	}
+
+	lines.forEach(function(line, index) {
+		content += func(line, options, index);
+	});
+
+	return content;
+}
+ 
+ }; /* ==  End source for module /vendor/quilljs-renderer/lib/document.js  == */ return module; }());;
+;require._modules["/vendor/quilljs-renderer/lib/formats/html.js"] = (function() { var __filename = "/vendor/quilljs-renderer/lib/formats/html.js"; var __dirname = "/vendor/quilljs-renderer/lib/formats"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /vendor/quilljs-renderer/lib/formats/html.js  == */ var __module__ = function() { 
+ 
+var doc     = require('../document');
+var format  = require('stringformat');
+var merge   = require('merge-recursive');
+
+var defaults = {
+	line: '<div id="line-{lineNumber}" style="{lineStyle}">{content}</div>',
+	text: '<span style="{style}">{content}</span>',
+	link: '<a href="{link}" style="{style}">{content}</a>',
+	styleType: 'html',
+	styleTags: {
+		color: '<span style="color:{color}">{content}</span>',
+		bold: '<b>{content}</b>',
+		italic: '<i>{content}</i>',
+		underline: '<u>{content}</u>',
+		strikethrough: '<s>{content}</s>',
+		font: '<span style="font-family:{font}">{content}</span>'
+	},
+	embed: {
+		1: '<img src="{image}" alt="{alt}" />'
+	},
+	attributes: {
+		// 
+	}
+};
+
+doc.defineFormat('line', 'html', defaults, processLine);
+
+// 
+// Process a single line into HTML
+// 
+// @param {line} the line object, containing ops and attributes
+// @param {options} the options given
+// @param {index} the line index (zero-based)
+// @return string
+// 
+function processLine(line, options, index) {
+	var attrs = Object.keys(line.attributes || { });
+
+	return format(options.line, {
+		lineNumber: index + 1,
+		lineStyle: attrs.map(attributeMap).join(''),
+		content: line.ops.map(contentMap).join('')
+	});
+
+	// 
+	// Builds the content of the line
+	// 
+	function contentMap(op) {
+		if (typeof op.insert === 'number') {
+			return format(options.embed[op.insert] || '', op.attributes || { });
+		}
+
+		if (! op.attributes) {
+			return op.insert;
+		}
+
+		switch (options.styleType) {
+			case 'css':
+				return drawTextCss(op.insert, op.attributes);
+			case 'html':
+				return drawTextHtml(op.insert, op.attributes);
+		}
+	}
+
+	// 
+	// Builds the style string containing line-level styles (like alignment)
+	// 
+	function attributeMap(attr) {
+		var value = line.attributes[attr];
+
+		switch (attr) {
+			case 'align':
+				return cssProp('text-align', value);
+			break;
+		}
+	}
+
+	// 
+	// Render a section of text using style HTML tags like <b> and <i>
+	// 
+	function drawTextHtml(content, attrs) {
+		Object.keys(attrs).forEach(function(attr) {
+			var node = {
+				template: null,
+				data: merge({ }, attrs, { content: content, style: '' })
+			};
+			
+			switch (attr) {
+				case 'link':
+					node.template = options.link;
+				break;
+				case 'color':
+				case 'bold':
+				case 'italic':
+				case 'underline':
+				case 'strikethrough':
+				case 'font':
+					node.template = options.styleTags[attr];
+				break;
+				default:
+					if (options.attributes) {
+						attr = options.attributes[attr];
+						if (attr) {
+							attr(node, options);
+						}
+					}
+				break;
+			}
+
+			content = format(node.template, node.data);
+		});
+
+		return content;
+	}
+
+	// 
+	// Render a section of text using CSS for styling
+	// 
+	function drawTextCss(content, attrs) {
+		var node = {
+			template: attrs.link ? options.link : options.text,
+			data: merge({ }, attrs || { }, { content: content, style: '' })
+		};
+
+		Object.keys(attrs).forEach(function(attr) {
+			switch (attr) {
+				case 'color':
+					node.data.style += cssProp('color', attrs.color);
+				break;
+				case 'bold':
+					node.data.style += cssProp('font-weight', 'bold');
+				break;
+				case 'italic':
+					node.data.style += cssProp('font-style', 'italic');
+				break;
+				case 'underline':
+					node.data.style += cssProp('text-decoration', 'underline');
+				break;
+				case 'strikethrough':
+					node.data.style += cssProp('text-decoration', 'line-through');
+				break;
+				case 'font':
+					node.data.style += cssProp('font-family', attrs.font);
+				break;
+				default:
+					if (options.attributes) {
+						attr = options.attributes[attr];
+						if (attr) {
+							attr(node, options);
+						}
+					}
+				break;
+			}
+		});
+
+		return format(node.template, node.data);
+	}
+}
+
+// 
+// Returns a CSS formatted string
+// 
+// @param {key} the css attribute
+// @param {value} the css attribute value
+// @return string
+// 
+function cssProp(key, value) {
+	return key + ':' + value + ';';
+}
+ 
+ }; /* ==  End source for module /vendor/quilljs-renderer/lib/formats/html.js  == */ return module; }());;
+;require._modules["/vendor/stringformat/index.js"] = (function() { var __filename = "/vendor/stringformat/index.js"; var __dirname = "/vendor/stringformat"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /vendor/stringformat/index.js  == */ var __module__ = function() { 
+ 
+require('./stringformat');
+
+module.exports = window.stringformat;
+
+window.stringformat = void(0);
+delete window.stringformat;
+ 
+ }; /* ==  End source for module /vendor/stringformat/index.js  == */ return module; }());;
+;require._modules["/vendor/stringformat/stringformat.js"] = (function() { var __filename = "/vendor/stringformat/stringformat.js"; var __dirname = "/vendor/stringformat"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /vendor/stringformat/stringformat.js  == */ var __module__ = function() { 
+ (function(g) {
+	var FORMAT_RE = /({+)([^:{\|}]+)(\|([^:}]+))?(:(-?\d*)([ij]?))?(}+)/g,
+		defined = function(x) { return typeof x !== 'undefined' },
+		format = function() {
+			var args = arguments,
+				str = this
+
+			return this.replace(FORMAT_RE, function() {
+				var m = arguments,
+					match = m[0],
+					braces_in = m[1],
+					id = m[2],
+					// id not an int? named!
+					named = (id % 1 !== 0),
+					// if no property chain exist, get the name instead
+					property_chain = m[4] || (named && id),
+					padding = m[6],
+					modifier = m[7],
+					braces_out = m[8],
+					property,
+					obj = {},
+					arg = named ? args[0] : args[id],
+					res = []
+
+				// escaped?
+				if (braces_in.length > 1 && braces_out.length > 1)
+					return match.slice(1, match.length - 1)
+
+				// visit the properties
+				property_chain = property_chain && property_chain.split('.') || []
+				while (defined(property = property_chain.shift()) && defined(arg)) {
+					// evaluate any intermediate function
+					if (typeof arg === 'function') arg = arg.apply(obj, [])
+
+					obj = arg
+					arg = arg[property]
+				}
+
+				// Evaluate the leaf function
+				if (typeof arg === 'function') arg = arg.apply(obj, [])
+
+				// Integer modifier
+				if ('i' === modifier) arg = Math.round(arg)
+
+				// JSON modifier
+				else if ('j' === modifier) arg = JSON.stringify(arg)
+
+				// Nothing found :-(
+				if (!defined(arg)) return match
+
+				// Apply padding and return
+				arg = String(arg)
+				if (padding < 0) {
+					res.push(arg)
+					padding = 1 - padding
+				}
+				if (padding > arg.length) res.length = padding - arg.length
+				if (!defined(res[0])) res[res.length] = arg
+				return res.join(" ")
+			})
+		},
+		main = function() {
+			// Call as a method
+			return format.apply(arguments[0], Array.prototype.slice.call(arguments, 1))
+		}
+
+	// Install as a method
+	main.extendString = function(methodName) {
+		String.prototype[methodName || 'format'] = format
+	}
+
+	// Export as window.stringformat (browser) or as a module (Node)
+	g.top ? g.stringformat = main : module.exports = main
+})(this)
+ 
+ }; /* ==  End source for module /vendor/stringformat/stringformat.js  == */ return module; }());;
 ;require._modules["/views/create-document/create-document.js"] = (function() { var __filename = "/views/create-document/create-document.js"; var __dirname = "/views/create-document"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/create-document/create-document.js  == */ var __module__ = function() { 
  
@@ -44444,6 +45079,7 @@ var CommentView = module.exports = View.extend({
 		}
 
 		this.$elem.html(this.render({
+			content: this.comment.render(),
 			comment: this.comment.serialize({ deep: true }),
 			gravatarHash: this.author.gravatarHash(),
 			isAuthor: this.author.is(auth.user)
@@ -44527,6 +45163,9 @@ var announce     = require('common/announce');
 var StarsView    = require('views/document/stars/stars');
 var QuillEditor  = require('views/quill/quill');
 var CommentView  = require('views/document/comment/comment');
+var renderer     = require('quilljs-renderer');
+
+renderer.loadFormat('html');
 
 var DocumentView = module.exports = View.extend({
 
@@ -44667,6 +45306,7 @@ var DocumentView = module.exports = View.extend({
 			} else {
 				this.$comments.append('<p class="no-results">There are no comments</p>');
 			}
+			this.$loadMoreButton.remove();
 			return;
 		}
 
@@ -44697,7 +45337,7 @@ var DocumentView = module.exports = View.extend({
 		}
 
 		var self = this;
-		var content = this.commentBox.getHTML();
+		var content = this.commentBox.getContents().ops;
 
 		this.commentBox.disable(true);
 
@@ -44827,7 +45467,8 @@ var ReadView = module.exports = View.extend({
 
 	drawDocument: function() {
 		this.$elem.html(this.render({
-			document: this.document.serialize({ deep: true })
+			document: this.document.serialize({ deep: true }),
+			contents: this.document.render()
 		}));
 	}
 

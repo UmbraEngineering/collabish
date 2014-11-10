@@ -24,7 +24,8 @@ var ReadView = module.exports = View.extend({
 
 	drawDocument: function() {
 		this.$elem.html(this.render({
-			document: this.document.serialize({ deep: true })
+			document: this.document.serialize({ deep: true }),
+			contents: this.document.render()
 		}));
 	}
 

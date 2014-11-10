@@ -5,6 +5,7 @@ var Model     = require('cloak/model');
 var Request   = require('cloak/model-stores/dagger').Request;
 var User      = require('models/user');
 var Comment   = require('models/comment');
+var renderer  = require('quilljs-renderer');
 
 var Document = module.exports = Model.extend({
 
@@ -100,6 +101,16 @@ var Document = module.exports = Model.extend({
 			.then(function(res) {
 				return new Comment(res.body);
 			});
+	},
+
+	// 
+	// 
+	// 
+	render: function() {
+		var content = this.get('current').composed;
+		return (new renderer.Document(content)).convertTo('html', {
+			line: '<p class="line" style="{lineStyle}">{content}</p>'
+		});
 	}
 
 });
@@ -114,6 +125,20 @@ Document.find = function(data) {
 	return Request.send('GET', '/documents', data)
 		.then(function(res) {
 			return (new Document.Collection()).add(res.body);
+		});
+};
+
+// 
+// Find a specific document by ID
+// 
+// @param {id} the document id
+// @param {data} addition query params
+// @return promise
+// 
+Document.findById = function(id, data) {
+	return Request.send('GET', '/documents/' + id, data)
+		.then(function(res) {
+			return Document.create(res.body);
 		});
 };
 

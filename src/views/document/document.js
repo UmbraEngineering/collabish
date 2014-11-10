@@ -7,6 +7,9 @@ var announce     = require('common/announce');
 var StarsView    = require('views/document/stars/stars');
 var QuillEditor  = require('views/quill/quill');
 var CommentView  = require('views/document/comment/comment');
+var renderer     = require('quilljs-renderer');
+
+renderer.loadFormat('html');
 
 var DocumentView = module.exports = View.extend({
 
@@ -147,6 +150,7 @@ var DocumentView = module.exports = View.extend({
 			} else {
 				this.$comments.append('<p class="no-results">There are no comments</p>');
 			}
+			this.$loadMoreButton.remove();
 			return;
 		}
 
@@ -177,7 +181,7 @@ var DocumentView = module.exports = View.extend({
 		}
 
 		var self = this;
-		var content = this.commentBox.getHTML();
+		var content = this.commentBox.getContents().ops;
 
 		this.commentBox.disable(true);
 

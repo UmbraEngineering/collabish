@@ -8670,6 +8670,10 @@ article.comment main {
   /**/
 }
 
+article.comment main p.line {
+  margin: 0;
+}
+
 article.comment main .atref {
   color: #666;
   font-size: .9em;
@@ -8915,6 +8919,53 @@ section.document-overview .stars {
 @media only screen and (max-width: 40em) {
   section.document-overview h3 {
     font-size: 1.2rem;
+  }
+}
+
+section.read > .spinner {
+  width: 10rem;
+  margin: 10rem auto;
+}
+
+section.read header {
+  margin: 3rem 2rem 2rem;
+}
+
+section.read header h1 {
+  text-align: center;
+}
+
+section.read .panel {
+  box-shadow: 4px 4px 4px rgba(0,0,0,0.5);
+}
+
+@media only screen and (max-width: 40em) {
+  section.read .contents.panel {
+    height: 200px;
+  }
+}
+
+@media only screen and (min-width:40.063em) and (max-width:64em) {
+  section.read .contents.panel {
+    height: 400px;
+  }
+}
+
+@media only screen and (min-width:64.063em) {
+  section.read .contents.panel {
+    height: 550px;
+  }
+}
+
+@media only screen and (min-width:90.063em) {
+  section.read .contents.panel {
+    height: 700px;
+  }
+}
+
+@media only screen and (min-width:120.063em) {
+  section.read .contents.panel {
+    height: 900px;
   }
 }
 

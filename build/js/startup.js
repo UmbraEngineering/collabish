@@ -37,6 +37,9 @@ exports.run = function(opts) {
 	require('common/icons');
 	require('common/disable');
 
+	// Load the delta -> html renderer
+	require('quilljs-renderer').loadFormat('html');
+
 	// Load in the auth module and router
 	var auth = require('common/auth');
 	var MainRouter = require('routers/main');
