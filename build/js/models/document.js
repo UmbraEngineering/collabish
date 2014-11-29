@@ -6,6 +6,7 @@ var Request   = require('cloak/model-stores/dagger').Request;
 var User      = require('models/user');
 var Comment   = require('models/comment');
 var renderer  = require('quilljs-renderer');
+var Delta     = require('rich-text').Delta;
 
 var Document = module.exports = Model.extend({
 
@@ -106,11 +107,32 @@ var Document = module.exports = Model.extend({
 	// 
 	// 
 	// 
-	render: function() {
-		var content = this.get('current').composed;
+	render: function(commit) {
+		var content = commit ? this.getCommitContent(commit) : this.get('current').composed;
+		if (! content) {
+			return '';
+		}
 		return (new renderer.Document(content)).convertTo('html', {
 			line: '<p class="line" style="{lineStyle}">{content}</p>'
 		});
+	},
+
+	// 
+	// 
+	// 
+	getCommitContent: function(commit) {
+		var history = this.get('history');
+		var delta = new Delta(history[0].ops);
+		if (history[0]._id === commit) {
+			return delta.ops;
+		}
+		for (var i = 1, c = history.length; i < c; i++) {
+			delta.compose(new Delta(history[i].ops));
+			if (history[i]._id === commit) {
+				return delta.ops;
+			}
+		}
+		return null;
 	}
 
 });

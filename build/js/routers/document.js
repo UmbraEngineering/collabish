@@ -79,22 +79,16 @@ var DocumentRouter = module.exports = Router.extend({
 
 		var view = new DocumentReadView();
 		var renderPromise = this.parent.renderView(view);
-		var documentQuery = Document.findById(params.id, {populate: 'owner'});
+		var documentQuery = Document.findById(params.id, {populate: params.commit ? 'owner history' : 'owner'});
 
 		Promise.all([ documentQuery, renderPromise ])
 			.then(function(results) {
 				view.document = results[0];
-				view.drawDocument();
+				view.drawDocument(params.commit);
 			})
 			.catch(function(err) {
 				console.error(err.stack || err);
 			});
-
-		if (params.commit) {
-			// TODO
-		} else {
-			// 
-		}
 	}
 
 }); 

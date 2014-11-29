@@ -5739,6 +5739,623 @@ Request.defaultHeaders = [ ];
 }(typeof process !== 'undefined' && typeof process.title !== 'undefined' && typeof exports !== 'undefined' ? exports : window);
  
  }; /* ==  End source for module /lib/eventemitter2.js  == */ return module; }());;
+;require._modules["/lib/fast-diff/index.js"] = (function() { var __filename = "/lib/fast-diff/index.js"; var __dirname = "/lib/fast-diff"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /lib/fast-diff/index.js  == */ var __module__ = function() { 
+ /**
+ * This library modifies the diff-patch-match library by Neil Fraser
+ * by removing the patch and match functionality and certain advanced
+ * options in the diff function. The original license is as follows:
+ *
+ * ===
+ *
+ * Diff Match and Patch
+ *
+ * Copyright 2006 Google Inc.
+ * http://code.google.com/p/google-diff-match-patch/
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+/**
+ * The data structure representing a diff is an array of tuples:
+ * [[DIFF_DELETE, 'Hello'], [DIFF_INSERT, 'Goodbye'], [DIFF_EQUAL, ' world.']]
+ * which means: delete 'Hello', add 'Goodbye' and keep ' world.'
+ */
+var DIFF_DELETE = -1;
+var DIFF_INSERT = 1;
+var DIFF_EQUAL = 0;
+
+
+/**
+ * Find the differences between two texts.  Simplifies the problem by stripping
+ * any common prefix or suffix off the texts before diffing.
+ * @param {string} text1 Old string to be diffed.
+ * @param {string} text2 New string to be diffed.
+ * @return {Array} Array of diff tuples.
+ */
+function diff_main(text1, text2) {
+  // Check for equality (speedup).
+  if (text1 == text2) {
+    if (text1) {
+      return [[DIFF_EQUAL, text1]];
+    }
+    return [];
+  }
+
+  // Trim off common prefix (speedup).
+  var commonlength = diff_commonPrefix(text1, text2);
+  var commonprefix = text1.substring(0, commonlength);
+  text1 = text1.substring(commonlength);
+  text2 = text2.substring(commonlength);
+
+  // Trim off common suffix (speedup).
+  commonlength = diff_commonSuffix(text1, text2);
+  var commonsuffix = text1.substring(text1.length - commonlength);
+  text1 = text1.substring(0, text1.length - commonlength);
+  text2 = text2.substring(0, text2.length - commonlength);
+
+  // Compute the diff on the middle block.
+  var diffs = diff_compute_(text1, text2);
+
+  // Restore the prefix and suffix.
+  if (commonprefix) {
+    diffs.unshift([DIFF_EQUAL, commonprefix]);
+  }
+  if (commonsuffix) {
+    diffs.push([DIFF_EQUAL, commonsuffix]);
+  }
+  diff_cleanupMerge(diffs);
+  return diffs;
+};
+
+
+/**
+ * Find the differences between two texts.  Assumes that the texts do not
+ * have any common prefix or suffix.
+ * @param {string} text1 Old string to be diffed.
+ * @param {string} text2 New string to be diffed.
+ * @return {Array} Array of diff tuples.
+ */
+function diff_compute_(text1, text2) {
+  var diffs;
+
+  if (!text1) {
+    // Just add some text (speedup).
+    return [[DIFF_INSERT, text2]];
+  }
+
+  if (!text2) {
+    // Just delete some text (speedup).
+    return [[DIFF_DELETE, text1]];
+  }
+
+  var longtext = text1.length > text2.length ? text1 : text2;
+  var shorttext = text1.length > text2.length ? text2 : text1;
+  var i = longtext.indexOf(shorttext);
+  if (i != -1) {
+    // Shorter text is inside the longer text (speedup).
+    diffs = [[DIFF_INSERT, longtext.substring(0, i)],
+             [DIFF_EQUAL, shorttext],
+             [DIFF_INSERT, longtext.substring(i + shorttext.length)]];
+    // Swap insertions for deletions if diff is reversed.
+    if (text1.length > text2.length) {
+      diffs[0][0] = diffs[2][0] = DIFF_DELETE;
+    }
+    return diffs;
+  }
+
+  if (shorttext.length == 1) {
+    // Single character string.
+    // After the previous speedup, the character can't be an equality.
+    return [[DIFF_DELETE, text1], [DIFF_INSERT, text2]];
+  }
+
+  // Check to see if the problem can be split in two.
+  var hm = diff_halfMatch_(text1, text2);
+  if (hm) {
+    // A half-match was found, sort out the return data.
+    var text1_a = hm[0];
+    var text1_b = hm[1];
+    var text2_a = hm[2];
+    var text2_b = hm[3];
+    var mid_common = hm[4];
+    // Send both pairs off for separate processing.
+    var diffs_a = diff_main(text1_a, text2_a);
+    var diffs_b = diff_main(text1_b, text2_b);
+    // Merge the results.
+    return diffs_a.concat([[DIFF_EQUAL, mid_common]], diffs_b);
+  }
+
+  return diff_bisect_(text1, text2);
+};
+
+
+/**
+ * Find the 'middle snake' of a diff, split the problem in two
+ * and return the recursively constructed diff.
+ * See Myers 1986 paper: An O(ND) Difference Algorithm and Its Variations.
+ * @param {string} text1 Old string to be diffed.
+ * @param {string} text2 New string to be diffed.
+ * @return {Array} Array of diff tuples.
+ * @private
+ */
+function diff_bisect_(text1, text2) {
+  // Cache the text lengths to prevent multiple calls.
+  var text1_length = text1.length;
+  var text2_length = text2.length;
+  var max_d = Math.ceil((text1_length + text2_length) / 2);
+  var v_offset = max_d;
+  var v_length = 2 * max_d;
+  var v1 = new Array(v_length);
+  var v2 = new Array(v_length);
+  // Setting all elements to -1 is faster in Chrome & Firefox than mixing
+  // integers and undefined.
+  for (var x = 0; x < v_length; x++) {
+    v1[x] = -1;
+    v2[x] = -1;
+  }
+  v1[v_offset + 1] = 0;
+  v2[v_offset + 1] = 0;
+  var delta = text1_length - text2_length;
+  // If the total number of characters is odd, then the front path will collide
+  // with the reverse path.
+  var front = (delta % 2 != 0);
+  // Offsets for start and end of k loop.
+  // Prevents mapping of space beyond the grid.
+  var k1start = 0;
+  var k1end = 0;
+  var k2start = 0;
+  var k2end = 0;
+  for (var d = 0; d < max_d; d++) {
+    // Walk the front path one step.
+    for (var k1 = -d + k1start; k1 <= d - k1end; k1 += 2) {
+      var k1_offset = v_offset + k1;
+      var x1;
+      if (k1 == -d || (k1 != d && v1[k1_offset - 1] < v1[k1_offset + 1])) {
+        x1 = v1[k1_offset + 1];
+      } else {
+        x1 = v1[k1_offset - 1] + 1;
+      }
+      var y1 = x1 - k1;
+      while (x1 < text1_length && y1 < text2_length &&
+             text1.charAt(x1) == text2.charAt(y1)) {
+        x1++;
+        y1++;
+      }
+      v1[k1_offset] = x1;
+      if (x1 > text1_length) {
+        // Ran off the right of the graph.
+        k1end += 2;
+      } else if (y1 > text2_length) {
+        // Ran off the bottom of the graph.
+        k1start += 2;
+      } else if (front) {
+        var k2_offset = v_offset + delta - k1;
+        if (k2_offset >= 0 && k2_offset < v_length && v2[k2_offset] != -1) {
+          // Mirror x2 onto top-left coordinate system.
+          var x2 = text1_length - v2[k2_offset];
+          if (x1 >= x2) {
+            // Overlap detected.
+            return diff_bisectSplit_(text1, text2, x1, y1);
+          }
+        }
+      }
+    }
+
+    // Walk the reverse path one step.
+    for (var k2 = -d + k2start; k2 <= d - k2end; k2 += 2) {
+      var k2_offset = v_offset + k2;
+      var x2;
+      if (k2 == -d || (k2 != d && v2[k2_offset - 1] < v2[k2_offset + 1])) {
+        x2 = v2[k2_offset + 1];
+      } else {
+        x2 = v2[k2_offset - 1] + 1;
+      }
+      var y2 = x2 - k2;
+      while (x2 < text1_length && y2 < text2_length &&
+             text1.charAt(text1_length - x2 - 1) ==
+             text2.charAt(text2_length - y2 - 1)) {
+        x2++;
+        y2++;
+      }
+      v2[k2_offset] = x2;
+      if (x2 > text1_length) {
+        // Ran off the left of the graph.
+        k2end += 2;
+      } else if (y2 > text2_length) {
+        // Ran off the top of the graph.
+        k2start += 2;
+      } else if (!front) {
+        var k1_offset = v_offset + delta - k2;
+        if (k1_offset >= 0 && k1_offset < v_length && v1[k1_offset] != -1) {
+          var x1 = v1[k1_offset];
+          var y1 = v_offset + x1 - k1_offset;
+          // Mirror x2 onto top-left coordinate system.
+          x2 = text1_length - x2;
+          if (x1 >= x2) {
+            // Overlap detected.
+            return diff_bisectSplit_(text1, text2, x1, y1);
+          }
+        }
+      }
+    }
+  }
+  // Diff took too long and hit the deadline or
+  // number of diffs equals number of characters, no commonality at all.
+  return [[DIFF_DELETE, text1], [DIFF_INSERT, text2]];
+};
+
+
+/**
+ * Given the location of the 'middle snake', split the diff in two parts
+ * and recurse.
+ * @param {string} text1 Old string to be diffed.
+ * @param {string} text2 New string to be diffed.
+ * @param {number} x Index of split point in text1.
+ * @param {number} y Index of split point in text2.
+ * @return {Array} Array of diff tuples.
+ */
+function diff_bisectSplit_(text1, text2, x, y) {
+  var text1a = text1.substring(0, x);
+  var text2a = text2.substring(0, y);
+  var text1b = text1.substring(x);
+  var text2b = text2.substring(y);
+
+  // Compute both diffs serially.
+  var diffs = diff_main(text1a, text2a);
+  var diffsb = diff_main(text1b, text2b);
+
+  return diffs.concat(diffsb);
+};
+
+
+/**
+ * Determine the common prefix of two strings.
+ * @param {string} text1 First string.
+ * @param {string} text2 Second string.
+ * @return {number} The number of characters common to the start of each
+ *     string.
+ */
+function diff_commonPrefix(text1, text2) {
+  // Quick check for common null cases.
+  if (!text1 || !text2 || text1.charAt(0) != text2.charAt(0)) {
+    return 0;
+  }
+  // Binary search.
+  // Performance analysis: http://neil.fraser.name/news/2007/10/09/
+  var pointermin = 0;
+  var pointermax = Math.min(text1.length, text2.length);
+  var pointermid = pointermax;
+  var pointerstart = 0;
+  while (pointermin < pointermid) {
+    if (text1.substring(pointerstart, pointermid) ==
+        text2.substring(pointerstart, pointermid)) {
+      pointermin = pointermid;
+      pointerstart = pointermin;
+    } else {
+      pointermax = pointermid;
+    }
+    pointermid = Math.floor((pointermax - pointermin) / 2 + pointermin);
+  }
+  return pointermid;
+};
+
+
+/**
+ * Determine the common suffix of two strings.
+ * @param {string} text1 First string.
+ * @param {string} text2 Second string.
+ * @return {number} The number of characters common to the end of each string.
+ */
+function diff_commonSuffix(text1, text2) {
+  // Quick check for common null cases.
+  if (!text1 || !text2 ||
+      text1.charAt(text1.length - 1) != text2.charAt(text2.length - 1)) {
+    return 0;
+  }
+  // Binary search.
+  // Performance analysis: http://neil.fraser.name/news/2007/10/09/
+  var pointermin = 0;
+  var pointermax = Math.min(text1.length, text2.length);
+  var pointermid = pointermax;
+  var pointerend = 0;
+  while (pointermin < pointermid) {
+    if (text1.substring(text1.length - pointermid, text1.length - pointerend) ==
+        text2.substring(text2.length - pointermid, text2.length - pointerend)) {
+      pointermin = pointermid;
+      pointerend = pointermin;
+    } else {
+      pointermax = pointermid;
+    }
+    pointermid = Math.floor((pointermax - pointermin) / 2 + pointermin);
+  }
+  return pointermid;
+};
+
+
+/**
+ * Do the two texts share a substring which is at least half the length of the
+ * longer text?
+ * This speedup can produce non-minimal diffs.
+ * @param {string} text1 First string.
+ * @param {string} text2 Second string.
+ * @return {Array.<string>} Five element Array, containing the prefix of
+ *     text1, the suffix of text1, the prefix of text2, the suffix of
+ *     text2 and the common middle.  Or null if there was no match.
+ */
+function diff_halfMatch_(text1, text2) {
+  var longtext = text1.length > text2.length ? text1 : text2;
+  var shorttext = text1.length > text2.length ? text2 : text1;
+  if (longtext.length < 4 || shorttext.length * 2 < longtext.length) {
+    return null;  // Pointless.
+  }
+
+  /**
+   * Does a substring of shorttext exist within longtext such that the substring
+   * is at least half the length of longtext?
+   * Closure, but does not reference any external variables.
+   * @param {string} longtext Longer string.
+   * @param {string} shorttext Shorter string.
+   * @param {number} i Start index of quarter length substring within longtext.
+   * @return {Array.<string>} Five element Array, containing the prefix of
+   *     longtext, the suffix of longtext, the prefix of shorttext, the suffix
+   *     of shorttext and the common middle.  Or null if there was no match.
+   * @private
+   */
+  function diff_halfMatchI_(longtext, shorttext, i) {
+    // Start with a 1/4 length substring at position i as a seed.
+    var seed = longtext.substring(i, i + Math.floor(longtext.length / 4));
+    var j = -1;
+    var best_common = '';
+    var best_longtext_a, best_longtext_b, best_shorttext_a, best_shorttext_b;
+    while ((j = shorttext.indexOf(seed, j + 1)) != -1) {
+      var prefixLength = diff_commonPrefix(longtext.substring(i),
+                                           shorttext.substring(j));
+      var suffixLength = diff_commonSuffix(longtext.substring(0, i),
+                                           shorttext.substring(0, j));
+      if (best_common.length < suffixLength + prefixLength) {
+        best_common = shorttext.substring(j - suffixLength, j) +
+            shorttext.substring(j, j + prefixLength);
+        best_longtext_a = longtext.substring(0, i - suffixLength);
+        best_longtext_b = longtext.substring(i + prefixLength);
+        best_shorttext_a = shorttext.substring(0, j - suffixLength);
+        best_shorttext_b = shorttext.substring(j + prefixLength);
+      }
+    }
+    if (best_common.length * 2 >= longtext.length) {
+      return [best_longtext_a, best_longtext_b,
+              best_shorttext_a, best_shorttext_b, best_common];
+    } else {
+      return null;
+    }
+  }
+
+  // First check if the second quarter is the seed for a half-match.
+  var hm1 = diff_halfMatchI_(longtext, shorttext,
+                             Math.ceil(longtext.length / 4));
+  // Check again based on the third quarter.
+  var hm2 = diff_halfMatchI_(longtext, shorttext,
+                             Math.ceil(longtext.length / 2));
+  var hm;
+  if (!hm1 && !hm2) {
+    return null;
+  } else if (!hm2) {
+    hm = hm1;
+  } else if (!hm1) {
+    hm = hm2;
+  } else {
+    // Both matched.  Select the longest.
+    hm = hm1[4].length > hm2[4].length ? hm1 : hm2;
+  }
+
+  // A half-match was found, sort out the return data.
+  var text1_a, text1_b, text2_a, text2_b;
+  if (text1.length > text2.length) {
+    text1_a = hm[0];
+    text1_b = hm[1];
+    text2_a = hm[2];
+    text2_b = hm[3];
+  } else {
+    text2_a = hm[0];
+    text2_b = hm[1];
+    text1_a = hm[2];
+    text1_b = hm[3];
+  }
+  var mid_common = hm[4];
+  return [text1_a, text1_b, text2_a, text2_b, mid_common];
+};
+
+
+/**
+ * Reorder and merge like edit sections.  Merge equalities.
+ * Any edit section can move as long as it doesn't cross an equality.
+ * @param {Array} diffs Array of diff tuples.
+ */
+function diff_cleanupMerge(diffs) {
+  diffs.push([DIFF_EQUAL, '']);  // Add a dummy entry at the end.
+  var pointer = 0;
+  var count_delete = 0;
+  var count_insert = 0;
+  var text_delete = '';
+  var text_insert = '';
+  var commonlength;
+  while (pointer < diffs.length) {
+    switch (diffs[pointer][0]) {
+      case DIFF_INSERT:
+        count_insert++;
+        text_insert += diffs[pointer][1];
+        pointer++;
+        break;
+      case DIFF_DELETE:
+        count_delete++;
+        text_delete += diffs[pointer][1];
+        pointer++;
+        break;
+      case DIFF_EQUAL:
+        // Upon reaching an equality, check for prior redundancies.
+        if (count_delete + count_insert > 1) {
+          if (count_delete !== 0 && count_insert !== 0) {
+            // Factor out any common prefixies.
+            commonlength = diff_commonPrefix(text_insert, text_delete);
+            if (commonlength !== 0) {
+              if ((pointer - count_delete - count_insert) > 0 &&
+                  diffs[pointer - count_delete - count_insert - 1][0] ==
+                  DIFF_EQUAL) {
+                diffs[pointer - count_delete - count_insert - 1][1] +=
+                    text_insert.substring(0, commonlength);
+              } else {
+                diffs.splice(0, 0, [DIFF_EQUAL,
+                                    text_insert.substring(0, commonlength)]);
+                pointer++;
+              }
+              text_insert = text_insert.substring(commonlength);
+              text_delete = text_delete.substring(commonlength);
+            }
+            // Factor out any common suffixies.
+            commonlength = diff_commonSuffix(text_insert, text_delete);
+            if (commonlength !== 0) {
+              diffs[pointer][1] = text_insert.substring(text_insert.length -
+                  commonlength) + diffs[pointer][1];
+              text_insert = text_insert.substring(0, text_insert.length -
+                  commonlength);
+              text_delete = text_delete.substring(0, text_delete.length -
+                  commonlength);
+            }
+          }
+          // Delete the offending records and add the merged ones.
+          if (count_delete === 0) {
+            diffs.splice(pointer - count_insert,
+                count_delete + count_insert, [DIFF_INSERT, text_insert]);
+          } else if (count_insert === 0) {
+            diffs.splice(pointer - count_delete,
+                count_delete + count_insert, [DIFF_DELETE, text_delete]);
+          } else {
+            diffs.splice(pointer - count_delete - count_insert,
+                count_delete + count_insert, [DIFF_DELETE, text_delete],
+                [DIFF_INSERT, text_insert]);
+          }
+          pointer = pointer - count_delete - count_insert +
+                    (count_delete ? 1 : 0) + (count_insert ? 1 : 0) + 1;
+        } else if (pointer !== 0 && diffs[pointer - 1][0] == DIFF_EQUAL) {
+          // Merge this equality with the previous one.
+          diffs[pointer - 1][1] += diffs[pointer][1];
+          diffs.splice(pointer, 1);
+        } else {
+          pointer++;
+        }
+        count_insert = 0;
+        count_delete = 0;
+        text_delete = '';
+        text_insert = '';
+        break;
+    }
+  }
+  if (diffs[diffs.length - 1][1] === '') {
+    diffs.pop();  // Remove the dummy entry at the end.
+  }
+
+  // Second pass: look for single edits surrounded on both sides by equalities
+  // which can be shifted sideways to eliminate an equality.
+  // e.g: A<ins>BA</ins>C -> <ins>AB</ins>AC
+  var changes = false;
+  pointer = 1;
+  // Intentionally ignore the first and last element (don't need checking).
+  while (pointer < diffs.length - 1) {
+    if (diffs[pointer - 1][0] == DIFF_EQUAL &&
+        diffs[pointer + 1][0] == DIFF_EQUAL) {
+      // This is a single edit surrounded by equalities.
+      if (diffs[pointer][1].substring(diffs[pointer][1].length -
+          diffs[pointer - 1][1].length) == diffs[pointer - 1][1]) {
+        // Shift the edit over the previous equality.
+        diffs[pointer][1] = diffs[pointer - 1][1] +
+            diffs[pointer][1].substring(0, diffs[pointer][1].length -
+                                        diffs[pointer - 1][1].length);
+        diffs[pointer + 1][1] = diffs[pointer - 1][1] + diffs[pointer + 1][1];
+        diffs.splice(pointer - 1, 1);
+        changes = true;
+      } else if (diffs[pointer][1].substring(0, diffs[pointer + 1][1].length) ==
+          diffs[pointer + 1][1]) {
+        // Shift the edit over the next equality.
+        diffs[pointer - 1][1] += diffs[pointer + 1][1];
+        diffs[pointer][1] =
+            diffs[pointer][1].substring(diffs[pointer + 1][1].length) +
+            diffs[pointer + 1][1];
+        diffs.splice(pointer + 1, 1);
+        changes = true;
+      }
+    }
+    pointer++;
+  }
+  // If shifts were made, the diff needs reordering and another shift sweep.
+  if (changes) {
+    diff_cleanupMerge(diffs);
+  }
+};
+
+
+var diff = diff_main;
+diff.INSERT = DIFF_INSERT;
+diff.DELETE = DIFF_DELETE;
+diff.EQUAL = DIFF_EQUAL;
+
+
+module.exports = diff;
+ 
+ }; /* ==  End source for module /lib/fast-diff/index.js  == */ return module; }());;
+;require._modules["/lib/fast-diff/test.js"] = (function() { var __filename = "/lib/fast-diff/test.js"; var __dirname = "/lib/fast-diff"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /lib/fast-diff/test.js  == */ var __module__ = function() { 
+ var _ = require('lodash');
+var googlediff = require('googlediff');
+var seedrandom = require('seedrandom');
+var diff = require('./diff.js');
+
+googlediff = new googlediff();
+
+var ITERATIONS = 10000;
+var ALPHABET = 'GATTACA';
+var LENGTH = 100;
+
+var seed = Math.floor(Math.random() * 10000);
+var random = seedrandom(seed);
+
+console.log('Running computing ' + ITERATIONS + ' diffs with seed ' + seed + '...');
+
+console.log('Generating strings...');
+var strings = [];
+for(var i = 0; i <= ITERATIONS; ++i) {
+  var chars = [];
+  for(var l = 0; l < LENGTH; ++l) {
+    var letter = ALPHABET.substr(Math.floor(random() * ALPHABET.length), 1);
+    chars.push(letter);
+  }
+  strings.push(chars.join(''));
+}
+
+console.log('Running tests...');
+for(var i = 0; i < ITERATIONS; ++i) {
+  var result = diff(strings[i], strings[i+1]);
+  var expected = googlediff.diff_main(strings[i], strings[i+1]);
+  if (!_.isEqual(result, expected)) {
+    console.log('Expected', expected);
+    console.log('Result', result);
+    throw new Error('Diff produced difference results.');
+  }
+}
+
+console.log("Success!");
+ 
+ }; /* ==  End source for module /lib/fast-diff/test.js  == */ return module; }());;
 ;require._modules["/lib/handlebars/compiler.js"] = (function() { var __filename = "/lib/handlebars/compiler.js"; var __dirname = "/lib/handlebars"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /lib/handlebars/compiler.js  == */ var __module__ = function() { 
  /*!
@@ -22491,6 +23108,1745 @@ exports.log = function(obj) {
 	)
 }; 
  }; /* ==  End source for module /lib/promise/utils.js  == */ return module; }());;
+;require._modules["/lib/rich-text/Gruntfile.js"] = (function() { var __filename = "/lib/rich-text/Gruntfile.js"; var __dirname = "/lib/rich-text"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /lib/rich-text/Gruntfile.js  == */ var __module__ = function() { 
+ var fs = require('fs');
+
+module.exports = function (grunt) {
+  // Define to control testing order
+  var tests = [
+    'test/is.js',
+    'test/attributes.js',
+    'test/op.js',
+    'test/delta/builder.js',
+    'test/delta/helpers.js',
+    'test/delta/compose.js',
+    'test/delta/transform.js',
+    'test/delta/transform-position.js',
+    'test/delta/diff.js'
+  ];
+
+  grunt.registerTask('coverage', function () {
+    grunt.util.spawn({
+      cmd: './node_modules/.bin/istanbul',
+      args: ['cover', './node_modules/.bin/_mocha'].concat(tests).concat(['--dir', '.coverage']),
+      opts: { stdio: 'inherit' }
+    }, this.async());
+  });
+
+  grunt.registerTask('coverage:fuzzer', function () {
+    grunt.util.spawn({
+      cmd: './node_modules/.bin/istanbul',
+      args: ['cover', './node_modules/.bin/_mocha', 'test/fuzzer.js', '--dir', '.coverage'],
+      opts: { stdio: 'inherit' }
+    }, this.async());
+  });
+
+  grunt.registerTask('coverage:report', function () {
+    var file = fs.createReadStream('.coverage/lcov.info');
+    var child = grunt.util.spawn({
+      cmd: './node_modules/coveralls/bin/coveralls.js',
+    }, this.async());
+    file.pipe(child.stdin);
+  });
+
+  grunt.registerTask('test', function () {
+    grunt.util.spawn({
+      cmd: './node_modules/.bin/mocha',
+      args: tests.concat(['test/fuzzer.js']),
+      opts: { stdio: 'inherit' }
+    }, this.async());
+  });
+
+  grunt.registerTask('test:unit', function () {
+    grunt.util.spawn({
+      cmd: './node_modules/.bin/mocha',
+      args: tests,
+      opts: { stdio: 'inherit' }
+    }, this.async());
+  });
+
+  grunt.registerTask('test:fuzzer', function () {
+    grunt.util.spawn({
+      cmd: './node_modules/.bin/mocha',
+      args: ['test/fuzzer.js'],
+      opts: { stdio: 'inherit' }
+    }, this.async());
+  });
+};
+ 
+ }; /* ==  End source for module /lib/rich-text/Gruntfile.js  == */ return module; }());;
+;require._modules["/lib/rich-text/index.js"] = (function() { var __filename = "/lib/rich-text/index.js"; var __dirname = "/lib/rich-text"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /lib/rich-text/index.js  == */ var __module__ = function() { 
+ module.exports = require('./lib/type');
+ 
+ }; /* ==  End source for module /lib/rich-text/index.js  == */ return module; }());;
+;require._modules["/lib/rich-text/lib/delta.js"] = (function() { var __filename = "/lib/rich-text/lib/delta.js"; var __dirname = "/lib/rich-text/lib"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /lib/rich-text/lib/delta.js  == */ var __module__ = function() { 
+ var diff = require('fast-diff');
+var is = require('./is');
+var op = require('./op');
+
+
+var NULL_CHARACTER = String.fromCharCode(0);  // Placeholder char for embed in diff()
+
+
+var Delta = function (ops) {
+  // Assume we are given a well formed ops
+  if (is.array(ops)) {
+    this.ops = ops;
+  } else if (is.object(ops) && is.array(ops.ops)) {
+    this.ops = ops.ops;
+  } else {
+    this.ops = [];
+  }
+};
+
+
+Delta.prototype.insert = function (text, attributes) {
+  var newOp = {};
+  if (is.string(text)) {
+    if (text.length === 0) return this;
+    newOp.insert = text;
+  } else if (is.number(text)) {
+    newOp.insert = text;
+  }
+  if (is.object(attributes) && Object.keys(attributes).length > 0) newOp.attributes = attributes;
+  return this.push(newOp);
+};
+
+Delta.prototype['delete'] = function (length) {
+  if (length <= 0) return this;
+  return this.push({ 'delete': length });
+};
+
+Delta.prototype.retain = function (length, attributes) {
+  if (length <= 0) return this;
+  var newOp = { retain: length };
+  if (is.object(attributes) && Object.keys(attributes).length > 0) newOp.attributes = attributes;
+  return this.push(newOp);
+};
+
+Delta.prototype.push = function (newOp) {
+  var index = this.ops.length;
+  var lastOp = this.ops[index - 1];
+  newOp = op.clone(newOp);
+  if (is.object(lastOp)) {
+    if (is.number(newOp['delete']) && is.number(lastOp['delete'])) {
+      this.ops[index - 1] = { 'delete': lastOp['delete'] + newOp['delete'] };
+      return this;
+    }
+    // Since it does not matter if we insert before or after deleting at the same index,
+    // always prefer to insert first
+    if (is.number(lastOp['delete']) && (is.string(newOp.insert) || is.number(newOp.insert))) {
+      index -= 1;
+      lastOp = this.ops[index - 1];
+      if (!is.object(lastOp)) {
+        this.ops.unshift(newOp);
+        return this;
+      }
+    }
+    if (is.equal(newOp.attributes, lastOp.attributes)) {
+      if (is.string(newOp.insert) && is.string(lastOp.insert)) {
+        this.ops[index - 1] = { insert: lastOp.insert + newOp.insert };
+        if (is.object(newOp.attributes)) this.ops[index - 1].attributes = newOp.attributes
+        return this;
+      } else if (is.number(newOp.retain) && is.number(lastOp.retain)) {
+        this.ops[index - 1] = { retain: lastOp.retain + newOp.retain };
+        if (is.object(newOp.attributes)) this.ops[index - 1].attributes = newOp.attributes
+        return this;
+      }
+    }
+  }
+  this.ops.splice(index, 0, newOp);
+  return this;
+};
+
+Delta.prototype.chop = function () {
+  var lastOp = this.ops[this.ops.length - 1];
+  if (lastOp && lastOp.retain && !lastOp.attributes) {
+    this.ops.pop();
+  }
+  return this;
+};
+
+Delta.prototype.length = function () {
+  return this.ops.reduce(function (length, elem) {
+    return length + op.length(elem);
+  }, 0);
+};
+
+Delta.prototype.slice = function (start, end) {
+  start = start || 0;
+  if (!is.number(end)) end = Infinity;
+  var delta = new Delta();
+  var iter = op.iterator(this.ops);
+  var index = 0;
+  while (index < end && iter.hasNext()) {
+    var nextOp;
+    if (index < start) {
+      nextOp = iter.next(start - index);
+    } else {
+      nextOp = iter.next(end - index);
+      delta.push(nextOp);
+    }
+    index += op.length(nextOp);
+  }
+  return delta;
+};
+
+
+Delta.prototype.compose = function (other) {
+  var thisIter = op.iterator(this.ops);
+  var otherIter = op.iterator(other.ops);
+  this.ops = [];
+  while (thisIter.hasNext() || otherIter.hasNext()) {
+    if (otherIter.peekType() === 'insert') {
+      this.push(otherIter.next());
+    } else if (thisIter.peekType() === 'delete') {
+      this.push(thisIter.next());
+    } else {
+      var length = Math.min(thisIter.peekLength(), otherIter.peekLength());
+      var thisOp = thisIter.next(length);
+      var otherOp = otherIter.next(length);
+      if (is.number(otherOp.retain)) {
+        var newOp = {};
+        if (is.number(thisOp.retain)) {
+          newOp.retain = length;
+        } else {
+          newOp.insert = thisOp.insert;
+        }
+        // Preserve null when composing with a retain, otherwise remove it for inserts
+        var attributes = op.attributes.compose(thisOp.attributes, otherOp.attributes, is.number(thisOp.retain));
+        if (attributes) newOp.attributes = attributes;
+        this.push(newOp);
+      // Other op should be delete, we could be an insert or retain
+      // Insert + delete cancels out
+      } else if (is.number(otherOp['delete']) && is.number(thisOp.retain)) {
+        this.push(otherOp);
+      }
+    }
+  }
+  return this.chop();
+};
+
+Delta.prototype.diff = function (other) {
+  var strings = [this.ops, other.ops].map(function (ops) {
+    return ops.map(function (op) {
+      if (is.string(op.insert)) return op.insert;
+      if (is.number(op.insert)) return NULL_CHARACTER;
+      var prep = ops === other.ops ? 'on' : 'with';
+      throw new Error('diff() called ' + prep + ' non-document');
+    }).join('');
+  });
+  var diffResult = diff(strings[0], strings[1]);
+  var thisIter = op.iterator(this.ops);
+  var otherIter = op.iterator(other.ops);
+  var delta = new Delta();
+  diffResult.forEach(function (component) {
+    var length = component[1].length;
+    while (length > 0) {
+      var opLength = 0;
+      switch (component[0]) {
+        case diff.INSERT:
+          opLength = Math.min(otherIter.peekLength(), length);
+          delta.push(otherIter.next(opLength));
+          break;
+        case diff.DELETE:
+          opLength = Math.min(length, thisIter.peekLength());
+          thisIter.next(opLength);
+          delta['delete'](opLength);
+          break;
+        case diff.EQUAL:
+          opLength = Math.min(thisIter.peekLength(), otherIter.peekLength(), length);
+          var thisOp = thisIter.next(opLength);
+          var otherOp = otherIter.next(opLength);
+          if (thisOp.insert === otherOp.insert) {
+            delta.retain(opLength, op.attributes.diff(thisOp.attributes, otherOp.attributes));
+          } else {
+            delta.push(otherOp)['delete'](opLength);
+          }
+          break;
+      }
+      length -= opLength;
+    }
+  });
+  return delta.chop();
+};
+
+Delta.prototype.transform = function (other, priority) {
+  priority = !!priority;
+  if (is.number(other)) {
+    return this.transformPosition(other, priority);
+  }
+  var thisIter = op.iterator(this.ops);
+  var otherIter = op.iterator(other.ops);
+  var delta = new Delta();
+  while (thisIter.hasNext() || otherIter.hasNext()) {
+    if (thisIter.peekType() === 'insert' && (priority || otherIter.peekType() !== 'insert')) {
+      delta.retain(op.length(thisIter.next()));
+    } else if (otherIter.peekType() === 'insert') {
+      delta.push(otherIter.next());
+    } else {
+      var length = Math.min(thisIter.peekLength(), otherIter.peekLength());
+      var thisOp = thisIter.next(length);
+      var otherOp = otherIter.next(length);
+      if (thisOp['delete']) {
+        // Our delete either makes their delete redundant or removes their retain
+        continue;
+      } else if (otherOp['delete']) {
+        delta.push(otherOp);
+      } else {
+        // We retain either their retain or insert
+        delta.retain(length, op.attributes.transform(thisOp.attributes, otherOp.attributes, priority));
+      }
+    }
+  }
+  return delta.chop();
+};
+
+Delta.prototype.transformPosition = function (index, priority) {
+  priority = !!priority;
+  var thisIter = op.iterator(this.ops);
+  var offset = 0;
+  while (thisIter.hasNext() && offset <= index) {
+    var length = thisIter.peekLength();
+    var nextType = thisIter.peekType();
+    thisIter.next();
+    if (nextType === 'delete') {
+      index -= Math.min(length, index - offset);
+      continue;
+    } else if (nextType === 'insert' && (offset < index || !priority)) {
+      index += length;
+    }
+    offset += length;
+  }
+  return index;
+};
+
+
+module.exports = Delta;
+ 
+ }; /* ==  End source for module /lib/rich-text/lib/delta.js  == */ return module; }());;
+;require._modules["/lib/rich-text/lib/is.js"] = (function() { var __filename = "/lib/rich-text/lib/is.js"; var __dirname = "/lib/rich-text/lib"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /lib/rich-text/lib/is.js  == */ var __module__ = function() { 
+ module.exports = {
+  equal: function (a, b) {
+    if (a === b) return true;
+    if (a == null && b == null) return true;
+    if (a == null || b == null) return false;
+    if (Object.keys(a).length != Object.keys(b).length) return false;
+    for(var key in a) {
+      // Only compare one level deep
+      if (a[key] !== b[key]) return false;
+    }
+    return true;
+  },
+
+  array: function (value) {
+    return Array.isArray(value);
+  },
+
+  number: function (value) {
+    if (typeof value === 'number') return true;
+    if (typeof value === 'object' && Object.prototype.toString.call(value) === '[object Number]') return true;
+    return false;
+  },
+
+  object: function (value) {
+    if (!value) return false;
+    return (typeof value === 'function' || typeof value === 'object');
+  },
+
+  string: function (value) {
+    if (typeof value === 'string') return true;
+    if (typeof value === 'object' && Object.prototype.toString.call(value) === '[object String]') return true;
+    return false;
+  }
+};
+ 
+ }; /* ==  End source for module /lib/rich-text/lib/is.js  == */ return module; }());;
+;require._modules["/lib/rich-text/lib/op.js"] = (function() { var __filename = "/lib/rich-text/lib/op.js"; var __dirname = "/lib/rich-text/lib"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /lib/rich-text/lib/op.js  == */ var __module__ = function() { 
+ var is = require('./is');
+
+
+var lib = {
+  attributes: {
+    clone: function (attributes, keepNull) {
+      if (!is.object(attributes)) return {};
+      return Object.keys(attributes).reduce(function (memo, key) {
+        if (attributes[key] !== undefined && (attributes[key] !== null || keepNull)) {
+          memo[key] = attributes[key];
+        }
+        return memo;
+      }, {});
+    },
+
+    compose: function (a, b, keepNull) {
+      if (!is.object(a)) a = {};
+      if (!is.object(b)) b = {};
+      var attributes = this.clone(b, keepNull);
+      for (var key in a) {
+        if (a[key] !== undefined && b[key] === undefined) {
+          attributes[key] = a[key];
+        }
+      }
+      return Object.keys(attributes).length > 0 ? attributes : undefined;
+    },
+
+    diff: function(a, b) {
+      if (!is.object(a)) a = {};
+      if (!is.object(b)) b = {};
+      var attributes = Object.keys(a).concat(Object.keys(b)).reduce(function (attributes, key) {
+        if (a[key] !== b[key]) {
+          attributes[key] = b[key] === undefined ? null : b[key];
+        }
+        return attributes;
+      }, {});
+      return Object.keys(attributes).length > 0 ? attributes : undefined;
+    },
+
+    transform: function (a, b, priority) {
+      if (!is.object(a)) return b;
+      if (!is.object(b)) return undefined;
+      if (!priority) return b;  // b simply overwrites us without priority
+      var attributes = Object.keys(b).reduce(function (attributes, key) {
+        if (a[key] === undefined) attributes[key] = b[key];  // null is a valid value
+        return attributes;
+      }, {});
+      return Object.keys(attributes).length > 0 ? attributes : undefined;
+    }
+  },
+
+  clone: function (op) {
+    var newOp = this.attributes.clone(op);
+    if (is.object(newOp.attributes)) {
+      newOp.attributes = this.attributes.clone(newOp.attributes, true);
+    }
+    return newOp;
+  },
+
+  iterator: function (ops) {
+    return new Iterator(ops);
+  },
+
+  length: function (op) {
+    if (is.number(op['delete'])) {
+      return op['delete'];
+    } else if (is.number(op.retain)) {
+      return op.retain;
+    } else {
+      return is.string(op.insert) ? op.insert.length : 1;
+    }
+  }
+};
+
+
+function Iterator(ops) {
+  this.ops = ops;
+  this.index = 0;
+  this.offset = 0;
+};
+
+Iterator.prototype.hasNext = function () {
+  return this.peekLength() < Infinity;
+};
+
+Iterator.prototype.next = function (length) {
+  if (!length) length = Infinity;
+  var nextOp = this.ops[this.index];
+  if (nextOp) {
+    var offset = this.offset;
+    var opLength = lib.length(nextOp)
+    if (length >= opLength - offset) {
+      length = opLength - offset;
+      this.index += 1;
+      this.offset = 0;
+    } else {
+      this.offset += length;
+    }
+    if (is.number(nextOp['delete'])) {
+      return { 'delete': length };
+    } else {
+      var retOp = {};
+      if (nextOp.attributes) {
+        retOp.attributes = nextOp.attributes;
+      }
+      if (is.number(nextOp.retain)) {
+        retOp.retain = length;
+      } else if (is.string(nextOp.insert)) {
+        retOp.insert = nextOp.insert.substr(offset, length);
+      } else {
+        // offset should === 0, length should === 1
+        retOp.insert = nextOp.insert;
+      }
+      return retOp;
+    }
+  } else {
+    return { retain: Infinity };
+  }
+};
+
+Iterator.prototype.peekLength = function () {
+  if (this.ops[this.index]) {
+    // Should never return 0 if our index is being managed correctly
+    return lib.length(this.ops[this.index]) - this.offset;
+  } else {
+    return Infinity;
+  }
+};
+
+Iterator.prototype.peekType = function () {
+  if (this.ops[this.index]) {
+    if (is.number(this.ops[this.index]['delete'])) {
+      return 'delete';
+    } else if (is.number(this.ops[this.index].retain)) {
+      return 'retain';
+    } else {
+      return 'insert';
+    }
+  }
+  return 'retain';
+};
+
+
+module.exports = lib;
+ 
+ }; /* ==  End source for module /lib/rich-text/lib/op.js  == */ return module; }());;
+;require._modules["/lib/rich-text/lib/type.js"] = (function() { var __filename = "/lib/rich-text/lib/type.js"; var __dirname = "/lib/rich-text/lib"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /lib/rich-text/lib/type.js  == */ var __module__ = function() { 
+ var Delta = require('./delta');
+
+
+module.exports = {
+  Delta: Delta,
+  name: 'rich-text',
+  uri: 'http://sharejs.org/types/rich-text/v1',
+
+  create: function (initial) {
+    return new Delta(initial);
+  },
+
+  apply: function (snapshot, delta) {
+    snapshot = new Delta(snapshot);
+    delta = new Delta(delta);
+    return snapshot.compose(delta);
+  },
+
+  compose: function (delta1, delta2) {
+    delta1 = new Delta(delta1);
+    delta2 = new Delta(delta2);
+    return delta1.compose(delta2);
+  },
+
+  diff: function (delta1, delta2) {
+    delta1 = new Delta(delta1);
+    delta2 = new Delta(delta2);
+    return delta1.diff(delta2);
+  },
+
+  transform: function (delta1, delta2, side) {
+    delta1 = new Delta(delta1);
+    delta2 = new Delta(delta2);
+    // Fuzzer specs is in opposite order of delta interface
+    return delta2.transform(delta1, side === 'left');
+  }
+};
+ 
+ }; /* ==  End source for module /lib/rich-text/lib/type.js  == */ return module; }());;
+;require._modules["/lib/rich-text/test/attributes.js"] = (function() { var __filename = "/lib/rich-text/test/attributes.js"; var __dirname = "/lib/rich-text/test"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /lib/rich-text/test/attributes.js  == */ var __module__ = function() { 
+ var op = require('../lib/op');
+var expect = require('chai').expect;
+
+
+describe('attributes', function () {
+  describe('clone()', function () {
+    var attributes = {
+      bold: true,
+      color: 'red',
+      italic: null
+    };
+
+    it('undefined', function () {
+      expect(op.attributes.clone(undefined)).to.deep.equal({});
+    });
+
+    it('keep null', function () {
+      var clone = op.attributes.clone(attributes, true);
+      expect(clone === attributes).to.equal(false);
+      expect(clone).to.deep.equal(attributes);
+    });
+
+    it('dont keep null', function () {
+      var clone = op.attributes.clone(attributes, false);
+      expect(clone === attributes).to.equal(false);
+      expect(clone).to.deep.equal({
+        bold: true,
+        color: 'red'
+      });
+    });
+  });
+
+  describe('compose()', function () {
+    var attributes = { bold: true, color: 'red' };
+
+    it('left is undefined', function () {
+      expect(op.attributes.compose(undefined, attributes)).to.deep.equal(attributes);
+    });
+
+    it('right is undefined', function () {
+      expect(op.attributes.compose(attributes, undefined)).to.deep.equal(attributes);
+    });
+
+    it('both are undefined', function () {
+      expect(op.attributes.compose(undefined, undefined)).to.equal(undefined);
+    });
+
+    it('missing', function () {
+      expect(op.attributes.compose(attributes, { italic: true })).to.deep.equal({
+        bold: true,
+        italic: true,
+        color: 'red'
+      });
+    });
+
+    it('overwrite', function () {
+      expect(op.attributes.compose(attributes, { bold: false, color: 'blue' })).to.deep.equal({
+        bold: false,
+        color: 'blue'
+      });
+    });
+
+    it('remove', function () {
+      expect(op.attributes.compose(attributes, { bold: null })).to.deep.equal({
+        color: 'red'
+      });
+    });
+
+    it('remove to none', function () {
+      expect(op.attributes.compose(attributes, { bold: null, color: null })).to.equal(undefined);
+    });
+
+    it('remove missing', function () {
+      expect(op.attributes.compose(attributes, { italic: null })).to.deep.equal(attributes);
+    });
+  });
+
+  describe('diff()', function () {
+    var format = { bold: true, color: 'red' };
+
+    it('left is undefined', function () {
+      expect(op.attributes.diff(undefined, format)).to.deep.equal(format);
+    });
+
+    it('right is undefined', function () {
+      var expected = { bold: null, color: null };
+      expect(op.attributes.diff(format, undefined)).to.deep.equal(expected);
+    });
+
+    it('same format', function () {
+      expect(op.attributes.diff(format, format)).to.equal(undefined);
+    });
+
+    it('add format', function () {
+      var added = { bold: true, italic: true, color: 'red' };
+      var expected = { italic: true };
+      expect(op.attributes.diff(format, added)).to.deep.equal(expected);
+    });
+
+    it('remove format', function () {
+      var removed = { bold: true };
+      var expected = { color: null };
+      expect(op.attributes.diff(format, removed)).to.deep.equal(expected);
+    });
+
+    it('overwrite format', function () {
+      var overwritten = { bold: true, color: 'blue' };
+      var expected = { color: 'blue' };
+      expect(op.attributes.diff(format, overwritten)).to.deep.equal(expected);
+    });
+  });
+
+  describe('transform()', function () {
+    var left = { bold: true, color: 'red', font: null };
+    var right = { color: 'blue', font: 'serif', italic: true };
+
+    it('left is undefined', function () {
+      expect(op.attributes.transform(undefined, left, false)).to.deep.equal(left);
+    });
+
+    it('right is undefined', function () {
+      expect(op.attributes.transform(left, undefined, false)).to.equal(undefined);
+    });
+
+    it('both are undefined', function () {
+      expect(op.attributes.transform(undefined, undefined, false)).to.equal(undefined);
+    });
+
+    it('with priority', function () {
+      expect(op.attributes.transform(left, right, true)).to.deep.equal({
+        italic: true
+      });
+    });
+
+    it('without priority', function () {
+      expect(op.attributes.transform(left, right, false)).to.deep.equal(right);
+    });
+  });
+});
+ 
+ }; /* ==  End source for module /lib/rich-text/test/attributes.js  == */ return module; }());;
+;require._modules["/lib/rich-text/test/delta/builder.js"] = (function() { var __filename = "/lib/rich-text/test/delta/builder.js"; var __dirname = "/lib/rich-text/test/delta"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /lib/rich-text/test/delta/builder.js  == */ var __module__ = function() { 
+ var Delta = require('../../lib/delta');
+var expect = require('chai').expect;
+
+
+describe('constructor', function () {
+  var ops = [
+    { insert: 'abc' },
+    { retain: 1, attributes: { color: 'red' } },
+    { delete: 4 },
+    { insert: 'def', attributes: { bold: true } },
+    { retain: 6 }
+  ];
+
+  it('empty', function () {
+    var delta = new Delta();
+    expect(delta).to.exist;
+    expect(delta.ops).to.exist;
+    expect(delta.ops.length).to.equal(0);
+  });
+
+  it('empty ops', function () {
+    var delta = new Delta().insert('').delete(0).retain(0);
+    expect(delta).to.exist;
+    expect(delta.ops).to.exist;
+    expect(delta.ops.length).to.equal(0);
+  });
+
+  it('array of ops', function () {
+    var delta = new Delta(ops);
+    expect(delta.ops).to.deep.equal(ops);
+  });
+
+  it('delta in object form', function () {
+    var delta = new Delta({ ops: ops });
+    expect(delta.ops).to.deep.equal(ops);
+  });
+
+  it('delta', function () {
+    var original = new Delta(ops);
+    var delta = new Delta(original);
+    expect(delta.ops).to.deep.equal(original.ops);
+    expect(delta.ops).to.deep.equal(ops);
+  });
+});
+
+describe('insert()', function () {
+  it('insert(text)', function () {
+    var delta = new Delta().insert('test');
+    expect(delta.ops.length).to.equal(1);
+    expect(delta.ops[0]).to.deep.equal({ insert: 'test' });
+  });
+
+  it('insert(embed)', function () {
+    var delta = new Delta().insert(1);
+    expect(delta.ops.length).to.equal(1);
+    expect(delta.ops[0]).to.deep.equal({ insert: 1 });
+  });
+
+  it('insert(embed, attributes)', function () {
+    var obj = { url: 'http://quilljs.com', alt: 'Quill' };
+    var delta = new Delta().insert(1, obj);
+    expect(delta.ops.length).to.equal(1);
+    expect(delta.ops[0]).to.deep.equal({ insert: 1, attributes: obj });
+  });
+
+  it('insert(text, attributes)', function () {
+    var delta = new Delta().insert('test', { bold: true });
+    expect(delta.ops.length).to.equal(1);
+    expect(delta.ops[0]).to.deep.equal({ insert: 'test', attributes: { bold: true } });
+  });
+
+  it('insert(text) after delete', function () {
+    var delta = new Delta().delete(1).insert('a');
+    var expected = new Delta().insert('a').delete(1);
+    expect(delta).to.deep.equal(expected);
+  });
+
+  it('insert(text) after delete with merge', function () {
+    var delta = new Delta().insert('a').delete(1).insert('b');
+    var expected = new Delta().insert('ab').delete(1);
+    expect(delta).to.deep.equal(expected);
+  });
+
+  it('insert(text) after delete no merge', function () {
+    var delta = new Delta().insert(1).delete(1).insert('a');
+    var expected = new Delta().insert(1).insert('a').delete(1);
+    expect(delta).to.deep.equal(expected);
+  });
+
+  it('insert(text, {})', function () {
+    var delta = new Delta().insert('a', {});
+    var expected = new Delta().insert('a');
+    expect(delta).to.deep.equal(expected);
+  });
+});
+
+describe('delete()', function () {
+  it('delete(0)', function () {
+    var delta = new Delta().delete(0);
+    expect(delta.ops.length).to.equal(0);
+  });
+
+  it('delete(positive)', function () {
+    var delta = new Delta().delete(1);
+    expect(delta.ops.length).to.equal(1);
+    expect(delta.ops[0]).to.deep.equal({ delete: 1 });
+  });
+});
+
+describe('retain()', function () {
+  it('retain(0)', function () {
+    var delta = new Delta().retain(0);
+    expect(delta.ops.length).to.equal(0);
+  });
+
+  it('retain(length)', function () {
+    var delta = new Delta().retain(2);
+    expect(delta.ops.length).to.equal(1);
+    expect(delta.ops[0]).to.deep.equal({ retain: 2 });
+  });
+
+  it('retain(length, attributes)', function () {
+    var delta = new Delta().retain(1, { bold: true });
+    expect(delta.ops.length).to.equal(1);
+    expect(delta.ops[0]).to.deep.equal({ retain: 1, attributes: { bold: true } });
+  });
+
+  it('retain(length, {})', function () {
+    var delta = new Delta().retain(2, {}).delete(1);    // Delete prevents chop
+    var expected = new Delta().retain(2).delete(1);
+    expect(delta).to.deep.equal(expected);
+  });
+});
+
+describe('push()', function () {
+  it('push(op) into empty', function () {
+    var delta = new Delta();
+    delta.push({ insert: 'test' });
+    expect(delta.ops.length).to.equal(1);
+  });
+
+  it('push(op) consecutive delete', function () {
+    var delta = new Delta().delete(2);
+    delta.push({ delete: 3 });
+    expect(delta.ops.length).to.equal(1);
+    expect(delta.ops[0]).to.deep.equal({ delete: 5 });
+  });
+
+  it('push(op) consecutive text', function () {
+    var delta = new Delta().insert('a');
+    delta.push({ insert: 'b' });
+    expect(delta.ops.length).to.equal(1);
+    expect(delta.ops[0]).to.deep.equal({ insert: 'ab' });
+  });
+
+  it('push(op) consecutive texts with matching attributes', function () {
+    var delta = new Delta().insert('a', { bold: true });
+    delta.push({ insert: 'b', attributes: { bold: true } });
+    expect(delta.ops.length).to.equal(1);
+    expect(delta.ops[0]).to.deep.equal({ insert: 'ab', attributes: { bold: true } });
+  });
+
+  it('push(op) consecutive retains with matching attributes', function () {
+    var delta = new Delta().retain(1, { bold: true });
+    delta.push({ retain: 3, attributes: { bold : true } });
+    expect(delta.ops.length).to.equal(1);
+    expect(delta.ops[0]).to.deep.equal({ retain: 4, attributes: { bold: true } });
+  });
+
+  it('push(op) consecutive texts with mismatched attributes', function () {
+    var delta = new Delta().insert('a', { bold: true });
+    delta.push({ insert: 'b' });
+    expect(delta.ops.length).to.equal(2);
+  });
+
+  it('push(op) consecutive retains with mismatched attributes', function () {
+    var delta = new Delta().retain(1, { bold: true });
+    delta.push({ retain: 3 });
+    expect(delta.ops.length).to.equal(2);
+  });
+
+  it('push(op) consecutive embeds with matching attributes', function () {
+    var delta = new Delta().insert({ url: 'http://quilljs.com' });
+    delta.push({ attributes: { url: 'http://quilljs.com' } });
+    expect(delta.ops.length).to.equal(2);
+  });
+});
+ 
+ }; /* ==  End source for module /lib/rich-text/test/delta/builder.js  == */ return module; }());;
+;require._modules["/lib/rich-text/test/delta/compose.js"] = (function() { var __filename = "/lib/rich-text/test/delta/compose.js"; var __dirname = "/lib/rich-text/test/delta"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /lib/rich-text/test/delta/compose.js  == */ var __module__ = function() { 
+ var Delta = require('../../lib/delta');
+var expect = require('chai').expect;
+
+
+describe('compose()', function () {
+  it('insert + insert', function () {
+    var a = new Delta().insert('A');
+    var b = new Delta().insert('B');
+    var expected = new Delta().insert('B').insert('A');
+    expect(a.compose(b)).to.deep.equal(expected);
+  });
+
+  it('insert + retain', function () {
+    var a = new Delta().insert('A');
+    var b = new Delta().retain(1, { bold: true, color: 'red', font: null });
+    var expected = new Delta().insert('A', { bold: true, color: 'red' });
+    expect(a.compose(b)).to.deep.equal(expected);
+  });
+
+  it('insert + delete', function () {
+    var a = new Delta().insert('A');
+    var b = new Delta().delete(1);
+    var expected = new Delta();
+    expect(a.compose(b)).to.deep.equal(expected);
+  });
+
+  it('delete + insert', function () {
+    var a = new Delta().delete(1);
+    var b = new Delta().insert('B');
+    var expected = new Delta().insert('B').delete(1);
+    expect(a.compose(b)).to.deep.equal(expected);
+  });
+
+  it('delete + retain', function () {
+    var a = new Delta().delete(1);
+    var b = new Delta().retain(1, { bold: true, color: 'red' });
+    var expected = new Delta().delete(1).retain(1, { bold: true, color: 'red' });
+    expect(a.compose(b)).to.deep.equal(expected);
+  });
+
+  it('delete + delete', function () {
+    var a = new Delta().delete(1);
+    var b = new Delta().delete(1);
+    var expected = new Delta().delete(2);
+    expect(a.compose(b)).to.deep.equal(expected);
+  });
+
+  it('retain + insert', function () {
+    var a = new Delta().retain(1, { color: 'blue' });
+    var b = new Delta().insert('B');
+    var expected = new Delta().insert('B').retain(1, { color: 'blue' });
+    expect(a.compose(b)).to.deep.equal(expected);
+  });
+
+  it('retain + retain', function () {
+    var a = new Delta().retain(1, { color: 'blue' });
+    var b = new Delta().retain(1, { bold: true, color: 'red', font: null });
+    var expected = new Delta().retain(1, { bold: true, color: 'red', font: null });
+    expect(a.compose(b)).to.deep.equal(expected);
+  });
+
+  it('retain + delete', function () {
+    var a = new Delta().retain(1, { color: 'blue' });
+    var b = new Delta().delete(1);
+    var expected = new Delta().delete(1);
+    expect(a.compose(b)).to.deep.equal(expected);
+  });
+
+  it('insert in middle of text', function () {
+    var a = new Delta().insert('Hello');
+    var b = new Delta().retain(3).insert('X');
+    var expected = new Delta().insert('HelXlo');
+    expect(a.compose(b)).to.deep.equal(expected);
+  });
+
+  it('insert and delete ordering', function () {
+    var a = new Delta().insert('Hello');
+    var b = new Delta().insert('Hello');
+    var insertFirst = new Delta().retain(3).insert('X').delete(1);
+    var deleteFirst = new Delta().retain(3).delete(1).insert('X');
+    var expected = new Delta().insert('HelXo');
+    expect(a.compose(insertFirst)).to.deep.equal(expected);
+    expect(b.compose(deleteFirst)).to.deep.equal(expected);
+  });
+
+  it('insert embed', function () {
+    var a = new Delta().insert(1, { src: 'http://quilljs.com/image.png' });
+    var b = new Delta().retain(1, { alt: 'logo' });
+    var expected = new Delta().insert(1, { src: 'http://quilljs.com/image.png', alt: 'logo' });
+    expect(a.compose(b)).to.deep.equal(expected);
+  });
+
+  it('delete entire text', function () {
+    var a = new Delta().retain(4).insert('Hello');
+    var b = new Delta().delete(9);
+    var expected = new Delta().delete(4);
+    expect(a.compose(b)).to.deep.equal(expected);
+  });
+
+  it('retain more than length of text', function () {
+    var a = new Delta().insert('Hello');
+    var b = new Delta().retain(10);
+    var expected = new Delta().insert('Hello');
+    expect(a.compose(b)).to.deep.equal(expected);
+  });
+
+  it('retain empty embed', function () {
+    var a = new Delta().insert(1);
+    var b = new Delta().retain(1);
+    var expected = new Delta().insert(1);
+    expect(a.compose(b)).to.deep.equal(expected);
+  });
+
+  it('remove all attributes', function () {
+    var a = new Delta().insert('A', { bold: true });
+    var b = new Delta().retain(1, { bold: null });
+    var expected = new Delta().insert('A');
+    expect(a.compose(b)).to.deep.equal(expected);
+  });
+
+  it('remove all embed attributes', function () {
+    var a = new Delta().insert(2, { bold: true });
+    var b = new Delta().retain(1, { bold: null });
+    var expected = new Delta().insert(2);
+    expect(a.compose(b)).to.deep.equal(expected);
+  });
+});
+ 
+ }; /* ==  End source for module /lib/rich-text/test/delta/compose.js  == */ return module; }());;
+;require._modules["/lib/rich-text/test/delta/diff.js"] = (function() { var __filename = "/lib/rich-text/test/delta/diff.js"; var __dirname = "/lib/rich-text/test/delta"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /lib/rich-text/test/delta/diff.js  == */ var __module__ = function() { 
+ var Delta = require('../../lib/delta');
+var expect = require('chai').expect;
+
+
+describe('diff()', function () {
+  it('insert', function () {
+    var a = new Delta().insert('A');
+    var b = new Delta().insert('AB');
+    var expected = new Delta().retain(1).insert('B');
+    expect(a.diff(b)).to.deep.equal(expected);
+  });
+
+  it('delete', function () {
+    var a = new Delta().insert('AB');
+    var b = new Delta().insert('A');
+    var expected = new Delta().retain(1).delete(1);
+    expect(a.diff(b)).to.deep.equal(expected);
+  });
+
+  it('retain', function () {
+    var a = new Delta().insert('A');
+    var b = new Delta().insert('A');
+    var expected = new Delta();
+    expect(a.diff(b)).to.deep.equal(expected);
+  });
+
+  it('format', function () {
+    var a = new Delta().insert('A');
+    var b = new Delta().insert('A', { bold: true });
+    var expected = new Delta().retain(1, { bold: true });
+    expect(a.diff(b)).to.deep.equal(expected);
+  });
+
+  it('embed match', function () {
+    var a = new Delta().insert(1);
+    var b = new Delta().insert(1);
+    var expected = new Delta();
+    expect(a.diff(b)).to.deep.equal(expected);
+  });
+
+  it('embed false positive', function () {
+    var a = new Delta().insert(1);
+    var b = new Delta().insert(String.fromCharCode(0)); // Placeholder char for embed in diff()
+    var expected = new Delta().insert(String.fromCharCode(0)).delete(1);
+    expect(a.diff(b)).to.deep.equal(expected);
+  });
+
+  it('error on non-documents', function () {
+    var a = new Delta().insert('A');
+    var b = new Delta().retain(1).insert('B');
+    expect(function () {
+      a.diff(b);
+    }).to.throw(Error);
+    expect(function () {
+      b.diff(a);
+    }).to.throw(Error);
+  });
+
+  it('inconvenient indexes', function () {
+    var a = new Delta().insert('12', { bold: true }).insert('34', { italic: true });
+    var b = new Delta().insert('123', { color: 'red' });
+    var expected = new Delta().retain(2, { bold: null, color: 'red' }).retain(1, { italic: null, color: 'red' }).delete(1);
+    expect(a.diff(b)).to.deep.equal(expected);
+  });
+
+  it('combination', function () {
+    var a = new Delta().insert('Bad', { color: 'red' }).insert('cat', { color: 'blue' });
+    var b = new Delta().insert('Good', { bold: true }).insert('dog', { italic: true });
+    var expected = new Delta().insert('Good', { bold: true }).delete(2).retain(1, { italic: true, color: null }).delete(3).insert('og', { italic: true });
+    expect(a.diff(b)).to.deep.equal(expected);
+  });
+});
+ 
+ }; /* ==  End source for module /lib/rich-text/test/delta/diff.js  == */ return module; }());;
+;require._modules["/lib/rich-text/test/delta/helpers.js"] = (function() { var __filename = "/lib/rich-text/test/delta/helpers.js"; var __dirname = "/lib/rich-text/test/delta"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /lib/rich-text/test/delta/helpers.js  == */ var __module__ = function() { 
+ var Delta = require('../../lib/delta');
+var expect = require('chai').expect;
+
+
+describe('helpers', function () {
+  describe('chop()', function () {
+    it('retain', function () {
+      var delta = new Delta().insert('Test').retain(4);
+      var expected = new Delta().insert('Test');
+      expect(delta.chop()).to.deep.equal(expected);
+    });
+
+    it('insert', function () {
+      var delta = new Delta().insert('Test');
+      var expected = new Delta().insert('Test');
+      expect(delta.chop()).to.deep.equal(expected);
+    });
+
+    it('formatted retain', function () {
+      var delta = new Delta().insert('Test').retain(4, { bold: true });
+      var expected = new Delta().insert('Test').retain(4, { bold: true });
+      expect(delta.chop()).to.deep.equal(expected);
+    })
+  });
+
+  describe('length()', function () {
+    it('document', function () {
+      var delta = new Delta().insert('AB', { bold: true }).insert(1);
+      expect(delta.length()).to.equal(3);
+    });
+
+    it('mixed', function () {
+      var delta = new Delta().insert('AB', { bold: true }).insert(1).retain(2, { bold: null }).delete(1);
+      expect(delta.length()).to.equal(6);
+    });
+  });
+
+  describe('slice()', function () {
+    it('start', function () {
+      var slice = new Delta().retain(2).insert('A').slice(2);
+      var expected = new Delta().insert('A');
+      expect(slice).to.deep.equal(expected);
+    });
+
+    it('start and end chop', function () {
+      var slice = new Delta().insert('0123456789').slice(2, 7);
+      var expected = new Delta().insert('23456');
+      expect(slice).to.deep.equal(expected);
+    });
+
+    it('start and end multiple chop', function () {
+      var slice = new Delta().insert('0123', { bold: true }).insert('4567').slice(3, 5);
+      var expected = new Delta().insert('3', { bold: true }).insert('4');
+      expect(slice).to.deep.equal(expected);
+    });
+
+    it('start and end', function () {
+      var slice = new Delta().retain(2).insert('A', { bold: true }).insert('B').slice(2, 3);
+      var expected = new Delta().insert('A', { bold: true });
+      expect(slice).to.deep.equal(expected);
+    });
+
+    it('no params', function () {
+      var delta = new Delta().retain(2).insert('A', { bold: true }).insert('B');
+      var slice = delta.slice();
+      expect(slice).to.deep.equal(delta);
+    });
+
+    it('split ops', function () {
+      var slice = new Delta().insert('AB', { bold: true }).insert('C').slice(1, 2);
+      var expected = new Delta().insert('B', { bold: true });
+      expect(slice).to.deep.equal(expected);
+    });
+
+    it('split ops multiple times', function () {
+      var slice = new Delta().insert('ABC', { bold: true }).insert('D').slice(1, 2);
+      var expected = new Delta().insert('B', { bold: true });
+      expect(slice).to.deep.equal(expected);
+    });
+  });
+});
+ 
+ }; /* ==  End source for module /lib/rich-text/test/delta/helpers.js  == */ return module; }());;
+;require._modules["/lib/rich-text/test/delta/transform-position.js"] = (function() { var __filename = "/lib/rich-text/test/delta/transform-position.js"; var __dirname = "/lib/rich-text/test/delta"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /lib/rich-text/test/delta/transform-position.js  == */ var __module__ = function() { 
+ var Delta = require('../../lib/delta');
+var expect = require('chai').expect;
+
+
+describe('transformPosition()', function () {
+  it('insert before position', function () {
+    var delta = new Delta().insert('A');
+    expect(delta.transform(2)).to.equal(3);
+  });
+
+  it('insert after position', function () {
+    var delta = new Delta().retain(2).insert('A');
+    expect(delta.transform(1)).to.equal(1);
+  });
+
+  it('insert at position', function () {
+    var delta = new Delta().retain(2).insert('A');
+    expect(delta.transform(2, true)).to.equal(2);
+    expect(delta.transform(2, false)).to.equal(3);
+  });
+
+  it('delete before position', function () {
+    var delta = new Delta().delete(2);
+    expect(delta.transform(4)).to.equal(2);
+  });
+
+  it('delete after position', function () {
+    var delta = new Delta().retain(4).delete(2);
+    expect(delta.transform(2)).to.equal(2);
+  });
+
+  it('delete across position', function () {
+    var delta = new Delta().retain(1).delete(4);
+    expect(delta.transform(2)).to.equal(1);
+  });
+
+  it('insert and delete before position', function () {
+    var delta = new Delta().retain(2).insert('A').delete(2);
+    expect(delta.transform(4)).to.equal(3);
+  });
+
+  it('insert before and delete across position', function () {
+    var delta = new Delta().retain(2).insert('A').delete(4);
+    expect(delta.transform(4)).to.equal(3);
+  });
+
+  it('delete before and delete across position', function () {
+    var delta = new Delta().delete(1).retain(1).delete(4);
+    expect(delta.transform(4)).to.equal(1);
+  });
+});
+ 
+ }; /* ==  End source for module /lib/rich-text/test/delta/transform-position.js  == */ return module; }());;
+;require._modules["/lib/rich-text/test/delta/transform.js"] = (function() { var __filename = "/lib/rich-text/test/delta/transform.js"; var __dirname = "/lib/rich-text/test/delta"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /lib/rich-text/test/delta/transform.js  == */ var __module__ = function() { 
+ var Delta = require('../../lib/delta');
+var expect = require('chai').expect;
+
+
+describe('transform()', function () {
+  it('insert + insert', function () {
+    var a1 = new Delta().insert('A');
+    var b1 = new Delta().insert('B');
+    var a2 = new Delta(a1);
+    var b2 = new Delta(b1);
+    var expected1 = new Delta().retain(1).insert('B');
+    var expected2 = new Delta().insert('B');
+    expect(a1.transform(b1, true)).to.deep.equal(expected1);
+    expect(a2.transform(b2, false)).to.deep.equal(expected2);
+  });
+
+  it('insert + retain', function () {
+    var a = new Delta().insert('A');
+    var b = new Delta().retain(1, { bold: true, color: 'red' });
+    var expected = new Delta().retain(1).retain(1, { bold: true, color: 'red' });
+    expect(a.transform(b, true)).to.deep.equal(expected);
+  });
+
+  it('insert + delete', function () {
+    var a = new Delta().insert('A');
+    var b = new Delta().delete(1);
+    var expected = new Delta().retain(1).delete(1);
+    expect(a.transform(b, true)).to.deep.equal(expected);
+  });
+
+  it('delete + insert', function () {
+    var a = new Delta().delete(1);
+    var b = new Delta().insert('B');
+    var expected = new Delta().insert('B');
+    expect(a.transform(b, true)).to.deep.equal(expected);
+  });
+
+  it('delete + retain', function () {
+    var a = new Delta().delete(1);
+    var b = new Delta().retain(1, { bold: true, color: 'red' });
+    var expected = new Delta();
+    expect(a.transform(b, true)).to.deep.equal(expected);
+  });
+
+  it('delete + delete', function () {
+    var a = new Delta().delete(1);
+    var b = new Delta().delete(1);
+    var expected = new Delta();
+    expect(a.transform(b, true)).to.deep.equal(expected);
+  });
+
+  it('retain + insert', function () {
+    var a = new Delta().retain(1, { color: 'blue' });
+    var b = new Delta().insert('B');
+    var expected = new Delta().insert('B');
+    expect(a.transform(b, true)).to.deep.equal(expected);
+  });
+
+  it('retain + retain', function () {
+    var a1 = new Delta().retain(1, { color: 'blue' });
+    var b1 = new Delta().retain(1, { bold: true, color: 'red' });
+    var a2 = new Delta().retain(1, { color: 'blue' });
+    var b2 = new Delta().retain(1, { bold: true, color: 'red' });
+    var expected1 = new Delta().retain(1, { bold: true });
+    var expected2 = new Delta();
+    expect(a1.transform(b1, true)).to.deep.equal(expected1);
+    expect(b2.transform(a2, true)).to.deep.equal(expected2);
+  });
+
+  it('retain + retain without priority', function () {
+    var a1 = new Delta().retain(1, { color: 'blue' });
+    var b1 = new Delta().retain(1, { bold: true, color: 'red' });
+    var a2 = new Delta().retain(1, { color: 'blue' });
+    var b2 = new Delta().retain(1, { bold: true, color: 'red' });
+    var expected1 = new Delta().retain(1, { bold: true, color: 'red' });
+    var expected2 = new Delta().retain(1, { color: 'blue' });
+    expect(a1.transform(b1, false)).to.deep.equal(expected1);
+    expect(b2.transform(a2, false)).to.deep.equal(expected2);
+  });
+
+  it('retain + delete', function () {
+    var a = new Delta().retain(1, { color: 'blue' });
+    var b = new Delta().delete(1);
+    var expected = new Delta().delete(1);
+    expect(a.transform(b, true)).to.deep.equal(expected);
+  });
+
+  it('alternating edits', function () {
+    var a1 = new Delta().retain(2).insert('si').delete(5);
+    var b1 = new Delta().retain(1).insert('e').delete(5).retain(1).insert('ow');
+    var a2 = new Delta(a1);
+    var b2 = new Delta(b1);
+    var expected1 = new Delta().retain(1).insert('e').delete(1).retain(2).insert('ow');
+    var expected2 = new Delta().retain(2).insert('si').delete(1);
+    expect(a1.transform(b1, false)).to.deep.equal(expected1);
+    expect(b2.transform(a2, false)).to.deep.equal(expected2);
+  });
+
+  it('conflicting appends', function () {
+    var a1 = new Delta().retain(3).insert('aa');
+    var b1 = new Delta().retain(3).insert('bb');
+    var a2 = new Delta(a1);
+    var b2 = new Delta(b1);
+    var expected1 = new Delta().retain(5).insert('bb');
+    var expected2 = new Delta().retain(3).insert('aa');
+    expect(a1.transform(b1, true)).to.deep.equal(expected1);
+    expect(b2.transform(a2, false)).to.deep.equal(expected2);
+  });
+
+  it('prepend + append', function () {
+    var a1 = new Delta().insert('aa');
+    var b1 = new Delta().retain(3).insert('bb');
+    var expected1 = new Delta().retain(5).insert('bb');
+    var a2 = new Delta(a1);
+    var b2 = new Delta(b1);
+    var expected2 = new Delta().insert('aa');
+    expect(a1.transform(b1, false)).to.deep.equal(expected1);
+    expect(b2.transform(a2, false)).to.deep.equal(expected2);
+  });
+
+  it('trailing deletes with differing lengths', function () {
+    var a1 = new Delta().retain(2).delete(1);
+    var b1 = new Delta().delete(3);
+    var expected1 = new Delta().delete(2);
+    var a2 = new Delta(a1);
+    var b2 = new Delta(b1);
+    var expected2 = new Delta();
+    expect(a1.transform(b1, false)).to.deep.equal(expected1);
+    expect(b2.transform(a2, false)).to.deep.equal(expected2);
+  });
+});
+ 
+ }; /* ==  End source for module /lib/rich-text/test/delta/transform.js  == */ return module; }());;
+;require._modules["/lib/rich-text/test/fuzzer.js"] = (function() { var __filename = "/lib/rich-text/test/fuzzer.js"; var __dirname = "/lib/rich-text/test"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /lib/rich-text/test/fuzzer.js  == */ var __module__ = function() { 
+ var _ = require('lodash');
+var fuzzer = require('ot-fuzzer');
+var richType = require('../lib/type');
+var Delta = richType.Delta;
+
+var FORMATS = {
+  color: ['red', 'orange', 'yellow', 'green', 'blue', 'purple', null],
+  font: ['serif', 'sans-serif', 'monospace', null],
+  bold: [true, null],
+  italic: [true, null]
+};
+
+
+function generateRandomFormat (includeNull) {
+  var format = {};
+  for (var key in FORMATS) {
+    if (fuzzer.randomReal() < 0.5) {
+      var value = FORMATS[key][fuzzer.randomInt(FORMATS[key].length)];
+      if (value || includeNull) {
+        format[key] = value;
+      }
+    }
+  }
+  return Object.keys(format).length > 0 ? format : undefined;
+};
+
+function generateRandomOp (snapshot) {
+  snapshot = _.cloneDeep(snapshot);
+  var length = snapshot.ops.reduce(function(length, op) {
+    if (!op.insert) {
+      console.error(snapshot);
+      throw new Error('Snapshot should only have inserts');
+    }
+    // Snapshot should only have inserts
+    return length + (_.isString(op.insert) ? op.insert.length : 1);
+  }, 0);
+
+  var base = length > 100 ? 10 : 7; // Favor deleting on long documents
+  var delta = new Delta();
+  var result = new Delta();
+
+  do {
+    // Allows insert/delete to occur at the end (deletes will be noop)
+    var modIndex = fuzzer.randomInt(Math.min(length, 5) + 1);
+    length -= modIndex;
+    var modLength = Math.min(length, fuzzer.randomInt(4) + 1);
+
+    delta.retain(modIndex);
+    var ops = next(snapshot, modIndex);
+    for (var i in ops) {
+      result.push(ops[i]);
+    }
+
+    switch (fuzzer.randomInt(base)) {
+      case 0:
+        // Insert plain text
+        var word = fuzzer.randomWord();
+        delta.insert(word);
+        result.insert(word);
+        break;
+      case 1:
+        // Insert formatted text
+        var word = fuzzer.randomWord();
+        var formats = generateRandomFormat(false);
+        delta.insert(word, formats);
+        result.insert(word, formats);
+        break;
+      case 2:
+        // Insert embed
+        var type = fuzzer.randomInt(2) + 1;
+        var formats = generateRandomFormat(false);
+        delta.insert(type, formats);
+        result.insert(type, formats);
+        break;
+      case 3: case 4:
+        var attributes = generateRandomFormat(true);
+        delta.retain(modLength, attributes);
+        ops = next(snapshot, modLength);
+        for (var i in ops) {
+          ops[i].attributes = ops[i].attributes || {};
+          for (var key in attributes) {
+            ops[i].attributes[key] = (attributes[key] === null) ? undefined : attributes[key];
+          }
+          ops[i].attributes = _.reduce(ops[i].attributes, function (memo, value, key) {
+            if (value !== null && value !== undefined) {
+              memo[key] = value;
+            }
+            return memo;
+          }, {});
+          var newOp = { insert: ops[i].insert };
+          if (_.keys(ops[i].attributes).length > 0) newOp.attributes = ops[i].attributes;
+          result.push(newOp);
+        }
+        length -= modLength;
+        break;
+      default:
+        next(snapshot, modLength);
+        delta.delete(modLength);
+        length -= modLength;
+        break;
+    }
+  } while (length > 0 && fuzzer.randomInt(2) > 0);
+
+  for (var i in snapshot.ops) {
+    result.push(snapshot.ops[i]);
+  }
+
+  return [delta, result];
+};
+
+function next (snapshot, length) {
+  var ops = [];
+  while (length > 0) {
+    var opLength;
+    if (_.isString(snapshot.ops[0].insert)) {
+      if (length >= snapshot.ops[0].insert.length) {
+        opLength = snapshot.ops[0].insert.length;
+        ops.push(snapshot.ops.shift());
+      } else {
+        var insert = snapshot.ops[0].insert.substr(0, length);
+        snapshot.ops[0].insert = snapshot.ops[0].insert.substr(insert.length);
+        opLength = insert.length;
+        var op = { insert: insert };
+        if (snapshot.ops[0].attributes) {
+          op.attributes = _.clone(snapshot.ops[0].attributes);
+        }
+        ops.push(op);
+      }
+    } else {
+      ops.push(snapshot.ops.shift());
+      opLength = 1;
+    }
+    length -= opLength;
+  }
+  return ops;
+};
+
+
+fuzzer(richType, generateRandomOp, 100);
+ 
+ }; /* ==  End source for module /lib/rich-text/test/fuzzer.js  == */ return module; }());;
+;require._modules["/lib/rich-text/test/is.js"] = (function() { var __filename = "/lib/rich-text/test/is.js"; var __dirname = "/lib/rich-text/test"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /lib/rich-text/test/is.js  == */ var __module__ = function() { 
+ var is = require('../lib/is');
+var expect = require('chai').expect;
+
+
+describe('is', function () {
+  describe('equal()', function () {
+    it('exact objects', function () {
+      var obj = { a: 1, b: true, c: 'test' };
+      expect(is.equal(obj, obj)).to.equal(true);
+    });
+
+    it('deep equal objects', function () {
+      var obj1 = { a: 1, b: true, c: 'test' };
+      var obj2 = { a: 1, c: 'test', b: true };
+      expect(is.equal(obj1, obj2)).to.equal(true);
+    });
+
+    it('different keys', function () {
+      var obj1 = { a: 1, b: true, c: 'test' };
+      var obj2 = { a: 1, c: 'test', b: false };
+      expect(is.equal(obj1, obj2)).to.equal(false);
+    });
+
+    it('missing keys', function () {
+      var obj1 = { a: 1, b: true, c: 'test' };
+      var obj2 = { a: 1, c: 'test'};
+      expect(is.equal(obj1, obj2)).to.equal(false);
+    });
+
+    it('null and undefined', function () {
+      expect(is.equal(null, undefined)).to.equal(true);
+    });
+
+    it('existing with nonexisting', function () {
+      expect(is.equal({}, null)).to.equal(false);
+    });
+  });
+
+  describe('array()', function () {
+    it('literal', function () {
+      expect(is.array([])).to.equal(true);
+    });
+
+    it('instance', function () {
+      expect(is.array(new Array())).to.equal(true);
+    });
+
+    it('null', function () {
+      expect(is.array(null)).to.equal(false);
+    });
+  });
+
+  describe('number()', function () {
+    it('literal', function () {
+      expect(is.number(11)).to.equal(true);
+    });
+
+    it('object', function () {
+      expect(is.number(new Number(0))).to.equal(true);
+    });
+
+    it('NaN', function () {
+      expect(is.number(NaN)).to.equal(true);
+
+    });
+
+    it('Infinity', function () {
+      expect(is.number(Infinity)).to.equal(true);
+    });
+
+    it('null', function () {
+      expect(is.number(null)).to.equal(false);
+    });
+
+    it('wrong type', function () {
+      expect(is.number({})).to.equal(false);
+    });
+  });
+
+  describe('object()', function () {
+    it('literal', function () {
+      expect(is.object({})).to.equal(true);
+    });
+
+    it('instance', function () {
+      function obj() {};
+      expect(is.object(new obj)).to.equal(true);
+    });
+
+    it('string literal', function () {
+      expect(is.object('test')).to.equal(false);
+    });
+
+    it('string instance', function () {
+      expect(is.object(new String('test'))).to.equal(true);
+    });
+
+    it('number literal', function () {
+      expect(is.object(1)).to.equal(false);
+    });
+
+    it('number instance', function () {
+      expect(is.object(new Number(1))).to.equal(true);
+    });
+
+    it('null', function () {
+      expect(is.object(null)).to.equal(false);
+    });
+
+    it('function', function () {
+      expect(is.object(function () {})).to.equal(true);
+    });
+  });
+
+  describe('string()', function () {
+    it('literal', function () {
+      expect(is.string('test')).to.equal(true);
+    });
+
+    it('object', function () {
+      expect(is.string(new String('test'))).to.equal(true);
+    });
+
+    it('null', function () {
+      expect(is.string(null)).to.equal(false);
+    });
+
+    it('wrong type', function () {
+      expect(is.string({})).to.equal(false);
+    });
+  });
+});
+ 
+ }; /* ==  End source for module /lib/rich-text/test/is.js  == */ return module; }());;
+;require._modules["/lib/rich-text/test/op.js"] = (function() { var __filename = "/lib/rich-text/test/op.js"; var __dirname = "/lib/rich-text/test"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /lib/rich-text/test/op.js  == */ var __module__ = function() { 
+ var Delta = require('../lib/delta');
+var op = require('../lib/op');
+var expect = require('chai').expect;
+
+
+describe('op', function () {
+  describe('length()', function () {
+    it('delete', function () {
+      expect(op.length({ delete: 5 })).to.equal(5);
+    });
+
+    it('retain', function () {
+      expect(op.length({ retain: 2 })).to.equal(2);
+    });
+
+    it('insert text', function () {
+      expect(op.length({ insert: 'text' })).to.equal(4);
+    });
+
+    it('insert embed', function () {
+      expect(op.length({ insert: 2 })).to.equal(1);
+    });
+  });
+
+  describe('iterator()', function () {
+    beforeEach(function () {
+      this.delta = new Delta().insert('Hello', { bold: true }).retain(3).insert(2, { src: 'http://quilljs.com/' }).delete(4);
+    });
+
+    it('hasNext() true', function () {
+      var iter = op.iterator(this.delta.ops);
+      expect(iter.hasNext()).to.equal(true);
+    });
+
+    it('hasNext() false', function () {
+      var iter = op.iterator([]);
+      expect(iter.hasNext()).to.equal(false);
+    });
+
+    it('peekLength() offset === 0', function () {
+      var iter = op.iterator(this.delta.ops);
+      expect(iter.peekLength()).to.equal(5);
+      iter.next();
+      expect(iter.peekLength()).to.equal(3);
+      iter.next();
+      expect(iter.peekLength()).to.equal(1);
+      iter.next();
+      expect(iter.peekLength()).to.equal(4);
+    });
+
+    it('peekLength() offset > 0', function () {
+      var iter = op.iterator(this.delta.ops);
+      iter.next(2);
+      expect(iter.peekLength()).to.equal(5 - 2);
+    });
+
+    it('peekLength() no ops left', function () {
+      var iter = op.iterator([]);
+      expect(iter.peekLength()).to.equal(Infinity);
+    });
+
+    it('peekType()', function () {
+      var iter = op.iterator(this.delta.ops);
+      expect(iter.peekType()).to.equal('insert');
+      iter.next();
+      expect(iter.peekType()).to.equal('retain');
+      iter.next();
+      expect(iter.peekType()).to.equal('insert');
+      iter.next();
+      expect(iter.peekType()).to.equal('delete');
+      iter.next();
+      expect(iter.peekType()).to.equal('retain');
+    });
+
+    it('next()', function () {
+      var iter = op.iterator(this.delta.ops);
+      for (var i = 0; i < this.delta.ops.length; i += 1) {
+        expect(iter.next()).to.deep.equal(this.delta.ops[i]);
+      }
+      expect(iter.next()).to.deep.equal({ retain: Infinity });
+      expect(iter.next(4)).to.deep.equal({ retain: Infinity });
+      expect(iter.next()).to.deep.equal({ retain: Infinity });
+    });
+
+    it('next(length)', function () {
+      var iter = op.iterator(this.delta.ops);
+      expect(iter.next(2)).to.deep.equal({ insert: 'He', attributes: { bold: true }});
+      expect(iter.next(10)).to.deep.equal({ insert: 'llo', attributes: { bold: true }});
+      expect(iter.next(1)).to.deep.equal({ retain: 1 });
+      expect(iter.next(2)).to.deep.equal({ retain: 2 });
+    });
+  });
+});
+ 
+ }; /* ==  End source for module /lib/rich-text/test/op.js  == */ return module; }());;
 ;require._modules["/lib/socket.io.js"] = (function() { var __filename = "/lib/socket.io.js"; var __dirname = "/lib"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /lib/socket.io.js  == */ var __module__ = function() { 
  /*! Socket.IO.js build:0.9.16, development. Copyright(c) 2011 LearnBoost <dev@learnboost.com> MIT Licensed */
@@ -27959,6 +30315,7 @@ var Request   = require('cloak/model-stores/dagger').Request;
 var User      = require('models/user');
 var Comment   = require('models/comment');
 var renderer  = require('quilljs-renderer');
+var Delta     = require('rich-text').Delta;
 
 var Document = module.exports = Model.extend({
 
@@ -28059,11 +30416,32 @@ var Document = module.exports = Model.extend({
 	// 
 	// 
 	// 
-	render: function() {
-		var content = this.get('current').composed;
+	render: function(commit) {
+		var content = commit ? this.getCommitContent(commit) : this.get('current').composed;
+		if (! content) {
+			return '';
+		}
 		return (new renderer.Document(content)).convertTo('html', {
 			line: '<p class="line" style="{lineStyle}">{content}</p>'
 		});
+	},
+
+	// 
+	// 
+	// 
+	getCommitContent: function(commit) {
+		var history = this.get('history');
+		var delta = new Delta(history[0].ops);
+		if (history[0]._id === commit) {
+			return delta.ops;
+		}
+		for (var i = 1, c = history.length; i < c; i++) {
+			delta.compose(new Delta(history[i].ops));
+			if (history[i]._id === commit) {
+				return delta.ops;
+			}
+		}
+		return null;
 	}
 
 });
@@ -28479,22 +30857,16 @@ var DocumentRouter = module.exports = Router.extend({
 
 		var view = new DocumentReadView();
 		var renderPromise = this.parent.renderView(view);
-		var documentQuery = Document.findById(params.id, {populate: 'owner'});
+		var documentQuery = Document.findById(params.id, {populate: params.commit ? 'owner history' : 'owner'});
 
 		Promise.all([ documentQuery, renderPromise ])
 			.then(function(results) {
 				view.document = results[0];
-				view.drawDocument();
+				view.drawDocument(params.commit);
 			})
 			.catch(function(err) {
 				console.error(err.stack || err);
 			});
-
-		if (params.commit) {
-			// TODO
-		} else {
-			// 
-		}
 	}
 
 }); 
@@ -45465,10 +47837,10 @@ var ReadView = module.exports = View.extend({
 		this.bindEvents();
 	},
 
-	drawDocument: function() {
+	drawDocument: function(commit) {
 		this.$elem.html(this.render({
 			document: this.document.serialize({ deep: true }),
-			contents: this.document.render()
+			contents: this.document.render(commit)
 		}));
 	}
 

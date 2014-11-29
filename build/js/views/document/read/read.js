@@ -24,10 +24,10 @@ var ReadView = module.exports = View.extend({
 		this.bindEvents();
 	},
 
-	drawDocument: function() {
+	drawDocument: function(commit) {
 		this.$elem.html(this.render({
 			document: this.document.serialize({ deep: true }),
-			contents: this.document.render()
+			contents: this.document.render(commit)
 		}));
 	}
 
