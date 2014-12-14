@@ -1,0 +1,6 @@
+<h1>Search Results</h1>
+<div class="row">
+	{{#each documents}}
+	<section name="docs.{{ @index }}" data-partial="document" data-partial-data="documents.models.{{ @index }}"></section>
+	{{/each}}
+</div>

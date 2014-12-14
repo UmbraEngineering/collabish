@@ -1,11 +1,12 @@
 ;require._modules["/lib/cloak/view.js"] = (function() { var __filename = "/lib/cloak/view.js"; var __dirname = "/lib/cloak"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /lib/cloak/view.js  == */ var __module__ = function() { 
  
-var cloak       = require('cloak');
-var AppObject   = require('cloak/app-object');
-var $           = require('jquery');
-var _           = require('cloak/underscore');
-var handlebars  = require('handlebars');
+var cloak         = require('cloak');
+var AppObject     = require('cloak/app-object');
+var $             = require('jquery');
+var _             = require('cloak/underscore');
+var handlebars    = require('handlebars');
+var objectSearch  = require('object-search');
 
 // 
 // View class
@@ -265,10 +266,11 @@ var View = module.exports = AppObject.extend({
 
 			var data = $this.attr('data-partial-data');
 			if (data) {
-				data = self[data];
+				data = objectSearch.get(self, data);
 			}
 
-			var view = self[name] = new View(data);
+			var view = new View(data);
+			objectSearch.set(self, name, view);
 			$this.replaceWith(view.$elem);
 			view.draw();
 		});

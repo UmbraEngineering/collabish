@@ -3,13 +3,16 @@
  
 var purl                = require('purl');
 var cloak               = require('cloak');
+var moment              = require('moment');
 var Router              = require('cloak/router');
 var auth                = require('common/auth');
 var User                = require('models/user');
+var Document            = require('models/document');
 var DashboardView       = require('views/dashboard/dashboard');
 var CreateDocumentView  = require('views/create-document/create-document');
 var ProfileView         = require('views/profile/profile');
 var SearchView          = require('views/search/search');
+var SearchResultsView   = require('views/search/results/results');
 var QuillView           = require('views/quill/quill');
 var Request             = require('cloak/model-stores/dagger').Request;
 
@@ -22,7 +25,7 @@ var DashboardRouter = module.exports = Router.extend({
 		'/create':          'createDocument',
 		'/user/:username':  'profile',
 		'/search':          'search',
-		'/quill':           'quill'
+		'/search/results':  'searchResults'
 	},
 
 	initialize: function() {
@@ -122,12 +125,99 @@ var DashboardRouter = module.exports = Router.extend({
 		this.parent.renderView(view);
 	},
 
-// --------------------------------------------------------
+	searchResults: function() {
+		document.title = 'Search Results / Collabish';
 
-	quill: function() {
-		document.title = 'Quill Demo / Collabish';
-		this.parent.renderView(new QuillView());
+		var view = new SearchResultsView();
+		var renderPromise = this.parent.renderView(view);
+
+		var query = { };
+		var params = purl(location).param();
+
+		// Title querying
+		if (params.query) {
+			query.$or = params.query.split(/\s+/).map(function(block) {
+				return '/' + block + '/';
+			});
+		}
+
+		// Tag querying
+		if (params.tags) {
+			var includeTags = [ ];
+			var excludeTags = [ ];
+			query.tags = { };
+			params.tags.split(',').forEach(function(tag) {
+				if (tag[0] === '-') {
+					excludeTags.push(tag.slice(1));
+				} else {
+					includeTags.push(tag);
+				}
+			});
+			if (includeTags.length) {
+				if (params.tagging === 'any') {
+					query.tags.$in = includeTags;
+				} else {
+					query.tags.$all = includeTags;
+				}
+			}
+			if (excludeTags.length) {
+				query.tags.$nin = excludeTags;
+			}
+		}
+
+		// Adult content querying
+		switch (params.adult || 'no') {
+			case 'either':
+				// pass
+			break;
+			case 'yes':
+				query.adult = {$eq: true};
+			break;
+			case 'no':
+				query.adult = {$eq: false};
+			break;
+		}
+
+		// Created querying
+		var created = dateQuery(params.created);
+		if (created) {
+			query.created = {$gte: created};
+		}
+
+		// Updated querying
+		var updated = dateQuery(params.updated);
+		if (updated) {
+			query.updated = {$gte: updated};
+		}
+
+		// Actually run the query
+		query = Document.find({
+			filter: query,
+			limit: 10
+		});
+
+		Promise.all([ query, renderPromise ])
+			.then(function(results) {
+				view.documents = results[0];
+				view.drawResults();
+			});
 	}
 
-}); 
+});
+
+function dateQuery(timeAgo) {
+	switch (timeAgo) {
+		case 'any':
+			return null;
+		case 'today':
+			return moment().subtract(1, 'day').format();
+		case 'week':
+			return moment().subtract(1, 'week').format();
+		case 'month':
+			return moment().subtract(1, 'month').format();
+	}
+}
+
+
+ 
  }; /* ==  End source for module /routers/dashboard.js  == */ return module; }());;

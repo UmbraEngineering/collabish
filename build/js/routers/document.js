@@ -17,7 +17,8 @@ var DocumentRouter = module.exports = Router.extend({
 	routes: {
 		'/document/:id':                 'overview',
 		'/document/:id/read':            'readDocument',
-		'/document/:id/read/:commit':    'readDocument'
+		'/document/:id/read/:commit':    'readDocument',
+		'/document/:id/settings':        'documentSettings'
 	},
 
 	initialize: function() {
@@ -89,6 +90,15 @@ var DocumentRouter = module.exports = Router.extend({
 			.catch(function(err) {
 				console.error(err.stack || err);
 			});
+	},
+
+// --------------------------------------------------------
+
+	// 
+	// Document settings screen
+	// 
+	documentSettings: function() {
+		document.title = 'Document - Settings / Collabish';
 	}
 
 }); 

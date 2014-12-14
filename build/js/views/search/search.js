@@ -25,7 +25,7 @@ var SearchView = module.exports = View.extend({
 		this.$query         = this.$('.query input');
 		this.$tags          = this.$('.tags');
 		this.$tagsType      = this.$('.tags-type input');
-		this.$adultContent  = this.$('.adult-content');
+		this.$adultContent  = this.$('.adult-content input');
 		this.$created       = this.$('.created select');
 		this.$updated       = this.$('.updated select');
 
@@ -47,8 +47,41 @@ var SearchView = module.exports = View.extend({
 		if (evt.preventDefault) {
 			evt.preventDefault();
 		}
+
+		var querystring = '?';
+		
+		var query = this.$query.val();
+		if (query) {
+			querystring += param('query', query);
+		}
+
+		var tags = this.tagEditor.tags.join(',');
+		if (tags) {
+			querystring += param('tags', tags);
+			querystring += param('tagging', this.$tagsType.filter(':checked').val());
+		}
+
+		querystring += param('adult', this.$adultContent.filter(':checked').val());
+
+		var created = this.$created.val();
+		if (created !== 'any') {
+			querystring += param('created', created);
+		}
+
+		var updated = this.$updated.val();
+		if (updated !== 'any') {
+			querystring += param('updated', updated);
+		}
+
+		querystring = querystring.substring(0, querystring.length - 1);
+
+		router.redirectTo('/search/results' + querystring);
 	}
 
 });
+
+function param(name, value) {
+	return name + '=' + encodeURIComponent(value) + '&';
+}
  
  }; /* ==  End source for module /views/search/search.js  == */ return module; }());;

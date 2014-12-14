@@ -25,7 +25,8 @@ var DocumentView = module.exports = View.extend({
 		'focus .comments textarea.pseudo':    'showCommentEditor',
 		'click .comments .post.button':       'postComment',
 		'click .comments .cancel.button':     'cancelComment',
-		'click .comments .load-more':         'loadMoreComments'
+		'click .comments .load-more':         'loadMoreComments',
+		'click header .write > a':            'toggleWriteOptions'
 	},
 
 	initialize: function(document) {
@@ -48,6 +49,7 @@ var DocumentView = module.exports = View.extend({
 
 	drawDocument: function() {
 		this.$elem.html(this.render({
+			hasDraft: this.document.hasDraft(),
 			isOwner: (this.document.get('owner').id() === auth.user.id()),
 			document: this.document.serialize({ deep: true }),
 			recentCommits: this.document.get('history').slice().reverse().slice(0, 10)
@@ -67,12 +69,19 @@ var DocumentView = module.exports = View.extend({
 			this.atwho(self.commentUsernameAtList);
 		});
 
+		this.$writeDropdown   = this.$('.write');
 		this.$description     = this.$('.description');
 		this.$comments        = this.$('section.comments');
 		this.$commentList     = this.$('section.comments ol');
 		this.$loadMoreButton  = this.$('section.comments .load-more');
 
 		this.bindEvents();
+	},
+
+// --------------------------------------------------------
+
+	toggleWriteOptions: function() {
+		this.$writeDropdown.toggleClass('open');
 	},
 
 // --------------------------------------------------------

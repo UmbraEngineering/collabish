@@ -4677,11 +4677,12 @@ _.mixin({
 ;require._modules["/lib/cloak/view.js"] = (function() { var __filename = "/lib/cloak/view.js"; var __dirname = "/lib/cloak"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /lib/cloak/view.js  == */ var __module__ = function() { 
  
-var cloak       = require('cloak');
-var AppObject   = require('cloak/app-object');
-var $           = require('jquery');
-var _           = require('cloak/underscore');
-var handlebars  = require('handlebars');
+var cloak         = require('cloak');
+var AppObject     = require('cloak/app-object');
+var $             = require('jquery');
+var _             = require('cloak/underscore');
+var handlebars    = require('handlebars');
+var objectSearch  = require('object-search');
 
 // 
 // View class
@@ -4941,10 +4942,11 @@ var View = module.exports = AppObject.extend({
 
 			var data = $this.attr('data-partial-data');
 			if (data) {
-				data = self[data];
+				data = objectSearch.get(self, data);
 			}
 
-			var view = self[name] = new View(data);
+			var view = new View(data);
+			objectSearch.set(self, name, view);
 			$this.replaceWith(view.$elem);
 			view.draw();
 		});
@@ -22599,6 +22601,78 @@ if (typeof JSON !== 'object') {
     }
 }()); 
  }; /* ==  End source for module /lib/json2.js  == */ return module; }());;
+;require._modules["/lib/object-search.js"] = (function() { var __filename = "/lib/object-search.js"; var __dirname = "/lib"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /lib/object-search.js  == */ var __module__ = function() { 
+ 
+// 
+// Get a key from an object at any depth
+// 
+exports.get = function(obj, key) {
+	return exports.find(obj, key).get();
+};
+
+// 
+// Set a key on an object at any depth
+// 
+exports.set = function(obj, key, value) {
+	return exports.find(obj, key).set(value);
+};
+
+// 
+// Delete a key from an object at any depth
+// 
+exports.del = function(obj, key) {
+	return exports.find(obj, key).del();
+};
+
+// ------------------------------------------------------------------
+
+// 
+// The actual lookup routine. Returns an object with meta-data and simple
+// get/set/del functions.
+// 
+exports.find = function(obj, key) {
+	var keys = key.split('.');
+	var lastKey = keys.pop();
+	var current = obj;
+
+	try {
+		for (var i = 0, c = keys.length; i < c; i++) {
+			current = current[keys[i]];
+		}
+	} catch (err) {
+		return {
+			get: function() { },
+			set: function() { },
+			del: function() { },
+			object: obj,
+			key: key,
+			keys: keys,
+			lastKey: lastKey,
+			scope: current,
+			error: err
+		};
+	}
+
+	return {
+		get: function() {
+			return current[lastKey];
+		},
+		set: function(value) {
+			return current[lastKey] = value;
+		},
+		del: function() {
+			delete current[lastKey];
+		},
+		object: obj,
+		key: key,
+		keys: keys,
+		lastKey: lastKey,
+		scope: current
+	}
+};
+ 
+ }; /* ==  End source for module /lib/object-search.js  == */ return module; }());;
 ;require._modules["/lib/promise/index.js"] = (function() { var __filename = "/lib/promise/index.js"; var __dirname = "/lib/promise"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /lib/promise/index.js  == */ var __module__ = function() { 
  
@@ -30379,6 +30453,16 @@ var Document = module.exports = Model.extend({
 	},
 
 	// 
+	// Determine if the document has a current draft
+	// 
+	// @return boolean
+	// 
+	hasDraft: function() {
+		var draft = this.get('draft');
+		return !! (draft && draft.created);
+	},
+
+	// 
 	// Save a draft to the document
 	// 
 	// @param {delta} the draft delta
@@ -30414,7 +30498,10 @@ var Document = module.exports = Model.extend({
 	},
 
 	// 
+	// Render the document's text content at a given commit (or the current if none is given)
 	// 
+	// @param {commit} optional; the commit it
+	// @return string
 	// 
 	render: function(commit) {
 		var content = commit ? this.getCommitContent(commit) : this.get('current').composed;
@@ -30427,7 +30514,10 @@ var Document = module.exports = Model.extend({
 	},
 
 	// 
+	// Build a delta representing the document at a given commit
 	// 
+	// @param {commit} the commit id
+	// @return array
 	// 
 	getCommitContent: function(commit) {
 		var history = this.get('history');
@@ -30648,13 +30738,16 @@ User.current = function() {
  
 var purl                = require('purl');
 var cloak               = require('cloak');
+var moment              = require('moment');
 var Router              = require('cloak/router');
 var auth                = require('common/auth');
 var User                = require('models/user');
+var Document            = require('models/document');
 var DashboardView       = require('views/dashboard/dashboard');
 var CreateDocumentView  = require('views/create-document/create-document');
 var ProfileView         = require('views/profile/profile');
 var SearchView          = require('views/search/search');
+var SearchResultsView   = require('views/search/results/results');
 var QuillView           = require('views/quill/quill');
 var Request             = require('cloak/model-stores/dagger').Request;
 
@@ -30667,7 +30760,7 @@ var DashboardRouter = module.exports = Router.extend({
 		'/create':          'createDocument',
 		'/user/:username':  'profile',
 		'/search':          'search',
-		'/quill':           'quill'
+		'/search/results':  'searchResults'
 	},
 
 	initialize: function() {
@@ -30767,14 +30860,101 @@ var DashboardRouter = module.exports = Router.extend({
 		this.parent.renderView(view);
 	},
 
-// --------------------------------------------------------
+	searchResults: function() {
+		document.title = 'Search Results / Collabish';
 
-	quill: function() {
-		document.title = 'Quill Demo / Collabish';
-		this.parent.renderView(new QuillView());
+		var view = new SearchResultsView();
+		var renderPromise = this.parent.renderView(view);
+
+		var query = { };
+		var params = purl(location).param();
+
+		// Title querying
+		if (params.query) {
+			query.$or = params.query.split(/\s+/).map(function(block) {
+				return '/' + block + '/';
+			});
+		}
+
+		// Tag querying
+		if (params.tags) {
+			var includeTags = [ ];
+			var excludeTags = [ ];
+			query.tags = { };
+			params.tags.split(',').forEach(function(tag) {
+				if (tag[0] === '-') {
+					excludeTags.push(tag.slice(1));
+				} else {
+					includeTags.push(tag);
+				}
+			});
+			if (includeTags.length) {
+				if (params.tagging === 'any') {
+					query.tags.$in = includeTags;
+				} else {
+					query.tags.$all = includeTags;
+				}
+			}
+			if (excludeTags.length) {
+				query.tags.$nin = excludeTags;
+			}
+		}
+
+		// Adult content querying
+		switch (params.adult || 'no') {
+			case 'either':
+				// pass
+			break;
+			case 'yes':
+				query.adult = {$eq: true};
+			break;
+			case 'no':
+				query.adult = {$eq: false};
+			break;
+		}
+
+		// Created querying
+		var created = dateQuery(params.created);
+		if (created) {
+			query.created = {$gte: created};
+		}
+
+		// Updated querying
+		var updated = dateQuery(params.updated);
+		if (updated) {
+			query.updated = {$gte: updated};
+		}
+
+		// Actually run the query
+		query = Document.find({
+			filter: query,
+			limit: 10
+		});
+
+		Promise.all([ query, renderPromise ])
+			.then(function(results) {
+				view.documents = results[0];
+				view.drawResults();
+			});
 	}
 
-}); 
+});
+
+function dateQuery(timeAgo) {
+	switch (timeAgo) {
+		case 'any':
+			return null;
+		case 'today':
+			return moment().subtract(1, 'day').format();
+		case 'week':
+			return moment().subtract(1, 'week').format();
+		case 'month':
+			return moment().subtract(1, 'month').format();
+	}
+}
+
+
+ 
  }; /* ==  End source for module /routers/dashboard.js  == */ return module; }());;
 ;require._modules["/routers/document.js"] = (function() { var __filename = "/routers/document.js"; var __dirname = "/routers"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /routers/document.js  == */ var __module__ = function() { 
@@ -30795,7 +30975,8 @@ var DocumentRouter = module.exports = Router.extend({
 	routes: {
 		'/document/:id':                 'overview',
 		'/document/:id/read':            'readDocument',
-		'/document/:id/read/:commit':    'readDocument'
+		'/document/:id/read/:commit':    'readDocument',
+		'/document/:id/settings':        'documentSettings'
 	},
 
 	initialize: function() {
@@ -30867,6 +31048,15 @@ var DocumentRouter = module.exports = Router.extend({
 			.catch(function(err) {
 				console.error(err.stack || err);
 			});
+	},
+
+// --------------------------------------------------------
+
+	// 
+	// Document settings screen
+	// 
+	documentSettings: function() {
+		document.title = 'Document - Settings / Collabish';
 	}
 
 }); 
@@ -31482,15 +31672,49 @@ function program1(depth0,data) {
 this["exports"]["views/document/document.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
-  var buffer = "", stack1, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, functionType="function", self=this;
+  var buffer = "", stack1, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, self=this, functionType="function";
 
 function program1(depth0,data) {
+  
+  var buffer = "", stack1, helper, options;
+  buffer += "\n		<div class=\"write\">\n			<a data-tooltip=\"Start Writing\">"
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "reorder", options) : helperMissing.call(depth0, "icon", "reorder", options)))
+    + "</a>\n			<ul>\n				";
+  stack1 = helpers['if'].call(depth0, (depth0 && depth0.hasDraft), {hash:{},inverse:self.noop,fn:self.program(2, program2, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n				<li><a class=\"start\">Start New Draft "
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "pencil-square-o", options) : helperMissing.call(depth0, "icon", "pencil-square-o", options)))
+    + "</a></li>\n				<li><a class=\"clone\">Clone Document "
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "copy", options) : helperMissing.call(depth0, "icon", "copy", options)))
+    + "</a></li>\n				<li><a class=\"download\">Download Document "
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "download", options) : helperMissing.call(depth0, "icon", "download", options)))
+    + "</a></li>\n				<li><a class=\"history\" href=\"/#document/"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1._id)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "/history\">Document History "
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "history", options) : helperMissing.call(depth0, "icon", "history", options)))
+    + "</a></li>\n				<li><a class=\"settings\" href=\"/#document/"
+    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1._id)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "/settings\">Document Settings "
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "gear", options) : helperMissing.call(depth0, "icon", "gear", options)))
+    + "</a></li>\n			</ul>\n		</div>\n		";
+  return buffer;
+  }
+function program2(depth0,data) {
+  
+  var buffer = "", helper, options;
+  buffer += "\n				<li><a class=\"continue\">Continue Draft "
+    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "pencil-square-o", options) : helperMissing.call(depth0, "icon", "pencil-square-o", options)))
+    + "</a></li>\n				";
+  return buffer;
+  }
+
+function program4(depth0,data) {
   
   
   return "<a class=\"edit\">Edit</a>";
   }
 
-function program3(depth0,data) {
+function program6(depth0,data) {
   
   var buffer = "", helper, options;
   buffer += "\n				<a href=\"/#search?tags="
@@ -31501,7 +31725,7 @@ function program3(depth0,data) {
   return buffer;
   }
 
-function program5(depth0,data) {
+function program8(depth0,data) {
   
   var buffer = "", helper, options;
   buffer += "\n				<span data-tooltip=\"This document may contain adult content\">\n					"
@@ -31510,7 +31734,7 @@ function program5(depth0,data) {
   return buffer;
   }
 
-function program7(depth0,data) {
+function program10(depth0,data) {
   
   var buffer = "", stack1, helper, options;
   buffer += "\n				<span data-tooltip=\"This document is shared with "
@@ -31521,7 +31745,7 @@ function program7(depth0,data) {
   return buffer;
   }
 
-function program9(depth0,data) {
+function program12(depth0,data) {
   
   var buffer = "", helper, options;
   buffer += "\n				<span data-tooltip=\"This document is private\">\n					"
@@ -31530,7 +31754,7 @@ function program9(depth0,data) {
   return buffer;
   }
 
-function program11(depth0,data) {
+function program14(depth0,data) {
   
   var buffer = "", helper, options;
   buffer += "\n				<span data-tooltip=\"This document is public\">\n					"
@@ -31539,13 +31763,13 @@ function program11(depth0,data) {
   return buffer;
   }
 
-function program13(depth0,data) {
+function program16(depth0,data) {
   
   
   return "\n			<em>No collaborators</em>\n			";
   }
 
-function program15(depth0,data) {
+function program18(depth0,data) {
   
   var buffer = "", stack1;
   buffer += "\n				<li><a href=\"/#user/"
@@ -31556,27 +31780,16 @@ function program15(depth0,data) {
   return buffer;
   }
 
-function program17(depth0,data) {
-  
-  var buffer = "", stack1, helper, options;
-  buffer += "\n			<a href=\"/#document/"
-    + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1._id)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + "/settings\" class=\"settings\">\n				"
-    + escapeExpression((helper = helpers.icon || (depth0 && depth0.icon),options={hash:{},data:data},helper ? helper.call(depth0, "gear", options) : helperMissing.call(depth0, "icon", "gear", options)))
-    + " Document Settings\n			</a>\n			";
-  return buffer;
-  }
-
-function program19(depth0,data) {
+function program20(depth0,data) {
   
   var buffer = "", stack1;
   buffer += "\n			<dl>\n				";
-  stack1 = helpers.each.call(depth0, (depth0 && depth0.recentCommits), {hash:{},inverse:self.noop,fn:self.programWithDepth(20, program20, data, depth0),data:data});
+  stack1 = helpers.each.call(depth0, (depth0 && depth0.recentCommits), {hash:{},inverse:self.noop,fn:self.programWithDepth(21, program21, data, depth0),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "\n			</dl>\n			";
   return buffer;
   }
-function program20(depth0,data,depth1) {
+function program21(depth0,data,depth1) {
   
   var buffer = "", stack1, helper, options;
   buffer += "\n				<dt>"
@@ -31591,58 +31804,58 @@ function program20(depth0,data,depth1) {
   return buffer;
   }
 
-function program22(depth0,data) {
+function program23(depth0,data) {
   
   
   return "\n			<p>This document doesn't have any commits yet.</p>\n			";
   }
 
-function program24(depth0,data) {
+function program25(depth0,data) {
   
   var buffer = "";
   buffer += "\n<section rel=\"comments\" class=\"comments row\">\n	<h4>Leave a Comment</h4>\n	<textarea class=\"pseudo\"></textarea>\n	<section class=\"hide\" data-partial=\"quill\" name=\"commentBox\" data-partial-data=\"commentBoxOptions\"></section>\n	<ol>\n		\n	</ol>\n	<button class=\"load-more action expand\">Load More Comments</button>\n</section>\n";
   return buffer;
   }
 
-  buffer += "<header>\n	<h1>"
+  buffer += "<header>\n	<h1>\n		"
     + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.name)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + " (<a href=\"/#document/"
+    + "\n		(<a href=\"/#document/"
     + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1._id)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
-    + "/read\">read</a>)</h1>\n</header>\n<main class=\"row\">\n	<div class=\"small-12 medium-9 columns\">\n		<div class=\"meta panel\">\n			<div class=\"author\">\n				Author: <a href=\"/#user/"
+    + "/read\">read</a>)\n		";
+  stack1 = helpers['if'].call(depth0, (depth0 && depth0.isOwner), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n	</h1>\n</header>\n<main class=\"row\">\n	<div class=\"small-12 medium-9 columns\">\n		<div class=\"meta panel\">\n			<div class=\"author\">\n				Author: <a href=\"/#user/"
     + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.owner)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
     + "\">"
     + escapeExpression(((stack1 = ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.owner)),stack1 == null || stack1 === false ? stack1 : stack1.username)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
     + "</a>\n			</div>\n			<div class=\"description\">\n				<p>\n					"
     + escapeExpression(((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.description)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
     + "\n					";
-  stack1 = helpers['if'].call(depth0, (depth0 && depth0.isOwner), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  stack1 = helpers['if'].call(depth0, (depth0 && depth0.isOwner), {hash:{},inverse:self.noop,fn:self.program(4, program4, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "\n				</p>\n			</div>\n			<div class=\"tags\">\n				";
-  stack1 = helpers.each.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.tags), {hash:{},inverse:self.noop,fn:self.program(3, program3, data),data:data});
+  stack1 = helpers.each.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.tags), {hash:{},inverse:self.noop,fn:self.program(6, program6, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "\n			</div>\n			<section data-partial=\"stars\" data-partial-data=\"document\" name=\"stars\"></section>\n			<div class=\"icons\">\n				";
-  stack1 = helpers['if'].call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.adultContent), {hash:{},inverse:self.noop,fn:self.program(5, program5, data),data:data});
+  stack1 = helpers['if'].call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.adultContent), {hash:{},inverse:self.noop,fn:self.program(8, program8, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "\n				";
-  stack1 = helpers['if'].call(depth0, ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.collaborators)),stack1 == null || stack1 === false ? stack1 : stack1.length), {hash:{},inverse:self.noop,fn:self.program(7, program7, data),data:data});
+  stack1 = helpers['if'].call(depth0, ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.collaborators)),stack1 == null || stack1 === false ? stack1 : stack1.length), {hash:{},inverse:self.noop,fn:self.program(10, program10, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "\n				";
-  stack1 = helpers.unless.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1['public']), {hash:{},inverse:self.program(11, program11, data),fn:self.program(9, program9, data),data:data});
+  stack1 = helpers.unless.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1['public']), {hash:{},inverse:self.program(14, program14, data),fn:self.program(12, program12, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "\n			</div>\n		</div>\n		<div class=\"meta panel\">\n			<h5>Collaborators</h5>\n			";
-  stack1 = helpers.unless.call(depth0, ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.collaborators)),stack1 == null || stack1 === false ? stack1 : stack1.length), {hash:{},inverse:self.noop,fn:self.program(13, program13, data),data:data});
+  stack1 = helpers.unless.call(depth0, ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.collaborators)),stack1 == null || stack1 === false ? stack1 : stack1.length), {hash:{},inverse:self.noop,fn:self.program(16, program16, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "\n			<ul class=\"collaborators\">\n				";
-  stack1 = helpers.each.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.collaborators), {hash:{},inverse:self.noop,fn:self.program(15, program15, data),data:data});
+  stack1 = helpers.each.call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.collaborators), {hash:{},inverse:self.noop,fn:self.program(18, program18, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += "\n			</ul>\n\n			";
-  stack1 = helpers['if'].call(depth0, (depth0 && depth0.isOwner), {hash:{},inverse:self.noop,fn:self.program(17, program17, data),data:data});
-  if(stack1 || stack1 === 0) { buffer += stack1; }
-  buffer += "\n		</div>\n	</div>\n	<div class=\"small-12 medium-3 columns\">\n		<div class=\"history panel\">\n			<h3>Document History</h3>\n			";
-  stack1 = helpers['if'].call(depth0, ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.history)),stack1 == null || stack1 === false ? stack1 : stack1.length), {hash:{},inverse:self.program(22, program22, data),fn:self.program(19, program19, data),data:data});
+  buffer += "\n			</ul>\n		</div>\n	</div>\n	<div class=\"small-12 medium-3 columns\">\n		<div class=\"history panel\">\n			<h3>Document History</h3>\n			";
+  stack1 = helpers['if'].call(depth0, ((stack1 = ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.history)),stack1 == null || stack1 === false ? stack1 : stack1.length), {hash:{},inverse:self.program(23, program23, data),fn:self.program(20, program20, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
   buffer += "\n		</div>\n	</div>\n</main>\n";
-  stack1 = helpers['if'].call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.allowComments), {hash:{},inverse:self.noop,fn:self.program(24, program24, data),data:data});
+  stack1 = helpers['if'].call(depth0, ((stack1 = (depth0 && depth0.document)),stack1 == null || stack1 === false ? stack1 : stack1.allowComments), {hash:{},inverse:self.noop,fn:self.program(25, program25, data),data:data});
   if(stack1 || stack1 === 0) { buffer += stack1; }
   return buffer;
   });
@@ -31773,7 +31986,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
 
   buffer += "<div class=\"copyright\">\n	Collabish &copy; "
     + escapeExpression((helper = helpers.now || (depth0 && depth0.now),options={hash:{},data:data},helper ? helper.call(depth0, "YYYY", options) : helperMissing.call(depth0, "now", "YYYY", options)))
-    + " <a href=\"http://www.umbraengineering.com\">Umbra Engineering LLC</a>\n</div>\n<div class=\"links\">\n	<a class=\"terms\">Terms</a>\n	<a class=\"privacy\">Privacy</a>\n	<a class=\"report\">Report a Problem</a>\n	<a class=\"support\" href=\"http://www.gofundme.com/collabish\">Help Support Collabish</a>\n</div>";
+    + " <a href=\"http://www.umbraengineering.com\" target=\"_blank\">Umbra Engineering LLC</a>\n</div>\n<div class=\"links\">\n	<a class=\"terms\">Terms</a>\n	<a class=\"privacy\">Privacy</a>\n	<a class=\"report\">Report a Problem</a>\n	<a class=\"support\" href=\"http://www.gofundme.com/collabish\" target=\"_blank\">Help Support Collabish</a>\n</div>";
   return buffer;
   });
 
@@ -31985,6 +32198,38 @@ function program2(depth0,data) {
   return buffer;
   });
 
+this["exports"]["views/search/results/results.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  var buffer = "", stack1, functionType="function", escapeExpression=this.escapeExpression, self=this;
+
+function program1(depth0,data) {
+  
+  var buffer = "", stack1;
+  buffer += "\n	<section name=\"docs."
+    + escapeExpression(((stack1 = (data == null || data === false ? data : data.index)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\" data-partial=\"document\" data-partial-data=\"documents.models."
+    + escapeExpression(((stack1 = (data == null || data === false ? data : data.index)),typeof stack1 === functionType ? stack1.apply(depth0) : stack1))
+    + "\"></section>\n	";
+  return buffer;
+  }
+
+  buffer += "<h1>Search Results</h1>\n<div class=\"row\">\n	";
+  stack1 = helpers.each.call(depth0, (depth0 && depth0.documents), {hash:{},inverse:self.noop,fn:self.program(1, program1, data),data:data});
+  if(stack1 || stack1 === 0) { buffer += stack1; }
+  buffer += "\n</div>";
+  return buffer;
+  });
+
+this["exports"]["views/search/results/searching.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
+  this.compilerInfo = [4,'>= 1.0.0'];
+helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
+  
+
+
+  return "<div class=\"searching\">\n	<h1>Searching...</h1>\n</div>";
+  });
+
 this["exports"]["views/search/search.hbs"] = Handlebars.template(function (Handlebars,depth0,helpers,partials,data) {
   this.compilerInfo = [4,'>= 1.0.0'];
 helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
@@ -32054,7 +32299,7 @@ helpers = this.merge(helpers, Handlebars.helpers); data = data || {};
   var buffer = "", stack1, helper, options, helperMissing=helpers.helperMissing, escapeExpression=this.escapeExpression, functionType="function";
 
 
-  buffer += "<h2>Public Profile</h2>\n<form>\n	<label class=\"gravatar\">\n		Avatar (provided by <a href=\"http://gravatar.com\">Gravatar</a>)\n		<img src=\""
+  buffer += "<h2>Public Profile</h2>\n<form>\n	<label class=\"gravatar\">\n		Avatar (provided by <a href=\"http://gravatar.com\" target=\"_blank\">Gravatar</a>)\n		<img src=\""
     + escapeExpression((helper = helpers.gravatar || (depth0 && depth0.gravatar),options={hash:{},data:data},helper ? helper.call(depth0, (depth0 && depth0.gravatarHash), "s=100", options) : helperMissing.call(depth0, "gravatar", (depth0 && depth0.gravatarHash), "s=100", options)))
     + "\" width=\"100\" height=\"100\" alt=\"\" title=\"\" />\n	</label>\n	<label>\n		Name<br />\n		<input type=\"text\" class=\"name\" value=\"";
   if (helper = helpers.name) { stack1 = helper.call(depth0, {hash:{},data:data}); }
@@ -47551,7 +47796,8 @@ var DocumentView = module.exports = View.extend({
 		'focus .comments textarea.pseudo':    'showCommentEditor',
 		'click .comments .post.button':       'postComment',
 		'click .comments .cancel.button':     'cancelComment',
-		'click .comments .load-more':         'loadMoreComments'
+		'click .comments .load-more':         'loadMoreComments',
+		'click header .write > a':            'toggleWriteOptions'
 	},
 
 	initialize: function(document) {
@@ -47574,6 +47820,7 @@ var DocumentView = module.exports = View.extend({
 
 	drawDocument: function() {
 		this.$elem.html(this.render({
+			hasDraft: this.document.hasDraft(),
 			isOwner: (this.document.get('owner').id() === auth.user.id()),
 			document: this.document.serialize({ deep: true }),
 			recentCommits: this.document.get('history').slice().reverse().slice(0, 10)
@@ -47593,12 +47840,19 @@ var DocumentView = module.exports = View.extend({
 			this.atwho(self.commentUsernameAtList);
 		});
 
+		this.$writeDropdown   = this.$('.write');
 		this.$description     = this.$('.description');
 		this.$comments        = this.$('section.comments');
 		this.$commentList     = this.$('section.comments ol');
 		this.$loadMoreButton  = this.$('section.comments .load-more');
 
 		this.bindEvents();
+	},
+
+// --------------------------------------------------------
+
+	toggleWriteOptions: function() {
+		this.$writeDropdown.toggleClass('open');
 	},
 
 // --------------------------------------------------------
@@ -48618,6 +48872,53 @@ var QuillView = module.exports = View.extend({
 });
  
  }; /* ==  End source for module /views/quill/quill.js  == */ return module; }());;
+;require._modules["/views/search/results/results.js"] = (function() { var __filename = "/views/search/results/results.js"; var __dirname = "/views/search/results"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
+ /* ==  Begin source for module /views/search/results/results.js  == */ var __module__ = function() { 
+ 
+var _                     = require('cloak/underscore');
+var View                  = require('cloak/view');
+var auth                  = require('common/auth');
+var DocumentOverviewView  = require('views/document/overview/overview');
+
+var SearchResultsView = module.exports = View.extend({
+
+	className: 'search-results',
+	template: 'views/search/results/results.hbs',
+	searchingTemplate: 'views/search/results/searching.hbs',
+
+	events: {
+		// 
+	},
+
+	initialize: function() {
+		this.documents = null;
+	},
+
+	draw: function() {
+		this.$elem.html(this.render(null, 'searchingTemplate'));
+	},
+
+	drawResults: function() {
+		var self = this;
+		this.$elem.animate({ 'opacity': 'hide' }, 600, function() {
+			self.$elem.html(self.render({
+				documents: self.documents.serialize()
+			}));
+
+			self.docs = [ ];
+			self.bindPartials({
+				document: DocumentOverviewView
+			});
+
+			self.$elem.animate({ 'opacity': 'show' }, 600, function() {
+				// 
+			});
+		});
+	}
+
+});
+ 
+ }; /* ==  End source for module /views/search/results/results.js  == */ return module; }());;
 ;require._modules["/views/search/search.js"] = (function() { var __filename = "/views/search/search.js"; var __dirname = "/views/search"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
  /* ==  Begin source for module /views/search/search.js  == */ var __module__ = function() { 
  
@@ -48645,7 +48946,7 @@ var SearchView = module.exports = View.extend({
 		this.$query         = this.$('.query input');
 		this.$tags          = this.$('.tags');
 		this.$tagsType      = this.$('.tags-type input');
-		this.$adultContent  = this.$('.adult-content');
+		this.$adultContent  = this.$('.adult-content input');
 		this.$created       = this.$('.created select');
 		this.$updated       = this.$('.updated select');
 
@@ -48667,9 +48968,42 @@ var SearchView = module.exports = View.extend({
 		if (evt.preventDefault) {
 			evt.preventDefault();
 		}
+
+		var querystring = '?';
+		
+		var query = this.$query.val();
+		if (query) {
+			querystring += param('query', query);
+		}
+
+		var tags = this.tagEditor.tags.join(',');
+		if (tags) {
+			querystring += param('tags', tags);
+			querystring += param('tagging', this.$tagsType.filter(':checked').val());
+		}
+
+		querystring += param('adult', this.$adultContent.filter(':checked').val());
+
+		var created = this.$created.val();
+		if (created !== 'any') {
+			querystring += param('created', created);
+		}
+
+		var updated = this.$updated.val();
+		if (updated !== 'any') {
+			querystring += param('updated', updated);
+		}
+
+		querystring = querystring.substring(0, querystring.length - 1);
+
+		router.redirectTo('/search/results' + querystring);
 	}
 
 });
+
+function param(name, value) {
+	return name + '=' + encodeURIComponent(value) + '&';
+}
  
  }; /* ==  End source for module /views/search/search.js  == */ return module; }());;
 ;require._modules["/views/settings/account/account.js"] = (function() { var __filename = "/views/settings/account/account.js"; var __dirname = "/views/settings/account"; var module = { loaded: false, exports: { }, filename: __filename, dirname: __dirname, require: null, call: function() { module.loaded = true; module.call = function() { }; __module__(); }, parent: null, children: [ ] }; var process = { title: "browser", nextTick: function(func) { setTimeout(func, 0); } }; var require = module.require = window.require._bind(module); var exports = module.exports; 
@@ -48971,7 +49305,6 @@ var TagEditorView = module.exports = View.extend({
 
 	initialize: function(opts) {
 		this.tags = [ ];
-		this.exlcudes = [ ];
 		this.opts = opts || { };
 	},
 

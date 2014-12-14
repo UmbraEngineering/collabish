@@ -68,6 +68,16 @@ var Document = module.exports = Model.extend({
 	},
 
 	// 
+	// Determine if the document has a current draft
+	// 
+	// @return boolean
+	// 
+	hasDraft: function() {
+		var draft = this.get('draft');
+		return !! (draft && draft.created);
+	},
+
+	// 
 	// Save a draft to the document
 	// 
 	// @param {delta} the draft delta
@@ -103,7 +113,10 @@ var Document = module.exports = Model.extend({
 	},
 
 	// 
+	// Render the document's text content at a given commit (or the current if none is given)
 	// 
+	// @param {commit} optional; the commit it
+	// @return string
 	// 
 	render: function(commit) {
 		var content = commit ? this.getCommitContent(commit) : this.get('current').composed;
@@ -116,7 +129,10 @@ var Document = module.exports = Model.extend({
 	},
 
 	// 
+	// Build a delta representing the document at a given commit
 	// 
+	// @param {commit} the commit id
+	// @return array
 	// 
 	getCommitContent: function(commit) {
 		var history = this.get('history');

@@ -1,5 +1,23 @@
 <header>
-	<h1>{{ document.name }} (<a href="/#document/{{ document._id }}/read">read</a>)</h1>
+	<h1>
+		{{ document.name }}
+		(<a href="/#document/{{ document._id }}/read">read</a>)
+		{{#if isOwner}}
+		<div class="write">
+			<a data-tooltip="Start Writing">{{icon "reorder"}}</a>
+			<ul>
+				{{#if hasDraft}}
+				<li><a class="continue">Continue Draft {{icon "pencil-square-o"}}</a></li>
+				{{/if}}
+				<li><a class="start">Start New Draft {{icon "pencil-square-o"}}</a></li>
+				<li><a class="clone">Clone Document {{icon "copy"}}</a></li>
+				<li><a class="download">Download Document {{icon "download"}}</a></li>
+				<li><a class="history" href="/#document/{{ document._id }}/history">Document History {{icon "history"}}</a></li>
+				<li><a class="settings" href="/#document/{{ document._id }}/settings">Document Settings {{icon "gear"}}</a></li>
+			</ul>
+		</div>
+		{{/if}}
+	</h1>
 </header>
 <main class="row">
 	<div class="small-12 medium-9 columns">
@@ -53,12 +71,6 @@
 				<li><a href="/#user/{{ this.username }}">{{ this.username }}</a></li>
 				{{/each}}
 			</ul>
-
-			{{#if isOwner}}
-			<a href="/#document/{{ document._id }}/settings" class="settings">
-				{{icon "gear"}} Document Settings
-			</a>
-			{{/if}}
 		</div>
 	</div>
 	<div class="small-12 medium-3 columns">

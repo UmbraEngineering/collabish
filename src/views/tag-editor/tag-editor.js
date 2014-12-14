@@ -14,7 +14,6 @@ var TagEditorView = module.exports = View.extend({
 
 	initialize: function(opts) {
 		this.tags = [ ];
-		this.exlcudes = [ ];
 		this.opts = opts || { };
 	},
 
