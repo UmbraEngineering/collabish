@@ -14,88 +14,12 @@ section.document {
 
 		section.document header h1 {
 			text-align: center;
+			line-height: 1;
 		}
 
-			section.document header .write {
-				position: relative;
-				display: inline-block;
-				top: -2px;
+			section.document header h1 span.read {
+				font-size: 0.6em;
 			}
-
-				section.document header .write.open a {
-					text-shadow: 1px 0 0 #fff;
-				}
-
-				section.document header .write > a {
-					color: inherit;
-					padding: 0 10px;
-					display: inline-block;
-					background: #fff;
-					transition: background .2s linear;
-					cursor: pointer;
-					font-size: 32px;
-					padding: 6px 16px;
-				}
-
-					section.document header .write.open > a {
-						color: #444;
-						background: #eee;
-						border-radius: 10px 10px 0 0;
-						box-shadow: 4px 4px 4px rgba(0,0,0,0.5);
-					}
-
-				section.document header .write > a[data-tooltip]:after {
-					width: 100px;
-				}
-
-					section.document header .write.open > a[data-tooltip]:before,
-					section.document header .write.open > a[data-tooltip]:after {
-						display: none;
-					}
-
-				section.document header .write ul {
-					position: absolute;
-					list-style-type: none;
-					top: 63px;
-					right: 0;
-					width: 225px;
-					z-index: 1001;
-					background: #eee;
-					padding: 0;
-					opacity: 0;
-					border-radius: 10px 0 10px 10px;
-					box-shadow: 4px 4px 4px rgba(0,0,0,0.5);
-					transition: opacity .2s linear;
-					overflow: hidden;
-				}
-
-					section.document header .write.open ul {
-						opacity: 1;
-					}
-
-					section.document header .write li {
-						/**/
-					}
-
-						section.document header .write li a {
-							color: #444;
-							padding: 5px 15px;
-							display: block;
-							width: 100%;
-							text-align: right;
-							background: #eee;
-							transition: background .1s linear;
-						}
-
-						section.document header .write li a:hover {
-							color: #fff;
-							background: #28b;
-							text-shadow: none;
-						}
-
-							section.document header .write li a i.fa {
-								margin-left: 10px;
-							}
 
 	section.document .panel {
 		box-shadow: 4px 4px 4px rgba(0,0,0,0.5);
@@ -167,6 +91,27 @@ section.document {
 				position: relative;
 				top: 2px;
 			}
+
+	section.document nav.panel {
+		text-align: center;
+	}
+
+		section.document nav.panel a {
+			color: #444;
+			display: inline-block;
+			font-size: 1.6rem;
+			margin: 0 10px;
+			text-shadow: 1px 1px 0 #fff;
+		}
+
+		section.document nav.panel a[data-tooltip]:after {
+			width: 120px;
+			text-shadow: none;
+		}
+
+		section.document nav.panel p.none {
+			color: #888;
+		}
 
 	section.document .history.panel {
 		/**/

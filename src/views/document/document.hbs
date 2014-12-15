@@ -1,34 +1,21 @@
 <header>
-	<h1>
-		{{ document.name }}
-		(<a href="/#document/{{ document._id }}/read">read</a>)
-		{{#if isOwner}}
-		<div class="write">
-			<a data-tooltip="Start Writing">{{icon "reorder"}}</a>
-			<ul>
-				{{#if hasDraft}}
-				<li><a class="continue">Continue Draft {{icon "pencil-square-o"}}</a></li>
-				{{/if}}
-				<li><a class="start">Start New Draft {{icon "pencil-square-o"}}</a></li>
-				<li><a class="clone">Clone Document {{icon "copy"}}</a></li>
-				<li><a class="download">Download Document {{icon "download"}}</a></li>
-				<li><a class="history" href="/#document/{{ document._id }}/history">Document History {{icon "history"}}</a></li>
-				<li><a class="settings" href="/#document/{{ document._id }}/settings">Document Settings {{icon "gear"}}</a></li>
-			</ul>
-		</div>
-		{{/if}}
+	<h1>{{ document.name }}
+		<br />
+		<span class="read">
+			(<a href="/#document/{{ document._id }}/read">{{i18n "doc_overview.start_reading"}}</a>)
+		</span>
 	</h1>
 </header>
 <main class="row">
-	<div class="small-12 medium-9 columns">
+	<div class="small-12 large-9 columns">
 		<div class="meta panel">
 			<div class="author">
-				Author: <a href="/#user/{{ document.owner.username }}">{{ document.owner.username }}</a>
+				{{i18n "doc_overview.author"}}: <a href="/#user/{{ document.owner.username }}">{{ document.owner.username }}</a>
 			</div>
 			<div class="description">
 				<p>
 					{{ document.description }}
-					{{#if isOwner}}<a class="edit">Edit</a>{{/if}}
+					{{#if isOwner}}<a class="edit">{{i18n "actions.edit"}}</a>{{/if}}
 				</p>
 			</div>
 			<div class="tags">
@@ -41,30 +28,30 @@
 			<section data-partial="stars" data-partial-data="document" name="stars"></section>
 			<div class="icons">
 				{{#if document.adultContent}}
-				<span data-tooltip="This document may contain adult content">
+				<span data-tooltip="{{i18n "doc_overview.adult_content"}}">
 					{{icon "eye-slash"}}
 				</span>
 				{{/if}}
 				{{#if document.collaborators.length}}
-				<span data-tooltip="This document is shared with {{ document.collaborators.length }} collaborators">
+				<span data-tooltip="{{i18n "doc_overview.shared_with" document.collaborators.length}}">
 					{{icon "share-alt"}}
 				</span>
 				{{/if}}
 				{{#unless document.public }}
-				<span data-tooltip="This document is private">
+				<span data-tooltip="{{i18n "doc_overview.is_private"}}">
 					{{icon "lock"}}
 				</span>
 				{{else}}
-				<span data-tooltip="This document is public">
+				<span data-tooltip="{{i18n "doc_overview.is_public"}}">
 					{{icon "users"}}
 				</span>
 				{{/unless}}
 			</div>
 		</div>
 		<div class="meta panel">
-			<h5>Collaborators</h5>
+			<h5>{{i18n "doc_overview.collaborators"}}</h5>
 			{{#unless document.collaborators.length}}
-			<em>No collaborators</em>
+			<em>{{i18n "doc_overview.no_collaborators"}}</em>
 			{{/unless}}
 			<ul class="collaborators">
 				{{#each document.collaborators}}
@@ -73,14 +60,37 @@
 			</ul>
 		</div>
 	</div>
-	<div class="small-12 medium-3 columns">
+	<div class="small-12 large-3 columns">
+		<nav class="panel">
+			{{#if hasButtons}}
+			{{#if isOwner}}
+			{{#if hasDraft}}
+			<a class="continue" data-tooltip="{{i18n "doc_overview.continue_draft"}}">{{icon "pencil-square-o"}}</a>
+			{{else}}
+			<a class="start" data-tooltip="{{i18n "doc_overview.start_draft"}}">{{icon "pencil-square-o"}}</a>
+			{{/if}}
+			{{/if}}
+			{{#if isOwner}}
+			<a class="clone" data-tooltip="{{i18n "doc_overview.clone"}}">{{icon "copy"}}</a>
+			{{/if}}
+			{{#if isOwner}}
+			<a class="download" data-tooltip="{{i18n "doc_overview.download"}}">{{icon "download"}}</a>
+			{{/if}}
+			<a class="history" data-tooltip="{{i18n "doc_overview.history"}}" href="/#document/{{ document._id }}/history">{{icon "history"}}</a>
+			{{#if isOwner}}
+			<a class="settings" data-tooltip="{{i18n "doc_overview.doc_settings"}}" href="/#document/{{ document._id }}/settings">{{icon "gear"}}</a>
+			{{/if}}
+			{{else}}
+			<p class="none">{{i18n "doc_overview.no_buttons"}}</p>
+			{{/if}}
+		</nav>
 		<div class="history panel">
-			<h3>Document History</h3>
+			<h3>{{i18n "doc_overview.history"}}</h3>
 			{{#if document.history.length}}
 			<dl>
 				{{#each recentCommits}}
 				<dt>{{fromNow this.created}}
-					(<a href="/#document/{{ ../document._id }}/read/{{ this._id }}">read</a>)
+					(<a href="/#document/{{ ../document._id }}/read/{{ this._id }}">{{i18n "doc_overview.read"}}</a>)
 				</dt>
 				<dd>
 					{{ this.message }}
@@ -88,19 +98,19 @@
 				{{/each}}
 			</dl>
 			{{else}}
-			<p>This document doesn't have any commits yet.</p>
+			<p>{{i18n "doc_overview.no_commits"}}</p>
 			{{/if}}
 		</div>
 	</div>
 </main>
 {{#if document.allowComments}}
 <section rel="comments" class="comments row">
-	<h4>Leave a Comment</h4>
+	<h4>{{i18n "comments.leave_comment"}}</h4>
 	<textarea class="pseudo"></textarea>
 	<section class="hide" data-partial="quill" name="commentBox" data-partial-data="commentBoxOptions"></section>
 	<ol>
 		{{!-- Comments --}}
 	</ol>
-	<button class="load-more action expand">Load More Comments</button>
+	<button class="load-more action expand">{{i18n "comments.load_more"}}</button>
 </section>
 {{/if}}

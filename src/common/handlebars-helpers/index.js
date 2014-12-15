@@ -1,4 +1,5 @@
 
+require('./i18n');
 require('./encode');
 require('./moment');
 require('./gravatar');

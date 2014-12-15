@@ -8,6 +8,7 @@ var StarsView    = require('views/document/stars/stars');
 var QuillEditor  = require('views/quill/quill');
 var CommentView  = require('views/document/comment/comment');
 var renderer     = require('quilljs-renderer');
+var i18n         = require('common/i18n');
 
 renderer.loadFormat('html');
 
@@ -24,7 +25,10 @@ var DocumentView = module.exports = View.extend({
 		'click .comments .post.button':       'postComment',
 		'click .comments .cancel.button':     'cancelComment',
 		'click .comments .load-more':         'loadMoreComments',
-		'click header .write > a':            'toggleWriteOptions'
+		'click nav.panel .continue':          'continueDraft',
+		'click nav.panel .start':             'startDraft',
+		'click nav.panel .clone':             'cloneDocument',
+		'click nav.panel .download':          'downloadDocument'
 	},
 
 	initialize: function(document) {
@@ -34,8 +38,8 @@ var DocumentView = module.exports = View.extend({
 		this.commentBoxOptions = {
 			atwho: [ ],
 			buttons: [
-				{text: 'Post Comment', classname: 'small action button post'},
-				{text: 'Cancel', classname: 'small secondary button cancel'}
+				{text: i18n.translate('comments.post'), classname: 'small action button post'},
+				{text: i18n.translate('actions.cancel'), classname: 'small secondary button cancel'}
 			]
 		};
 	},
@@ -46,9 +50,12 @@ var DocumentView = module.exports = View.extend({
 	},
 
 	drawDocument: function() {
+		var isOwner = (this.document.get('owner').id() === auth.user.id());
+
 		this.$elem.html(this.render({
 			hasDraft: this.document.hasDraft(),
-			isOwner: (this.document.get('owner').id() === auth.user.id()),
+			hasButtons: isOwner,
+			isOwner: isOwner,
 			document: this.document.serialize({ deep: true }),
 			recentCommits: this.document.get('history').slice().reverse().slice(0, 10)
 		}));
@@ -78,8 +85,20 @@ var DocumentView = module.exports = View.extend({
 
 // --------------------------------------------------------
 
-	toggleWriteOptions: function() {
-		this.$writeDropdown.toggleClass('open');
+	continueDraft: function() {
+		// 
+	},
+
+	startDraft: function() {
+		// 
+	},
+
+	cloneDocument: function() {
+		// 
+	},
+
+	downloadDocument: function() {
+		// 
 	},
 
 // --------------------------------------------------------
@@ -91,7 +110,8 @@ var DocumentView = module.exports = View.extend({
 
 		this.$description.html(
 			'<textarea>' + this.document.get('description') + '</textarea>' +
-			'<a class="cancel">Cancel</a> | <a class="save">Save</a>' +
+			'<a class="cancel">' + i18n.translate('actions.cancel') + '</a> | ' +
+			'<a class="save">' + i18n.translate('actions.save') + '</a>' +
 			'<div class="spinner"></div>'
 		);
 	},
@@ -123,7 +143,7 @@ var DocumentView = module.exports = View.extend({
 		}
 
 		this.$description.html(
-			'<p>' + this.document.get('description') + ' <a class="edit">Edit</a></p>'
+			'<p>' + this.document.get('description') + ' <a class="edit">' + i18n.translate('actions.edit') + '</a></p>'
 		);
 	},
 
@@ -155,9 +175,9 @@ var DocumentView = module.exports = View.extend({
 
 		if (! (comments && comments.len())) {
 			if (this.commentCount) {
-				this.$comments.append('<p class="no-results">There are no more comments</p>');
+				this.$comments.append('<p class="no-results">' + i18n.translate('comments.no_more') + '</p>');
 			} else {
-				this.$comments.append('<p class="no-results">There are no comments</p>');
+				this.$comments.append('<p class="no-results">' + i18n.translate('comments.no_comments') + '</p>');
 			}
 			this.$loadMoreButton.remove();
 			return;

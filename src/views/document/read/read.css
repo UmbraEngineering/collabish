@@ -12,6 +12,10 @@ section.read > .spinner {
 			text-align: center;
 		}
 
+			section.read header h1 span.overview {
+				font-size: 0.6em;
+			}
+
 	section.read .contents.panel {
 		overflow-y: auto;
 		box-shadow: 4px 4px 4px rgba(0,0,0,0.5);

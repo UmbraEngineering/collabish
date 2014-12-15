@@ -35,6 +35,9 @@ exports.find = function(obj, key) {
 		for (var i = 0, c = keys.length; i < c; i++) {
 			current = current[keys[i]];
 		}
+		if (! current) {
+			throw null;
+		}
 	} catch (err) {
 		return {
 			get: function() { },
